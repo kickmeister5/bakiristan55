@@ -1140,9 +1140,10 @@ function setPollStatus(type, text){
 async function connectKickChat(){
   setPollStatus('', 'Kick kanalına bağlanılıyor...');
   try {
-    const res = await fetch('https://kick.com/api/v2/channels/'+POLL_SLUG, {headers:{'Accept':'application/json'}});
-    if(!res.ok) throw new Error('API yanıt vermedi (CORS)');
+    const res = await fetch('https://kick-proxy-git-main-kickmeister5s-projects.vercel.app/api/channel?slug='+POLL_SLUG);
+    if(!res.ok) throw new Error('Proxy yanıt vermedi: '+res.status);
     const data = await res.json();
+    if(data.error) throw new Error(data.error);
     const chatroomId = data.chatroom?.id;
     if(!chatroomId) throw new Error('Chatroom ID bulunamadı');
     const pusherKey = 'eb1d5f283081a78b932c';
