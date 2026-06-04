@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Paneli — Var Mısın? Yok Musun?</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --gold: #f0c040; --red: #e03030; --green: #20c060;
+  --bg: #07070f; --surface: #10101a; --surface2: #18182a; --surface3: #1e1e30;
+  --border: rgba(240,192,64,0.15); --border2: rgba(240,192,64,0.30);
+  --text: #f0ead8; --muted: #6a6680;
+  --font-title: 'Bebas Neue', sans-serif; --font-body: 'Outfit', sans-serif;
+}
+html, body { min-height:100vh; background:var(--bg); color:var(--text); font-family:var(--font-body); }
+body::before {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background: radial-gradient(ellipse 60% 40% at 20% 10%, rgba(240,192,64,0.04) 0%, transparent 60%),
+              radial-gradient(ellipse 40% 60% at 80% 80%, rgba(100,80,200,0.04) 0%, transparent 60%);
+}
+#wrap { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; padding:28px 20px 60px; }
+
+/* HEADER */
+.hdr { text-align:center; margin-bottom:28px; }
+.hdr-title { font-family:var(--font-title); font-size:clamp(28px,6vw,52px); letter-spacing:5px; color:var(--gold); text-shadow:0 0 36px rgba(240,192,64,0.28); }
+.hdr-sub { font-family:var(--font-title); font-size:13px; letter-spacing:6px; color:var(--muted); margin-top:2px; }
+.hdr-line { width:90px; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); margin:10px auto 0; }
+.hdr-link { display:inline-block; margin-top:14px; font-size:12px; color:var(--muted); text-decoration:none; border:1px solid var(--border); border-radius:20px; padding:5px 16px; transition:all 0.2s; }
+.hdr-link:hover { color:var(--gold); border-color:var(--border2); }
+
+/* TABS */
+.tabs { display:flex; gap:5px; width:100%; max-width:820px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:5px; margin-bottom:22px; }
+.tab { flex:1; background:transparent; border:none; border-radius:8px; padding:10px; font-family:var(--font-title); font-size:17px; letter-spacing:2px; color:var(--muted); cursor:pointer; transition:all 0.2s; }
+.tab.on { background:var(--surface2); color:var(--gold); border:1px solid var(--border2); }
+.tab:hover:not(.on) { color:var(--text); }
+
+.panel { display:none; width:100%; flex-direction:column; align-items:center; }
+.panel.on { display:flex; }
+
+/* SAVE INDICATOR */
+.save-bar { width:100%; max-width:820px; display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:8px; }
+.save-status { font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px; }
+.save-dot { width:7px; height:7px; border-radius:50%; background:var(--green); animation:pulse 2s ease infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.save-status.dirty .save-dot { background:var(--gold); }
+
+/* PRICE GRID */
+.price-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:9px; width:100%; max-width:820px; margin-bottom:20px; }
+@media(max-width:560px){.price-grid{grid-template-columns:repeat(4,1fr);}}
+.pc { background:var(--surface); border:1px solid var(--border); border-radius:11px; padding:10px 7px; display:flex; flex-direction:column; align-items:center; gap:5px; transition:border-color 0.2s; }
+.pc:hover { border-color:var(--border2); }
+.pc-n { font-family:var(--font-title); font-size:22px; color:var(--gold); line-height:1; }
+.pc-lbl { font-size:9px; color:var(--muted); letter-spacing:1.5px; }
+.pc input[type=number] { background:var(--surface2); border:1px solid rgba(240,192,64,0.2); border-radius:6px; color:var(--text); font-family:var(--font-body); font-size:12px; width:100%; text-align:center; padding:5px 3px; outline:none; transition:border-color 0.2s,background 0.2s; -moz-appearance:textfield; }
+.pc input[type=number]::-webkit-inner-spin-button, .pc input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
+.pc input[type=number]:focus { border-color:var(--gold); background:var(--surface3); }
+
+/* IMAGE GRID */
+.img-info { width:100%; max-width:820px; background:var(--surface2); border:1px solid var(--border2); border-radius:10px; padding:12px 18px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.img-info p { font-size:12px; color:var(--muted); }
+.img-info strong { color:var(--gold); }
+.res-wrap { display:flex; align-items:center; gap:7px; font-size:12px; color:var(--muted); }
+.res-wrap input { width:68px; background:var(--surface3); border:1px solid rgba(240,192,64,0.25); border-radius:6px; color:var(--text); font-size:12px; text-align:center; padding:5px 6px; outline:none; }
+.res-wrap input:focus { border-color:var(--gold); }
+
+.img-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:9px; width:100%; max-width:820px; margin-bottom:20px; }
+@media(max-width:560px){.img-grid{grid-template-columns:repeat(4,1fr);}}
+.ic { background:var(--surface); border:1px solid var(--border); border-radius:11px; overflow:hidden; display:flex; flex-direction:column; cursor:pointer; transition:border-color 0.2s; }
+.ic:hover { border-color:var(--border2); }
+.ic-top { position:relative; aspect-ratio:7/4; background:var(--surface2); display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.ic-top img { width:100%; height:100%; object-fit:cover; display:none; }
+.ic-top img.on { display:block; }
+.ic-ph { display:flex; flex-direction:column; align-items:center; gap:3px; font-size:10px; color:var(--muted); }
+.ic-ph .plus { font-size:22px; color:rgba(240,192,64,0.25); }
+.ic.filled .ic-ph { display:none; }
+.ic.filled .ic-top img { display:block; }
+.ic-dot { position:absolute; top:5px; right:5px; width:8px; height:8px; border-radius:50%; background:var(--muted); opacity:0.4; }
+.ic.filled .ic-dot { background:var(--green); opacity:1; }
+.ic-bot { background:var(--surface); padding:6px 8px; display:flex; align-items:center; justify-content:space-between; }
+.ic-bot .n { font-family:var(--font-title); font-size:18px; color:var(--gold); }
+.ic-del { background:none; border:none; color:var(--muted); cursor:pointer; font-size:12px; padding:2px 5px; border-radius:4px; transition:color 0.2s; display:none; }
+.ic.filled .ic-del { display:block; }
+.ic-del:hover { color:var(--red); }
+.ic input[type=file] { display:none; }
+
+/* ACTIONS */
+.actions { display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; max-width:380px; margin-top:4px; }
+.btn-gold { background:var(--gold); color:#07070f; font-family:var(--font-title); font-size:20px; letter-spacing:3px; border:none; border-radius:12px; padding:15px 48px; cursor:pointer; width:100%; transition:opacity 0.15s,box-shadow 0.2s; box-shadow:0 4px 26px rgba(240,192,64,0.2); }
+.btn-gold:hover { opacity:0.9; box-shadow:0 6px 36px rgba(240,192,64,0.35); }
+.btn-ghost { background:transparent; color:var(--muted); font-size:13px; border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:9px 26px; cursor:pointer; transition:all 0.2s; }
+.btn-ghost:hover { color:var(--text); border-color:rgba(255,255,255,0.25); background:var(--surface2); }
+.btn-ghost.danger:hover { color:var(--red); border-color:rgba(224,48,48,0.35); }
+
+
+/* HEADER IMAGE TAB */
+.hi-info { width:100%; max-width:820px; background:var(--surface2); border:1px solid var(--border2); border-radius:10px; padding:14px 18px; margin-bottom:20px; font-size:12px; color:var(--muted); line-height:1.7; }
+.hi-info strong { color:var(--gold); }
+
+.hi-upload-area { width:100%; max-width:820px; background:var(--surface); border:2px dashed var(--border2); border-radius:16px; overflow:hidden; cursor:pointer; transition:border-color 0.2s,background 0.2s; margin-bottom:12px; }
+.hi-upload-area:hover { border-color:var(--gold); background:var(--surface2); }
+
+.hi-preview { width:100%; min-height:160px; display:flex; align-items:center; justify-content:center; position:relative; }
+.hi-preview img { width:100%; display:none; border-radius:14px; }
+.hi-preview img.on { display:block; }
+.hi-preview img.on ~ .hi-ph { display:none; }
+
+.hi-ph { display:flex; flex-direction:column; align-items:center; gap:6px; padding:36px 20px; }
+.hi-plus { font-size:32px; color:rgba(240,192,64,0.3); }
+.hi-ph-text { font-size:14px; color:var(--muted); }
+.hi-ph-sub { font-size:11px; color:rgba(106,102,128,0.6); }
+
+.hi-meta { font-size:11px; color:var(--muted); text-align:center; min-height:18px; }
+.hi-meta span { color:var(--gold); }
+
+
+/* DISPLAY TAB */
+.disp-panel { width:100%; max-width:820px; display:flex; flex-direction:column; gap:24px; }
+.disp-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px 28px; }
+.disp-card-title { font-family:var(--font-title); font-size:18px; letter-spacing:3px; color:var(--gold); margin-bottom:4px; }
+.disp-card-sub { font-size:12px; color:var(--muted); margin-bottom:20px; }
+.zoom-row { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+.zoom-presets { display:flex; gap:8px; flex-wrap:wrap; }
+.zoom-preset { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:8px 18px; font-family:var(--font-title); font-size:16px; letter-spacing:1px; color:var(--muted); cursor:pointer; transition:all 0.18s; }
+.zoom-preset:hover { border-color:var(--border2); color:var(--text); }
+.zoom-preset.active { background:rgba(240,192,64,0.1); border-color:var(--gold); color:var(--gold); }
+.zoom-custom-wrap { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
+.zoom-custom-wrap input { width:72px; background:var(--surface2); border:1px solid rgba(240,192,64,0.25); border-radius:8px; color:var(--text); font-size:14px; text-align:center; padding:7px 8px; outline:none; font-family:var(--font-title); letter-spacing:1px; }
+.zoom-custom-wrap input:focus { border-color:var(--gold); }
+.zoom-preview { margin-top:18px; background:var(--surface2); border-radius:10px; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+.zoom-preview-label { font-size:12px; color:var(--muted); }
+.zoom-preview-val { font-family:var(--font-title); font-size:28px; color:var(--gold); letter-spacing:2px; }
+.zoom-bar-wrap { width:100%; height:6px; background:var(--surface3); border-radius:3px; margin-top:12px; overflow:hidden; }
+.zoom-bar { height:100%; background:linear-gradient(90deg,var(--gold-dim,#a07c20),var(--gold)); border-radius:3px; transition:width 0.3s ease; }
+.disp-save-btn { background:var(--gold); color:#07070f; font-family:var(--font-title); font-size:18px; letter-spacing:2px; border:none; border-radius:10px; padding:13px 36px; cursor:pointer; transition:opacity 0.15s,box-shadow 0.2s; box-shadow:0 4px 20px rgba(240,192,64,0.2); margin-top:4px; }
+.disp-save-btn:hover { opacity:0.9; box-shadow:0 6px 30px rgba(240,192,64,0.35); }
+
+
+/* BOX SIZE CARD */
+.ratio-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:16px; }
+.ratio-btn { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 6px; text-align:center; cursor:pointer; transition:all 0.18s; }
+.ratio-btn:hover { border-color:var(--border2); }
+.ratio-btn.active { background:rgba(240,192,64,0.1); border-color:var(--gold); }
+.ratio-btn .ratio-vis { display:flex; align-items:center; justify-content:center; margin-bottom:6px; }
+.ratio-btn .ratio-box { background:rgba(240,192,64,0.15); border:1.5px solid rgba(240,192,64,0.4); border-radius:4px; }
+.ratio-btn .ratio-label { font-family:var(--font-title); font-size:13px; color:var(--muted); letter-spacing:1px; }
+.ratio-btn.active .ratio-label { color:var(--gold); }
+.size-custom-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:4px; }
+.size-custom-row label { font-size:12px; color:var(--muted); }
+.size-custom-row input { width:80px; background:var(--surface2); border:1px solid rgba(240,192,64,0.25); border-radius:8px; color:var(--text); font-size:14px; text-align:center; padding:7px 8px; outline:none; font-family:var(--font-title); }
+.size-custom-row input:focus { border-color:var(--gold); }
+.size-preview-wrap { margin-top:18px; display:flex; align-items:center; justify-content:center; gap:20px; flex-wrap:wrap; }
+.size-preview-box { background:rgba(240,192,64,0.08); border:2px solid var(--gold); border-radius:8px; display:flex; align-items:center; justify-content:center; transition:all 0.35s cubic-bezier(0.34,1.2,0.64,1); }
+.size-preview-box span { font-family:var(--font-title); font-size:22px; color:var(--gold); }
+.size-preview-label { font-size:11px; color:var(--muted); text-align:center; margin-top:8px; }
+
+
+/* BACKGROUND TAB */
+.bg-panel { width:100%; max-width:820px; display:flex; flex-direction:column; gap:20px; }
+.bg-mode-row { display:flex; gap:8px; margin-bottom:4px; }
+.bg-mode-btn { flex:1; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:12px 8px; text-align:center; cursor:pointer; transition:all 0.18s; font-family:var(--font-title); font-size:15px; letter-spacing:2px; color:var(--muted); }
+.bg-mode-btn:hover { border-color:var(--border2); color:var(--text); }
+.bg-mode-btn.active { background:rgba(240,192,64,0.1); border-color:var(--gold); color:var(--gold); }
+
+.bg-section { display:none; }
+.bg-section.on { display:block; }
+
+/* Color picker section */
+.color-presets { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+.color-swatch { width:40px; height:40px; border-radius:8px; cursor:pointer; border:2px solid transparent; transition:all 0.18s; flex-shrink:0; }
+.color-swatch:hover { transform:scale(1.12); }
+.color-swatch.active { border-color:var(--gold); box-shadow:0 0 10px rgba(240,192,64,0.4); }
+.color-custom-row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.color-custom-row label { font-size:12px; color:var(--muted); }
+.color-picker-wrap { position:relative; }
+input[type=color] { width:48px; height:40px; border:none; background:none; cursor:pointer; padding:0; border-radius:8px; outline:none; }
+.color-hex-input { background:var(--surface2); border:1px solid rgba(240,192,64,0.25); border-radius:8px; color:var(--text); font-size:13px; padding:8px 12px; width:110px; outline:none; font-family:var(--font-title); letter-spacing:1px; }
+.color-hex-input:focus { border-color:var(--gold); }
+.bg-preview { margin-top:16px; border-radius:12px; overflow:hidden; height:80px; border:1px solid var(--border); transition:background 0.3s; display:flex; align-items:center; justify-content:center; font-size:11px; color:rgba(255,255,255,0.3); letter-spacing:2px; }
+
+/* Image upload section */
+.bg-img-area { width:100%; background:var(--surface); border:2px dashed var(--border2); border-radius:14px; overflow:hidden; cursor:pointer; transition:border-color 0.2s,background 0.2s; margin-bottom:12px; }
+.bg-img-area:hover { border-color:var(--gold); background:var(--surface2); }
+.bg-img-preview { width:100%; min-height:140px; display:flex; align-items:center; justify-content:center; position:relative; }
+.bg-img-preview img { width:100%; height:160px; object-fit:cover; display:none; }
+.bg-img-preview img.on { display:block; }
+.bg-img-preview img.on ~ .bg-img-ph { display:none; }
+.bg-img-ph { display:flex; flex-direction:column; align-items:center; gap:6px; padding:32px 20px; }
+.bg-img-ph .plus { font-size:28px; color:rgba(240,192,64,0.25); }
+.bg-img-ph span { font-size:13px; color:var(--muted); }
+.bg-img-ph small { font-size:11px; color:rgba(106,102,128,0.6); }
+
+.bg-fit-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+.bg-fit-btn { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:7px 14px; font-size:12px; color:var(--muted); cursor:pointer; transition:all 0.18s; }
+.bg-fit-btn:hover { border-color:var(--border2); color:var(--text); }
+.bg-fit-btn.active { background:rgba(240,192,64,0.1); border-color:var(--gold); color:var(--gold); }
+
+.bg-opacity-row { display:flex; align-items:center; gap:12px; margin-top:14px; flex-wrap:wrap; }
+.bg-opacity-row label { font-size:12px; color:var(--muted); white-space:nowrap; }
+input[type=range] { -webkit-appearance:none; appearance:none; width:180px; height:4px; background:var(--surface3); border-radius:2px; outline:none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:var(--gold); cursor:pointer; }
+.bg-opacity-val { font-family:var(--font-title); font-size:16px; color:var(--gold); min-width:40px; }
+
+
+/* LP IMAGE UPLOAD */
+.lp-img-upload { background:var(--surface2); border:2px dashed var(--border2); border-radius:12px; cursor:pointer; overflow:hidden; transition:border-color 0.2s,background 0.2s; }
+.lp-img-upload:hover { border-color:var(--gold); background:var(--surface3); }
+.lp-img-preview { width:100%; min-height:120px; display:flex; align-items:center; justify-content:center; position:relative; }
+.lp-img-preview img { width:100%; max-height:200px; object-fit:contain; display:none; }
+.lp-img-preview img.on { display:block; }
+.lp-img-preview img.on ~ .lp-img-ph { display:none; }
+.lp-img-ph { display:flex; flex-direction:column; align-items:center; gap:6px; padding:28px 20px; }
+
+
+/* BANKER TAB */
+.banker-upload-area { width:100%; max-width:820px; background:var(--surface); border:2px dashed var(--border2); border-radius:16px; overflow:hidden; cursor:pointer; transition:border-color 0.2s,background 0.2s; margin-bottom:14px; }
+.banker-upload-area:hover { border-color:var(--gold); background:var(--surface2); }
+.banker-preview { width:100%; min-height:180px; display:flex; align-items:center; justify-content:center; position:relative; }
+.banker-preview img { width:100%; max-height:260px; object-fit:contain; display:none; }
+.banker-preview img.on { display:block; }
+.banker-preview img.on ~ .banker-ph { display:none; }
+.banker-ph { display:flex; flex-direction:column; align-items:center; gap:8px; padding:40px 20px; }
+.banker-ph .plus { font-size:36px; color:rgba(240,192,64,0.2); }
+.banker-ph span { font-size:14px; color:var(--muted); }
+.banker-ph small { font-size:11px; color:rgba(106,102,128,0.5); }
+
+/* TOAST */
+.toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(60px); background:var(--surface2); border:1px solid var(--border2); border-radius:10px; padding:10px 22px; font-size:13px; color:var(--gold); opacity:0; transition:all 0.3s; pointer-events:none; z-index:99; white-space:nowrap; }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div class="hdr">
+    <div class="hdr-title">VAR MISIN? YOK MUSUN?</div>
+    <div class="hdr-sub">YÖNETİCİ PANELİ</div>
+    <div class="hdr-line"></div>
+    <a class="hdr-link" href="index.html">🎮 Oyuna Git →</a>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" onclick="switchTab('prices')">💰 FİYATLAR</button>
+    <button class="tab" onclick="switchTab('images')">🖼 GÖRSELLER</button>
+    <button class="tab" onclick="switchTab('header')">🎨 BAŞLIK GÖRSELİ</button>
+    <button class="tab" onclick="switchTab('display')">🔍 EKRAN AYARI</button>
+    <button class="tab" onclick="switchTab('background')">🎨 ARKAPLAN</button>
+    <button class="tab" onclick="switchTab('banker')">📞 BANKER</button>
+  </div>
+
+  <!-- PRICES -->
+  <div class="panel on" id="tab-prices">
+    <div class="save-bar">
+      <div class="save-status" id="price-status"><div class="save-dot"></div><span>Kaydedildi</span></div>
+      <button class="btn-ghost" onclick="randomPrices()">🎲 Rastgele Doldur</button>
+    </div>
+    <div class="price-grid" id="price-grid"></div>
+    <div class="actions">
+      <button class="btn-gold" onclick="savePrices()">💾 KAYDET</button>
+      <a href="index.html" class="btn-ghost" style="text-align:center;text-decoration:none;display:block;padding:9px 26px;">🎮 Oyuna Geç</a>
+    </div>
+  </div>
+
+  <!-- IMAGES -->
+  <div class="panel" id="tab-images">
+    <div class="img-info">
+      <p>Her kutu için görsel yükleyin. <strong>Görseller tarayıcıda kalıcı olarak saklanır.</strong><br>Kutu numaralarını görselin üzerine kendiniz ekleyin.</p>
+      <div class="res-wrap">
+        Önerilen:
+        <input type="number" id="res-w" value="400" min="100" max="2000"> ×
+        <input type="number" id="res-h" value="400" min="100" max="2000"> px
+      </div>
+    </div>
+    <div class="img-grid" id="img-grid"></div>
+    <div class="actions">
+      <button class="btn-ghost danger" onclick="clearAllImages()">🗑 Tüm Görselleri Sil</button>
+      <a href="index.html" class="btn-ghost" style="text-align:center;text-decoration:none;display:block;padding:9px 26px;">🎮 Oyuna Geç</a>
+    </div>
+  </div>
+
+  <!-- HEADER IMAGE -->
+  <div class="panel" id="tab-header">
+    <div class="hi-info">
+      <p>Oyun ekranındaki başlık alanına görsel yükleyin.<br>
+      <strong>Önerilen oran: Geniş yatay (ör. 900×200 px)</strong> — PNG veya SVG idealdir.</p>
+    </div>
+
+    <div class="hi-upload-area" id="hi-area" onclick="document.getElementById('hi-file').click()">
+      <div class="hi-preview" id="hi-preview">
+        <img id="hi-img" src="" alt="">
+        <div class="hi-ph" id="hi-ph">
+          <div class="hi-plus">＋</div>
+          <div class="hi-ph-text">Başlık görseli yükle</div>
+          <div class="hi-ph-sub">PNG, JPG, SVG, WEBP</div>
+        </div>
+      </div>
+      <input type="file" id="hi-file" accept="image/*" onchange="handleHeaderUpload(event)">
+    </div>
+
+    <div class="hi-meta" id="hi-meta"></div>
+
+    <div class="actions" style="margin-top:20px;">
+      <button class="btn-ghost danger" onclick="clearHeaderImg()" id="hi-del-btn" style="display:none;">🗑 Başlık Görselini Sil</button>
+      <a href="index.html" class="btn-ghost" style="text-align:center;text-decoration:none;display:block;padding:9px 26px;">🎮 Oyuna Geç</a>
+    </div>
+  </div>
+
+  <!-- DISPLAY SETTINGS -->
+  <div class="panel" id="tab-display">
+    <div class="disp-panel">
+      <div class="disp-card">
+        <div class="disp-card-title">EKRAN ÖLÇEKLENDİRME</div>
+        <div class="disp-card-sub">Oyun ekranının varsayılan zoom seviyesini belirleyin. Oyuncunun tarayıcısında sayfa bu oranda açılır.</div>
+
+        <div class="zoom-presets" id="zoom-presets">
+          <button class="zoom-preset" onclick="setZoom(75)">%75</button>
+          <button class="zoom-preset" onclick="setZoom(80)">%80</button>
+          <button class="zoom-preset" onclick="setZoom(90)">%90</button>
+          <button class="zoom-preset" onclick="setZoom(100)">%100</button>
+          <button class="zoom-preset" onclick="setZoom(110)">%110</button>
+          <button class="zoom-preset" onclick="setZoom(125)">%125</button>
+          <button class="zoom-preset" onclick="setZoom(150)">%150</button>
+          <button class="zoom-preset" onclick="setZoom(175)">%175</button>
+          <button class="zoom-preset" onclick="setZoom(200)">%200</button>
+        </div>
+
+        <div class="zoom-custom-wrap" style="margin-top:16px;">
+          <span>Özel değer:</span>
+          <input type="number" id="zoom-custom" min="50" max="300" step="5" placeholder="150" oninput="setZoom(parseInt(this.value)||150)">
+          <span>%</span>
+        </div>
+
+        <div class="zoom-preview">
+          <div>
+            <div class="zoom-preview-label">Seçili oran</div>
+            <div class="zoom-preview-val" id="zoom-display-val">%150</div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);text-align:right;">Ctrl+0 ile sıfırlandığında<br>bu değere döner</div>
+        </div>
+        <div class="zoom-bar-wrap"><div class="zoom-bar" id="zoom-bar" style="width:75%;"></div></div>
+      </div>
+
+      <div class="disp-card">
+        <div class="disp-card-title">KUTU BOYUTLARI</div>
+        <div class="disp-card-sub">Oyun ekranındaki kutuların en/boy oranını ve boyutunu ayarlayın.</div>
+
+        <div class="ratio-grid" id="ratio-grid">
+          <div class="ratio-btn" onclick="setRatio(7,4)" id="rb-7-4">
+            <div class="ratio-vis"><div class="ratio-box" style="width:56px;height:32px;"></div></div>
+            <div class="ratio-label">7 : 4</div>
+          </div>
+          <div class="ratio-btn" onclick="setRatio(4,3)" id="rb-4-3">
+            <div class="ratio-vis"><div class="ratio-box" style="width:48px;height:36px;"></div></div>
+            <div class="ratio-label">4 : 3</div>
+          </div>
+          <div class="ratio-btn" onclick="setRatio(1,1)" id="rb-1-1">
+            <div class="ratio-vis"><div class="ratio-box" style="width:40px;height:40px;"></div></div>
+            <div class="ratio-label">1 : 1</div>
+          </div>
+          <div class="ratio-btn" onclick="setRatio(3,4)" id="rb-3-4">
+            <div class="ratio-vis"><div class="ratio-box" style="width:36px;height:48px;"></div></div>
+            <div class="ratio-label">3 : 4</div>
+          </div>
+          <div class="ratio-btn" onclick="setRatio(4,7)" id="rb-4-7">
+            <div class="ratio-vis"><div class="ratio-box" style="width:32px;height:56px;"></div></div>
+            <div class="ratio-label">4 : 7</div>
+          </div>
+          <div class="ratio-btn" onclick="setRatio(16,9)" id="rb-16-9">
+            <div class="ratio-vis"><div class="ratio-box" style="width:64px;height:36px;"></div></div>
+            <div class="ratio-label">16 : 9</div>
+          </div>
+          <div class="ratio-btn" onclick="setRatio(2,1)" id="rb-2-1">
+            <div class="ratio-vis"><div class="ratio-box" style="width:56px;height:28px;"></div></div>
+            <div class="ratio-label">2 : 1</div>
+          </div>
+          <div class="ratio-btn" onclick="setRatio(1,2)" id="rb-1-2">
+            <div class="ratio-vis"><div class="ratio-box" style="width:28px;height:56px;"></div></div>
+            <div class="ratio-label">1 : 2</div>
+          </div>
+        </div>
+
+        <div class="size-custom-row">
+          <label>Özel oran:</label>
+          <input type="number" id="ratio-w" min="1" max="20" value="7" oninput="setRatio(parseInt(this.value)||7,parseInt(document.getElementById('ratio-h').value)||4)"> :
+          <input type="number" id="ratio-h" min="1" max="20" value="4" oninput="setRatio(parseInt(document.getElementById('ratio-w').value)||7,parseInt(this.value)||4)">
+        </div>
+
+        <div class="size-preview-wrap">
+          <div style="text-align:center;">
+            <div class="size-preview-box" id="size-preview-box" style="width:140px;height:80px;">
+              <span>🎁</span>
+            </div>
+            <div class="size-preview-label" id="size-preview-label">7 : 4 (yatay)</div>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="disp-card">
+        <div class="disp-card-title">KALAN TUTARLAR PANELİ</div>
+        <div class="disp-card-sub">Boyut ayarlayın ve isterseniz panel yerine kendi tasarımınızı görsel olarak yükleyin.</div>
+
+        <!-- SIZE ROW -->
+        <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;margin-bottom:20px;">
+          <!-- Width -->
+          <div style="flex:1;min-width:160px;">
+            <div style="font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:8px;">GENİŞLİK (px)</div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;">
+              <button class="zoom-preset" onclick="setLpWidth(200)">200</button>
+              <button class="zoom-preset" onclick="setLpWidth(240)">240</button>
+              <button class="zoom-preset" onclick="setLpWidth(280)">280</button>
+              <button class="zoom-preset" onclick="setLpWidth(320)">320</button>
+              <button class="zoom-preset" onclick="setLpWidth(360)">360</button>
+              <button class="zoom-preset" onclick="setLpWidth(400)">400</button>
+            </div>
+            <div class="zoom-custom-wrap">
+              <span>Özel:</span>
+              <input type="number" id="lp-width-input" min="120" max="600" step="10" value="260" oninput="setLpWidth(parseInt(this.value)||260)">
+              <span>px</span>
+            </div>
+          </div>
+
+          <!-- Height — px only -->
+          <div style="flex:1;min-width:160px;">
+            <div style="font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:8px;">YÜKSEKLİK (px)</div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;">
+              <button class="zoom-preset" onclick="setLpHeight(400)">400</button>
+              <button class="zoom-preset" onclick="setLpHeight(500)">500</button>
+              <button class="zoom-preset" onclick="setLpHeight(600)">600</button>
+              <button class="zoom-preset" onclick="setLpHeight(700)">700</button>
+              <button class="zoom-preset" onclick="setLpHeight(800)">800</button>
+              <button class="zoom-preset" onclick="setLpHeight(900)">900</button>
+            </div>
+            <div class="zoom-custom-wrap">
+              <span>Özel:</span>
+              <input type="number" id="lp-height-input" min="100" max="2000" step="10" value="900" oninput="setLpHeight(parseInt(this.value)||900)">
+              <span>px</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preview -->
+        <div class="zoom-preview" style="margin-bottom:20px;">
+          <div>
+            <div class="zoom-preview-label">Seçili boyut</div>
+            <div class="zoom-preview-val" id="lp-preview-val" style="font-size:18px;">260 × 900 px</div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);text-align:right;">Kaydet'e basınca<br>oyuna uygulanır</div>
+        </div>
+
+        <!-- IMAGE UPLOAD -->
+        <div style="border-top:1px solid var(--border);padding-top:18px;">
+          <div style="font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:6px;">PANEL GÖRSELİ (OPSİYONEL)</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6;">
+            Görsel yüklerseniz sayı listesi gizlenir, yüklediğiniz görsel panelin tamamını kaplar.<br>
+            <strong style="color:var(--gold);">Önerilen boyut: <span id="lp-img-rec">260 × 900 px</span></strong>
+          </div>
+          <div class="lp-img-upload" id="lp-img-area" onclick="document.getElementById('lp-img-file').click()">
+            <div class="lp-img-preview">
+              <img id="lp-img-el" src="" alt="">
+              <div class="lp-img-ph" id="lp-img-ph">
+                <div style="font-size:28px;color:rgba(240,192,64,0.25);">＋</div>
+                <div style="font-size:13px;color:var(--muted);">Panel görseli yükle</div>
+                <div style="font-size:11px;color:rgba(106,102,128,0.6);">PNG, JPG, WEBP, SVG</div>
+              </div>
+            </div>
+            <input type="file" id="lp-img-file" accept="image/*" style="display:none" onchange="handleLpImgUpload(event)">
+          </div>
+          <div style="margin-top:10px;display:flex;gap:8px;align-items:center;">
+            <div style="font-size:11px;color:var(--muted);" id="lp-img-meta"></div>
+            <button class="btn-ghost danger" id="lp-img-del" onclick="clearLpImg()" style="display:none;padding:6px 14px;font-size:12px;">🗑 Sil</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+        <button class="disp-save-btn" onclick="saveAll()">💾 KAYDET</button>
+        <a href="index.html" class="btn-ghost" style="text-align:center;text-decoration:none;display:block;padding:13px 28px;align-self:center;">🎮 Oyuna Geç</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- BACKGROUND SETTINGS -->
+  <div class="panel" id="tab-background">
+    <div class="bg-panel">
+      <div class="disp-card">
+        <div class="disp-card-title">ARKAPLAN TÜRÜ</div>
+        <div class="disp-card-sub">Oyun ekranının arkaplanını renk veya görsel olarak ayarlayın.</div>
+
+        <div class="bg-mode-row">
+          <div class="bg-mode-btn active" id="bgm-color" onclick="setBgMode('color')">🎨 RENK</div>
+          <div class="bg-mode-btn" id="bgm-image" onclick="setBgMode('image')">🖼 GÖRSEL</div>
+          <div class="bg-mode-btn" id="bgm-none" onclick="setBgMode('none')">✕ VARSAYILAN</div>
+        </div>
+
+        <!-- COLOR SECTION -->
+        <div class="bg-section on" id="bg-color-section">
+          <div class="color-presets" id="color-presets">
+            <div class="color-swatch" style="background:#07070f" onclick="pickColor('#07070f')" title="Varsayılan Siyah"></div>
+            <div class="color-swatch" style="background:#0a0a1a" onclick="pickColor('#0a0a1a')"></div>
+            <div class="color-swatch" style="background:#0d1117" onclick="pickColor('#0d1117')"></div>
+            <div class="color-swatch" style="background:#1a0a00" onclick="pickColor('#1a0a00')"></div>
+            <div class="color-swatch" style="background:#0a1a00" onclick="pickColor('#0a1a00')"></div>
+            <div class="color-swatch" style="background:#00081a" onclick="pickColor('#00081a')"></div>
+            <div class="color-swatch" style="background:#1a001a" onclick="pickColor('#1a001a')"></div>
+            <div class="color-swatch" style="background:#1a1000" onclick="pickColor('#1a1000')"></div>
+            <div class="color-swatch" style="background:#2a1500" onclick="pickColor('#2a1500')"></div>
+            <div class="color-swatch" style="background:#000a1a" onclick="pickColor('#000a1a')"></div>
+            <div class="color-swatch" style="background:#111111" onclick="pickColor('#111111')"></div>
+            <div class="color-swatch" style="background:#1c1c2e" onclick="pickColor('#1c1c2e')"></div>
+          </div>
+          <div class="color-custom-row">
+            <label>Özel renk:</label>
+            <input type="color" id="color-picker" value="#07070f" oninput="pickColor(this.value)">
+            <input type="text" class="color-hex-input" id="color-hex" value="#07070f" maxlength="7" oninput="pickColorFromHex(this.value)" placeholder="#000000">
+          </div>
+          <div class="bg-preview" id="bg-color-preview" style="background:#07070f">ÖNIZLEME</div>
+        </div>
+
+        <!-- IMAGE SECTION -->
+        <div class="bg-section" id="bg-image-section">
+          <div class="bg-img-area" onclick="document.getElementById('bg-img-file').click()">
+            <div class="bg-img-preview">
+              <img id="bg-img-el" src="" alt="">
+              <div class="bg-img-ph">
+                <div class="plus">＋</div>
+                <span>Arkaplan görseli yükle</span>
+                <small>PNG, JPG, WEBP — tam ekran uygulanır</small>
+              </div>
+            </div>
+          </div>
+          <input type="file" id="bg-img-file" accept="image/*" style="display:none" onchange="handleBgImgUpload(event)">
+
+          <div style="margin-top:10px;">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Yerleştirme:</div>
+            <div class="bg-fit-row">
+              <div class="bg-fit-btn active" id="bgfit-cover" onclick="setBgFit('cover')">Tam Kapla</div>
+              <div class="bg-fit-btn" id="bgfit-contain" onclick="setBgFit('contain')">Sığdır</div>
+              <div class="bg-fit-btn" id="bgfit-repeat" onclick="setBgFit('repeat')">Tekrarla</div>
+              <div class="bg-fit-btn" id="bgfit-center" onclick="setBgFit('center')">Ortala</div>
+            </div>
+          </div>
+
+          <div class="bg-opacity-row">
+            <label>Opaklık:</label>
+            <input type="range" id="bg-opacity" min="10" max="100" value="100" oninput="setBgOpacity(this.value)">
+            <span class="bg-opacity-val" id="bg-opacity-val">%100</span>
+          </div>
+
+          <div style="margin-top:10px;">
+            <button class="btn-ghost danger" onclick="clearBgImg()" id="bg-img-del" style="display:none;">🗑 Görseli Sil</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+        <button class="disp-save-btn" onclick="saveBg()">💾 KAYDET</button>
+        <a href="index.html" class="btn-ghost" style="text-align:center;text-decoration:none;display:block;padding:13px 28px;align-self:center;">🎮 Oyuna Geç</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- BANKER IMAGE -->
+  <div class="panel" id="tab-banker">
+    <div class="hi-info" style="margin-bottom:16px;">
+      <p>Banker teklifi popup'ında "📞 BANKER ARADI" yazısının yerine gösterilecek görseli yükleyin.<br>
+      <strong style="color:var(--gold);">Önerilen: Kare veya yatay (ör. 400×200 px) — PNG/WEBP</strong></p>
+    </div>
+
+    <div class="banker-upload-area" onclick="document.getElementById('banker-file').click()">
+      <div class="banker-preview">
+        <img id="banker-img" src="" alt="">
+        <div class="banker-ph">
+          <div class="plus">＋</div>
+          <span>Banker görseli yükle</span>
+          <small>PNG, JPG, WEBP, SVG</small>
+        </div>
+      </div>
+      <input type="file" id="banker-file" accept="image/*" style="display:none" onchange="handleBankerImgUpload(event)">
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+      <div style="font-size:12px;color:var(--muted);" id="banker-img-meta"></div>
+      <button class="btn-ghost danger" id="banker-img-del" onclick="clearBankerImg()" style="display:none;padding:6px 14px;font-size:12px;">🗑 Sil</button>
+    </div>
+
+    <!-- Preview of how it looks in popup -->
+    <div style="width:100%;max-width:820px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;text-align:center;">
+      <div style="font-size:10px;letter-spacing:3px;color:var(--muted);margin-bottom:10px;">POPUP ÖNİZLEME</div>
+      <div style="display:inline-block;background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:20px 28px;min-width:220px;">
+        <div id="banker-popup-preview" style="margin-bottom:8px;font-size:32px;">📞</div>
+        <div style="font-size:10px;letter-spacing:2px;color:var(--muted);">BANKER ARADI</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--gold);margin-top:4px;">₺750.000</div>
+      </div>
+    </div>
+
+    <div class="actions" style="margin-top:20px;">
+      <a href="index.html" class="btn-ghost" style="text-align:center;text-decoration:none;display:block;padding:9px 26px;">🎮 Oyuna Geç</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY_PRICES = 'vmym_prices';
+const DEFAULT_PRICES = [100,250,500,1000,2500,5000,10000,20000,50000,100000,150000,200000,300000,400000,500000,600000,750000,900000,1000000,2000000];
+
+let prices = loadPrices();
+
+function loadPrices() {
+  try { const d=JSON.parse(localStorage.getItem(STORAGE_KEY_PRICES)); if(Array.isArray(d)&&d.length===20) return d; } catch(e){}
+  return [...DEFAULT_PRICES];
+}
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('on',['prices','images','header','display','background','banker'][i]===name));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.getElementById('tab-'+name).classList.add('on');
+}
+
+/* ---- PRICE TAB ---- */
+function buildPriceGrid() {
+  const g=document.getElementById('price-grid'); g.innerHTML='';
+  for(let i=0;i<20;i++){
+    g.innerHTML+=`<div class="pc">
+      <div class="pc-n">${i+1}</div>
+      <div class="pc-lbl">KUTU</div>
+      <input type="number" id="p${i}" value="${prices[i]}" min="0" step="50" oninput="markDirty()">
+    </div>`;
+  }
+}
+function markDirty() {
+  const s=document.getElementById('price-status');
+  s.classList.add('dirty');
+  s.querySelector('span').textContent='Kaydedilmedi';
+}
+function savePrices() {
+  const arr=[];
+  for(let i=0;i<20;i++) arr.push(parseInt(document.getElementById('p'+i).value)||0);
+  prices=arr;
+  localStorage.setItem(STORAGE_KEY_PRICES, JSON.stringify(arr));
+  const s=document.getElementById('price-status');
+  s.classList.remove('dirty');
+  s.querySelector('span').textContent='Kaydedildi';
+  showToast('✅ Fiyatlar kaydedildi!');
+}
+function randomPrices() {
+  const pool=[50,100,200,500,1000,2000,5000,10000,25000,50000,75000,100000,150000,200000,300000,500000,750000,1000000,1500000,2000000];
+  pool.forEach((v,i)=>{ const el=document.getElementById('p'+i); if(el) el.value=v; });
+  markDirty();
+}
+
+/* ---- IMAGE TAB (IndexedDB) ---- */
+// images[] now holds object URLs for preview only (not persisted in memory)
+let images = new Array(20).fill(null); // object URLs for current session preview
+
+async function buildImgGrid() {
+  const g=document.getElementById('img-grid'); g.innerHTML='';
+  for(let i=0;i<20;i++){
+    const blob = await idbGet('box_'+i).catch(()=>null);
+    const url = blob ? URL.createObjectURL(blob) : null;
+    images[i] = url;
+    const div=document.createElement('div');
+    div.className='ic'+(url?' filled':'');
+    div.id='ic'+i;
+    div.innerHTML=`
+      <div class="ic-top" onclick="triggerUpload(${i})">
+        <div class="ic-dot"></div>
+        <img id="ip${i}" src="${url||''}" alt="" class="${url?'on':''}">
+        <div class="ic-ph"><div class="plus">＋</div>Görsel Yükle</div>
+      </div>
+      <div class="ic-bot">
+        <span class="n">${i+1}</span>
+        <button class="ic-del" onclick="event.stopPropagation();delImg(${i})">✕</button>
+      </div>
+      <input type="file" id="if${i}" accept="image/*" onchange="handleUpload(event,${i})">`;
+    g.appendChild(div);
+  }
+}
+function triggerUpload(i){ document.getElementById('if'+i).click(); }
+async function handleUpload(e,i){
+  const file=e.target.files[0]; if(!file) return;
+  try {
+    await idbSet('box_'+i, file);
+    const url=URL.createObjectURL(file);
+    if(images[i]) URL.revokeObjectURL(images[i]);
+    images[i]=url;
+    const img=document.getElementById('ip'+i);
+    img.src=url; img.classList.add('on');
+    document.getElementById('ic'+i).classList.add('filled');
+    showToast(`✅ Kutu ${i+1} görseli kaydedildi`);
+  } catch(err){ showToast('⚠️ Görsel kaydedilemedi: '+err.message); }
+}
+async function delImg(i){
+  try { await idbDel('box_'+i); } catch(err){}
+  if(images[i]) URL.revokeObjectURL(images[i]);
+  images[i]=null;
+  const img=document.getElementById('ip'+i);
+  img.src=''; img.classList.remove('on');
+  document.getElementById('ic'+i).classList.remove('filled');
+  document.getElementById('if'+i).value='';
+  showToast(`🗑 Kutu ${i+1} görseli silindi`);
+}
+async function clearAllImages(){
+  if(!confirm('Tüm görseller silinecek. Emin misiniz?')) return;
+  for(let i=0;i<20;i++){
+    try{ await idbDel('box_'+i); }catch(e){}
+    if(images[i]) URL.revokeObjectURL(images[i]);
+    images[i]=null;
+  }
+  buildImgGrid();
+  showToast('🗑 Tüm görseller silindi');
+}
+
+/* ---- TOAST ---- */
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+
+/* ---- HEADER IMAGE TAB (IndexedDB) ---- */
+const IDB_NAME = 'vmym_db';
+const IDB_STORE = 'assets';
+const IDB_VER = 1;
+
+function openDB(){
+  return new Promise((res,rej)=>{
+    const req = indexedDB.open(IDB_NAME, IDB_VER);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(IDB_STORE);
+    req.onsuccess = e => res(e.target.result);
+    req.onerror   = e => rej(e.target.error);
+  });
+}
+function idbGet(key){
+  return openDB().then(db=>new Promise((res,rej)=>{
+    const tx=db.transaction(IDB_STORE,'readonly');
+    const req=tx.objectStore(IDB_STORE).get(key);
+    req.onsuccess=e=>res(e.target.result||null);
+    req.onerror=e=>rej(e.target.error);
+  }));
+}
+function idbSet(key,val){
+  return openDB().then(db=>new Promise((res,rej)=>{
+    const tx=db.transaction(IDB_STORE,'readwrite');
+    const req=tx.objectStore(IDB_STORE).put(val,key);
+    req.onsuccess=()=>res();
+    req.onerror=e=>rej(e.target.error);
+  }));
+}
+function idbDel(key){
+  return openDB().then(db=>new Promise((res,rej)=>{
+    const tx=db.transaction(IDB_STORE,'readwrite');
+    const req=tx.objectStore(IDB_STORE).delete(key);
+    req.onsuccess=()=>res();
+    req.onerror=e=>rej(e.target.error);
+  }));
+}
+
+function setHeaderMeta(file){
+  const meta=document.getElementById('hi-meta');
+  if(!file){ meta.innerHTML=''; return; }
+  const kb=Math.round(file.size/1024);
+  const dim = file._dim||'';
+  meta.innerHTML=`Yüklendi — <span>${file.name}</span>, <span>${kb} KB</span>${dim?' · <span>'+dim+'</span>':''}`;
+}
+
+async function initHeaderTab(){
+  try {
+    const blob = await idbGet('header_img');
+    if(blob){
+      const url = URL.createObjectURL(blob);
+      const img = document.getElementById('hi-img');
+      img.src=url; img.classList.add('on');
+      document.getElementById('hi-del-btn').style.display='block';
+      const kb=Math.round(blob.size/1024);
+      document.getElementById('hi-meta').innerHTML=`Yüklendi — <span>${kb} KB</span>`;
+    }
+  } catch(e){ console.warn('initHeaderTab error',e); }
+}
+
+function handleHeaderUpload(e){
+  const file=e.target.files[0]; if(!file) return;
+  // Get dimensions via Image
+  const url=URL.createObjectURL(file);
+  const tmpImg=new Image();
+  tmpImg.onload=async ()=>{
+    file._dim=`${tmpImg.naturalWidth}×${tmpImg.naturalHeight}`;
+    URL.revokeObjectURL(url);
+    try {
+      await idbSet('header_img', file);
+      const previewUrl=URL.createObjectURL(file);
+      const img=document.getElementById('hi-img');
+      img.src=previewUrl; img.classList.add('on');
+      document.getElementById('hi-del-btn').style.display='block';
+      setHeaderMeta(file);
+      showToast('✅ Başlık görseli kaydedildi!');
+    } catch(err){
+      showToast('⚠️ Görsel kaydedilemedi: '+err.message);
+    }
+  };
+  tmpImg.src=url;
+}
+
+async function clearHeaderImg(){
+  if(!confirm('Başlık görseli silinecek. Emin misiniz?')) return;
+  try { await idbDel('header_img'); } catch(e){}
+  const img=document.getElementById('hi-img');
+  img.src=''; img.classList.remove('on');
+  document.getElementById('hi-del-btn').style.display='none';
+  document.getElementById('hi-file').value='';
+  setHeaderMeta(null);
+  showToast('🗑 Başlık görseli silindi');
+}
+
+
+/* ---- DISPLAY / ZOOM TAB ---- */
+const SK_ZOOM = 'vmym_zoom';
+let currentZoom = 150;
+
+function initDisplayTab(){
+  const saved = parseInt(localStorage.getItem(SK_ZOOM)) || 150;
+  currentZoom = saved;
+  renderZoom(saved);
+  document.getElementById('zoom-custom').value = saved;
+}
+
+function setZoom(val){
+  if(!val||val<50||val>300) return;
+  currentZoom = val;
+  renderZoom(val);
+  document.getElementById('zoom-custom').value = val;
+}
+
+function renderZoom(val){
+  document.getElementById('zoom-display-val').textContent = '%' + val;
+  const pct = Math.min(100, Math.max(0, ((val-50)/(300-50))*100));
+  document.getElementById('zoom-bar').style.width = pct + '%';
+  document.querySelectorAll('.zoom-preset').forEach(btn=>{
+    const bval = parseInt(btn.textContent.replace('%',''));
+    btn.classList.toggle('active', bval===val);
+  });
+}
+
+
+/* ---- BOX SIZE ---- */
+const SK_RATIO = 'vmym_ratio';
+let currentRatioW = 7, currentRatioH = 4;
+
+function initBoxSize(){
+  try {
+    const saved = JSON.parse(localStorage.getItem(SK_RATIO));
+    if(saved && saved.w && saved.h){ currentRatioW=saved.w; currentRatioH=saved.h; }
+  } catch(e){}
+  renderRatio(currentRatioW, currentRatioH);
+  document.getElementById('ratio-w').value = currentRatioW;
+  document.getElementById('ratio-h').value = currentRatioH;
+}
+
+function setRatio(w, h){
+  currentRatioW = w; currentRatioH = h;
+  document.getElementById('ratio-w').value = w;
+  document.getElementById('ratio-h').value = h;
+  renderRatio(w, h);
+}
+
+function renderRatio(w, h){
+  // Highlight preset button
+  document.querySelectorAll('.ratio-btn').forEach(b=>b.classList.remove('active'));
+  const key = 'rb-'+w+'-'+h;
+  const btn = document.getElementById(key);
+  if(btn) btn.classList.add('active');
+
+  // Preview box
+  const maxW = 160, maxH = 140;
+  let pw, ph;
+  if(w/h >= 1){ pw=maxW; ph=Math.round(maxW*h/w); }
+  else { ph=maxH; pw=Math.round(maxH*w/h); }
+  const box = document.getElementById('size-preview-box');
+  box.style.width = pw+'px'; box.style.height = ph+'px';
+
+  // Label
+  const orient = w>h?'yatay':w<h?'dikey':'kare';
+  document.getElementById('size-preview-label').textContent = w+' : '+h+' ('+orient+')';
+}
+
+function saveAll(){
+  localStorage.setItem(SK_ZOOM, currentZoom);
+  localStorage.setItem(SK_RATIO, JSON.stringify({w:currentRatioW, h:currentRatioH}));
+  localStorage.setItem(SK_LP, JSON.stringify({width:currentLpWidth, height:currentLpHeight})); // height in px
+  showToast('✅ Ayarlar kaydedildi');
+}
+
+
+
+
+/* ---- LEFT PANEL SIZE ---- */
+const SK_LP = 'vmym_lp';
+let currentLpWidth = 260;
+let currentLpHeight = 900;
+
+function initLpSize(){
+  try {
+    const d = JSON.parse(localStorage.getItem(SK_LP));
+    if(d){
+      if(d.width)  currentLpWidth  = d.width;
+      if(d.height) currentLpHeight = d.height;
+    }
+  } catch(e){}
+  document.getElementById('lp-width-input').value  = currentLpWidth;
+  document.getElementById('lp-height-input').value = currentLpHeight;
+  renderLpSize();
+  // Load existing lp image
+  idbGet('lp_img').then(blob=>{
+    if(blob){
+      const url=URL.createObjectURL(blob);
+      const img=document.getElementById('lp-img-el');
+      img.src=url; img.classList.add('on');
+      document.getElementById('lp-img-del').style.display='block';
+      document.getElementById('lp-img-meta').textContent='Görsel yüklü — '+Math.round(blob.size/1024)+' KB';
+    }
+  }).catch(()=>{});
+}
+
+function setLpWidth(val){
+  currentLpWidth = parseInt(val)||260;
+  document.getElementById('lp-width-input').value = currentLpWidth;
+  renderLpSize();
+}
+
+function setLpHeight(val){
+  currentLpHeight = parseInt(val)||900;
+  document.getElementById('lp-height-input').value = currentLpHeight;
+  renderLpSize();
+}
+
+function renderLpSize(){
+  document.getElementById('lp-preview-val').textContent = currentLpWidth + ' × ' + currentLpHeight + ' px';
+  const rec = document.getElementById('lp-img-rec');
+  if(rec) rec.textContent = currentLpWidth + ' × ' + currentLpHeight + ' px';
+}
+
+async function handleLpImgUpload(e){
+  const file=e.target.files[0]; if(!file) return;
+  try {
+    await idbSet('lp_img', file);
+    const url=URL.createObjectURL(file);
+    const img=document.getElementById('lp-img-el');
+    img.src=url; img.classList.add('on');
+    document.getElementById('lp-img-del').style.display='block';
+    document.getElementById('lp-img-meta').textContent='Yüklendi — '+Math.round(file.size/1024)+' KB';
+    showToast('✅ Panel görseli kaydedildi');
+  } catch(err){ showToast('⚠️ Kaydedilemedi: '+err.message); }
+}
+
+async function clearLpImg(){
+  if(!confirm('Panel görseli silinecek?')) return;
+  try { await idbDel('lp_img'); } catch(e){}
+  const img=document.getElementById('lp-img-el');
+  img.src=''; img.classList.remove('on');
+  document.getElementById('lp-img-del').style.display='none';
+  document.getElementById('lp-img-file').value='';
+  document.getElementById('lp-img-meta').textContent='';
+  showToast('🗑 Panel görseli silindi');
+}
+
+
+/* ---- BANKER IMAGE ---- */
+async function initBankerTab(){
+  try {
+    const blob = await idbGet('banker_img');
+    if(blob){
+      const url = URL.createObjectURL(blob);
+      const img = document.getElementById('banker-img');
+      img.src = url; img.classList.add('on');
+      document.getElementById('banker-img-del').style.display = 'block';
+      document.getElementById('banker-img-meta').textContent = Math.round(blob.size/1024) + ' KB';
+      updateBankerPopupPreview(url);
+    }
+  } catch(e){}
+}
+
+function updateBankerPopupPreview(url){
+  const prev = document.getElementById('banker-popup-preview');
+  if(!prev) return;
+  if(url){
+    prev.innerHTML = `<img src="${url}" style="max-width:160px;max-height:80px;object-fit:contain;border-radius:8px;">`;
+  } else {
+    prev.innerHTML = '📞';
+  }
+}
+
+async function handleBankerImgUpload(e){
+  const file = e.target.files[0]; if(!file) return;
+  try {
+    await idbSet('banker_img', file);
+    const url = URL.createObjectURL(file);
+    const img = document.getElementById('banker-img');
+    img.src = url; img.classList.add('on');
+    document.getElementById('banker-img-del').style.display = 'block';
+    document.getElementById('banker-img-meta').textContent = Math.round(file.size/1024) + ' KB';
+    updateBankerPopupPreview(url);
+    showToast('✅ Banker görseli kaydedildi');
+  } catch(err){ showToast('⚠️ Kaydedilemedi: ' + err.message); }
+}
+
+async function clearBankerImg(){
+  if(!confirm('Banker görseli silinecek?')) return;
+  try { await idbDel('banker_img'); } catch(e){}
+  const img = document.getElementById('banker-img');
+  img.src = ''; img.classList.remove('on');
+  document.getElementById('banker-img-del').style.display = 'none';
+  document.getElementById('banker-file').value = '';
+  document.getElementById('banker-img-meta').textContent = '';
+  updateBankerPopupPreview(null);
+  showToast('🗑 Banker görseli silindi');
+}
+
+/* ---- BACKGROUND TAB ---- */
+const SK_BG = 'vmym_bg';
+let currentBgMode = 'none';
+let currentBgColor = '#07070f';
+let currentBgFit = 'cover';
+let currentBgOpacity = 100;
+
+function initBgTab(){
+  try {
+    const d = JSON.parse(localStorage.getItem(SK_BG));
+    if(d){
+      currentBgMode = d.mode || 'none';
+      currentBgColor = d.color || '#07070f';
+      currentBgFit = d.fit || 'cover';
+      currentBgOpacity = d.opacity || 100;
+    }
+  } catch(e){}
+  setBgMode(currentBgMode, true);
+  pickColor(currentBgColor, true);
+  setBgFit(currentBgFit, true);
+  setBgOpacity(currentBgOpacity, true);
+  // Load existing bg image preview
+  idbGet('bg_img').then(blob=>{
+    if(blob){
+      const url = URL.createObjectURL(blob);
+      const img = document.getElementById('bg-img-el');
+      img.src = url; img.classList.add('on');
+      document.getElementById('bg-img-del').style.display = 'block';
+    }
+  }).catch(()=>{});
+}
+
+function setBgMode(mode, silent){
+  currentBgMode = mode;
+  ['color','image','none'].forEach(m=>{
+    const btn = document.getElementById('bgm-'+m);
+    if(btn) btn.classList.toggle('active', m===mode);
+    const sec = document.getElementById('bg-'+m+'-section');
+    if(sec) sec.classList.toggle('on', m===mode);
+  });
+}
+
+function pickColor(hex, silent){
+  currentBgColor = hex;
+  document.getElementById('color-picker').value = hex;
+  document.getElementById('color-hex').value = hex;
+  document.getElementById('bg-color-preview').style.background = hex;
+  document.querySelectorAll('.color-swatch').forEach(s=>{
+    s.classList.toggle('active', s.style.background === hex || s.style.backgroundColor === hex);
+  });
+}
+
+function pickColorFromHex(val){
+  if(/^#[0-9a-fA-F]{6}$/.test(val)) pickColor(val);
+}
+
+function setBgFit(fit, silent){
+  currentBgFit = fit;
+  ['cover','contain','repeat','center'].forEach(f=>{
+    const el = document.getElementById('bgfit-'+f);
+    if(el) el.classList.toggle('active', f===fit);
+  });
+}
+
+function setBgOpacity(val, silent){
+  currentBgOpacity = parseInt(val);
+  document.getElementById('bg-opacity').value = val;
+  document.getElementById('bg-opacity-val').textContent = '%'+val;
+}
+
+async function handleBgImgUpload(e){
+  const file = e.target.files[0]; if(!file) return;
+  try {
+    await idbSet('bg_img', file);
+    const url = URL.createObjectURL(file);
+    const img = document.getElementById('bg-img-el');
+    img.src = url; img.classList.add('on');
+    document.getElementById('bg-img-del').style.display = 'block';
+    showToast('✅ Arkaplan görseli kaydedildi');
+    // Auto switch to image mode and save
+    setBgMode('image');
+    saveBg();
+  } catch(err){ showToast('⚠️ Görsel kaydedilemedi: '+err.message); }
+}
+
+async function clearBgImg(){
+  if(!confirm('Arkaplan görseli silinecek?')) return;
+  try { await idbDel('bg_img'); } catch(e){}
+  const img = document.getElementById('bg-img-el');
+  img.src=''; img.classList.remove('on');
+  document.getElementById('bg-img-del').style.display='none';
+  document.getElementById('bg-img-file').value='';
+  showToast('🗑 Arkaplan görseli silindi');
+}
+
+function saveBg(){
+  const d = { mode: currentBgMode, color: currentBgColor, fit: currentBgFit, opacity: currentBgOpacity };
+  localStorage.setItem(SK_BG, JSON.stringify(d));
+  showToast('✅ Arkaplan kaydedildi');
+}
+
+/* ---- INIT ---- */
+buildPriceGrid();
+buildImgGrid();
+initHeaderTab();
+initDisplayTab();
+initBoxSize();
+initLpSize();
+initBgTab();
+initBankerTab();
+</script>
+</body>
+</html>
