@@ -45,7 +45,7 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 
 .game-top {
   text-align: center;
-  margin-bottom: 12px;
+  margin-bottom: 0;
   width: 100%;
   max-width: 1060px;
 }
@@ -68,13 +68,12 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
   border: none;
   border-radius: 16px;
   padding: 14px 8px;
-  position: sticky;
-  top: 0px;
-  max-height: calc(100vh - 20px);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   backdrop-filter: blur(6px);
+  flex: 1;
+  min-height: 0;
 }
 .lp-title { font-family:var(--font-title); font-size:13px; letter-spacing:3px; color:var(--muted); margin-bottom:8px; text-align:center; flex-shrink:0; }
 .price-list {
@@ -140,7 +139,7 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 
 
 /* HEADER IMAGE */
-.game-header-img-wrap { width:100%; max-width:900px; margin:0 auto 6px; }
+.game-header-img-wrap { width:100%; max-width:900px; margin:0 auto; display:block; }
 .game-header-img-wrap img { width:100%; height:auto; display:block; object-fit:contain; max-height:180px; }
 
 /* old bar — hidden */
@@ -270,6 +269,22 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 .rp-num { font-family:var(--font-title); font-size:48px; color:var(--gold); line-height:1; }
 .rp-tag { font-family:var(--font-title); font-size:12px; letter-spacing:2px; color:var(--gold); background:rgba(240,192,64,0.08); border:1px solid var(--border2); border-radius:20px; padding:4px 14px; }
 
+
+/* SOL ALT KÖŞE GÖRSELİ */
+.left-col {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.lp-corner-img {
+  width: 100%;
+  display: none;
+  object-fit: contain;
+  flex-shrink: 0;
+  padding-left: 120px;
+}
+.lp-corner-img.on { display: block; }
+
 /* ===== RESULT POPUP ===== */
 .result-overlay { position:fixed; inset:0; z-index:995; background:rgba(4,4,10,0.88); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; padding:20px; }
 .result-overlay.on { display:flex; animation:overlayIn 0.35s ease; }
@@ -331,10 +346,13 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 
   <div class="game-layout">
 
-    <!-- LEFT: remaining prices -->
-    <div class="left-panel">
-      <div class="lp-title">KALAN TUTARLAR</div>
-      <div class="price-list" id="price-list"></div>
+    <!-- LEFT: remaining prices + corner image -->
+    <div class="left-col">
+      <div class="left-panel">
+        <div class="lp-title">KALAN TUTARLAR</div>
+        <div class="price-list" id="price-list"></div>
+      </div>
+      <img class="lp-corner-img" id="lp-corner-img" src="" alt="">
     </div>
 
     <!-- CENTER: boxes + offer -->
@@ -502,7 +520,10 @@ function showSelectPopup(){
 function closeSelectPopup(){
   const ov=document.getElementById('sel-overlay');
   ov.classList.add('hide');
-  setTimeout(()=>{ ov.style.display='none'; }, 400);
+  setTimeout(()=>{
+    ov.style.display='none';
+    animateBoxesIn();
+  }, 400);
 }
 
 
@@ -545,6 +566,25 @@ async function applyBackground(){
   } catch(e){ console.warn('applyBackground error',e); }
 }
 
+
+
+/* ===== CORNER IMAGE ===== */
+async function applyCornerImg(){
+  try {
+    const blob = await idbGet('corner_img');
+    const img = document.getElementById('lp-corner-img');
+    if(!img) return;
+    if(blob){
+      if(img._objUrl) URL.revokeObjectURL(img._objUrl);
+      const url = URL.createObjectURL(blob);
+      img._objUrl = url;
+      img.src = url;
+      img.classList.add('on');
+    } else {
+      img.classList.remove('on');
+    }
+  } catch(e){}
+}
 
 /* ===== LEFT PANEL IMAGE (header only) ===== */
 async function applyLpImage(){
@@ -592,6 +632,7 @@ async function initGame(){
   applyHeaderImg();
   applyBackground();
   applyLpImage();
+  applyCornerImg();
   buildGame();
   buildPriceList();
   setTimeout(showSelectPopup, 600);
@@ -609,7 +650,7 @@ function buildGame(){
   for(let i=0;i<20;i++){
     const d=document.createElement('div');
     d.className='box'; d.id='box'+i;
-    d.style.opacity='0'; d.style.transform='scale(0.6) rotate(-8deg)'; d.style.transition='none';
+    d.style.opacity='0'; d.style.transform='scale(0.5) translateY(30px)'; d.style.transition='none';
     const adminIdx=shuffleMap[i];
     const src=boxImages[adminIdx];
     if(src){
@@ -619,10 +660,18 @@ function buildGame(){
     }
     d.onclick=()=>clickBox(i);
     g.appendChild(d);
+  }
+}
+
+function animateBoxesIn(){
+  for(let i=0;i<20;i++){
+    const d=document.getElementById('box'+i);
+    if(!d) continue;
     setTimeout(()=>{
-      d.style.transition='opacity 0.3s ease,transform 0.35s cubic-bezier(0.34,1.56,0.64,1)';
-      d.style.opacity='1'; d.style.transform='scale(1) rotate(0deg)';
-    }, i*50);
+      d.style.transition='opacity 0.35s ease, transform 0.4s cubic-bezier(0.34,1.56,0.64,1)';
+      d.style.opacity='1';
+      d.style.transform='scale(1) translateY(0)';
+    }, i*55);
   }
 }
 
