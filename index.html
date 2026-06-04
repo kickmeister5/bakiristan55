@@ -139,8 +139,8 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 
 
 /* HEADER IMAGE */
-.game-header-img-wrap { width:100%; max-width:900px; margin:0 auto; display:block; }
-.game-header-img-wrap img { width:100%; height:auto; display:block; object-fit:contain; max-height:180px; }
+.game-header-img-wrap { width:100%; max-width:1400px; margin:0 auto; display:block; }
+.game-header-img-wrap img { width:100%; height:auto; display:block; object-fit:contain; max-height:300px; }
 
 /* old bar — hidden */
 .select-prompt { display:none!important; }
@@ -277,13 +277,128 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
   min-height: 0;
 }
 .lp-corner-img {
-  width: 100%;
+  width: 77%;
   display: none;
   object-fit: contain;
   flex-shrink: 0;
-  padding-left: 120px;
+  padding-left: 0;
+  margin-left: 0;
 }
 .lp-corner-img.on { display: block; }
+
+
+/* ===== CHAT POLL BUTTON ===== */
+.poll-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 60;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 50px;
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-family: var(--font-title);
+  font-size: 15px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  transition: all 0.2s;
+}
+.poll-fab:hover { background: var(--surface2); box-shadow: 0 6px 28px rgba(240,192,64,0.2); }
+.poll-fab-dot { width:8px; height:8px; border-radius:50%; background:var(--muted); flex-shrink:0; }
+.poll-fab-dot.live { background:var(--green); animation:pulseDot 1.5s ease infinite; }
+@keyframes pulseDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.3)}}
+
+/* ===== CHAT POLL POPUP ===== */
+.poll-overlay { position:fixed; inset:0; z-index:997; background:rgba(4,4,10,0.9); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; padding:16px; }
+.poll-overlay.on { display:flex; animation:overlayIn 0.3s ease; }
+.poll-overlay.hide { animation:overlayOut 0.35s ease forwards; pointer-events:none; }
+
+.poll-popup {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 22px;
+  padding: 24px 22px 22px;
+  width: 100%;
+  max-width: 780px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+  animation: popupIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+.poll-popup::-webkit-scrollbar { width:4px; }
+.poll-popup::-webkit-scrollbar-thumb { background:rgba(240,192,64,0.2); border-radius:2px; }
+
+.poll-top-glow { position:absolute; top:-1px; left:50%; transform:translateX(-50%); width:60%; height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+
+.poll-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.poll-title { font-family:var(--font-title); font-size:22px; letter-spacing:4px; color:var(--gold); }
+.poll-close { background:none; border:1px solid var(--border); border-radius:8px; color:var(--muted); font-size:16px; padding:4px 10px; cursor:pointer; transition:all 0.2s; }
+.poll-close:hover { color:var(--text); border-color:var(--border2); }
+
+.poll-status-bar { display:flex; align-items:center; gap:10px; background:var(--surface2); border-radius:10px; padding:10px 14px; margin-bottom:14px; }
+.poll-status-dot { width:8px; height:8px; border-radius:50%; background:var(--muted); flex-shrink:0; }
+.poll-status-dot.connected { background:var(--green); animation:pulseDot 1.5s ease infinite; }
+.poll-status-dot.error { background:var(--red); }
+.poll-status-text { font-size:12px; color:var(--muted); flex:1; }
+.poll-status-text span { color:var(--text); }
+.poll-channel-tag { font-family:var(--font-title); font-size:13px; color:var(--gold); letter-spacing:1px; }
+
+.poll-controls { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }
+.poll-btn { font-family:var(--font-title); font-size:14px; letter-spacing:2px; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; transition:all 0.2s; }
+.poll-btn-start { background:var(--gold); color:#07070f; }
+.poll-btn-start:hover { opacity:0.9; }
+.poll-btn-start:disabled { opacity:0.35; cursor:not-allowed; }
+.poll-btn-ghost { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
+.poll-btn-ghost:hover { color:var(--text); border-color:var(--border2); }
+.poll-btn-sim { background:var(--surface2); color:var(--gold); border:1px solid rgba(240,192,64,0.25); }
+.poll-btn-sim:hover { background:rgba(240,192,64,0.08); }
+.poll-duration-wrap { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); margin-left:auto; }
+.poll-duration-input { width:52px; background:var(--surface2); border:1px solid rgba(240,192,64,0.2); border-radius:6px; color:var(--text); font-size:13px; text-align:center; padding:6px 4px; outline:none; font-family:var(--font-title); }
+.poll-duration-input:focus { border-color:var(--gold); }
+
+.poll-timer-wrap { display:none; align-items:center; gap:14px; background:var(--surface2); border-radius:10px; padding:12px 16px; margin-bottom:14px; }
+.poll-timer-wrap.visible { display:flex; }
+.poll-timer-val { font-family:var(--font-title); font-size:34px; color:var(--gold); line-height:1; min-width:46px; }
+.poll-timer-val.urgent { color:var(--red); animation:timerBlink 0.5s ease infinite alternate; }
+@keyframes timerBlink{from{opacity:1}to{opacity:0.4}}
+.poll-timer-bar-wrap { flex:1; height:5px; background:var(--surface3); border-radius:3px; overflow:hidden; }
+.poll-timer-bar { height:100%; background:linear-gradient(90deg,var(--red),var(--gold)); border-radius:3px; transition:width 1s linear; }
+.poll-counts { font-size:11px; color:var(--muted); white-space:nowrap; text-align:right; }
+.poll-counts span { color:var(--text); font-weight:600; }
+
+.poll-winner-banner { background:rgba(240,192,64,0.07); border:1px solid var(--border2); border-radius:12px; padding:14px 18px; margin-bottom:14px; text-align:center; display:none; animation:bannerIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+.poll-winner-banner.visible { display:block; }
+@keyframes bannerIn{from{opacity:0;transform:scale(0.9)}to{opacity:1;transform:scale(1)}}
+.pwb-label { font-size:9px; letter-spacing:3px; color:var(--muted); margin-bottom:2px; }
+.pwb-val { font-family:var(--font-title); font-size:36px; color:var(--gold); text-shadow:0 0 18px rgba(240,192,64,0.4); }
+.pwb-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+
+.poll-votes-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin-bottom:14px; }
+.pvc { background:var(--surface2); border:1px solid transparent; border-radius:10px; padding:0; text-align:center; transition:all 0.25s; aspect-ratio:7/4; position:relative; overflow:hidden; }
+.pvc.has-votes { border-color:var(--border); }
+.pvc.winner { border-color:var(--gold); background:rgba(240,192,64,0.07); box-shadow:0 0 12px rgba(240,192,64,0.12); }
+.pvc.opened { opacity:0.28; }
+.pvc-num { font-family:var(--font-title); font-size:18px; color:var(--gold); line-height:1; }
+.pvc-votes { font-family:var(--font-title); font-size:15px; color:var(--muted); line-height:1; margin-top:2px; }
+.pvc.winner .pvc-votes { color:var(--gold); }
+.pvc.has-votes:not(.winner) .pvc-votes { color:var(--text); }
+.pvc-bar-wrap { height:3px; background:var(--surface3); border-radius:2px; margin-top:5px; overflow:hidden; }
+.pvc-bar { height:100%; background:var(--gold); border-radius:2px; transition:width 0.4s ease; }
+
+.poll-chat-wrap { display:flex; gap:10px; }
+.poll-chat-log { flex:1; background:var(--surface2); border-radius:10px; height:140px; overflow-y:auto; padding:8px 12px; display:flex; flex-direction:column; gap:3px; scrollbar-width:thin; scrollbar-color:rgba(240,192,64,0.1) transparent; font-size:11px; }
+.pcl-msg { line-height:1.5; animation:msgIn 0.2s ease; }
+@keyframes msgIn{from{opacity:0;transform:translateX(-4px)}to{opacity:1}}
+.pcl-user { color:var(--gold); font-weight:600; margin-right:4px; }
+.pcl-text { color:var(--muted); }
+.pcl-vote { color:var(--green); font-weight:700; }
+.pcl-empty { color:var(--muted); text-align:center; margin-top:40px; font-size:11px; }
 
 /* ===== RESULT POPUP ===== */
 .result-overlay { position:fixed; inset:0; z-index:995; background:rgba(4,4,10,0.88); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; padding:20px; }
@@ -416,6 +531,73 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
         <button class="btn-deal" onclick="acceptDeal()">✓ VAR!</button>
         <button class="btn-nodeal" onclick="rejectDeal()">✗ YOK!</button>
       </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ===== CHAT POLL FAB ===== -->
+<button class="poll-fab" onclick="openPollPopup()">
+  <div class="poll-fab-dot" id="poll-fab-dot"></div>
+  💬 CHATE SOR
+</button>
+
+<!-- ===== CHAT POLL POPUP ===== -->
+<div class="poll-overlay" id="poll-overlay">
+  <div class="poll-popup">
+    <div class="poll-top-glow"></div>
+
+    <div class="poll-header">
+      <div class="poll-title">💬 CHATE SOR</div>
+      <button class="poll-close" onclick="closePollPopup()">✕ KAPAT</button>
+    </div>
+
+    <div class="poll-status-bar">
+      <div class="poll-status-dot" id="poll-status-dot"></div>
+      <div class="poll-status-text" id="poll-status-text">Bağlanıyor...</div>
+      <div class="poll-channel-tag">batuhanfurkan5</div>
+    </div>
+
+    <div class="poll-controls">
+      <button class="poll-btn poll-btn-start" id="poll-btn-start" onclick="startPoll()">▶ BAŞLAT</button>
+      <button class="poll-btn poll-btn-ghost" onclick="resetPoll()">↺ SIFIRLA</button>
+      <button class="poll-btn poll-btn-sim" onclick="startSimulation()">🎲 SİMÜLASYON</button>
+      <div class="poll-duration-wrap">
+        <span>Süre:</span>
+        <input type="number" class="poll-duration-input" id="poll-duration" value="30" min="10" max="120">
+        <span>sn</span>
+      </div>
+    </div>
+
+    <div class="poll-timer-wrap" id="poll-timer-wrap">
+      <div>
+        <div style="font-size:9px;letter-spacing:2px;color:var(--muted);">KALAN</div>
+        <div class="poll-timer-val" id="poll-timer-val">30</div>
+      </div>
+      <div class="poll-timer-bar-wrap">
+        <div class="poll-timer-bar" id="poll-timer-bar" style="width:100%"></div>
+      </div>
+      <div class="poll-counts">Chat: <span id="poll-msg-total">0</span><br>Oy: <span id="poll-vote-total">0</span></div>
+    </div>
+
+    <div class="poll-winner-banner" id="poll-winner-banner">
+      <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;">
+        <div id="poll-winner-img-wrap" style="display:none;width:90px;height:90px;border-radius:10px;overflow:hidden;border:2px solid var(--gold);box-shadow:0 0 18px rgba(240,192,64,0.3);flex-shrink:0;">
+          <img id="poll-winner-img" src="" style="width:100%;height:100%;object-fit:cover;">
+        </div>
+        <div>
+          <div class="pwb-label">EN ÇOK OY ALAN KUTU</div>
+          <div class="pwb-val" id="poll-winner-val">—</div>
+          <div class="pwb-sub" id="poll-winner-sub"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="poll-votes-grid" id="poll-votes-grid"></div>
+
+    <div class="poll-chat-log" id="poll-chat-log">
+      <div class="pcl-empty">Anket başladığında chat burada görünecek</div>
     </div>
 
   </div>
@@ -747,6 +929,7 @@ function clickBox(idx){
   if(idx===playerBox){ setStatus('⚠️ Bu sizin kutunuz!'); return; }
 
   openedBoxes.add(idx);
+  try{ localStorage.setItem("vmym_opened", JSON.stringify([...openedBoxes])); }catch(e){}
   const amt=prices[idx];
   const maxP=Math.max(...prices), minP=Math.min(...prices);
   let cls='md';
@@ -918,6 +1101,237 @@ function restartGame(){
   ov.classList.add('hide');
   setTimeout(()=>{ ov.classList.remove('on','hide'); initGame(); }, 400);
 }
+
+
+/* ===== CHAT POLL ===== */
+const POLL_SLUG = 'batuhanfurkan5';
+let pollVotes = new Array(21).fill(0);
+let pollActive = false;
+let pollTimerInterval = null;
+let pollTimeLeft = 30;
+let pollTotalMessages = 0;
+let pollTotalVotes = 0;
+let pollWs = null;
+let pollSimInterval = null;
+const POLL_FAKE_USERS = ['Ahmet_07','ZeynepYT','Mert123','Selin_K','BurakFan','ceren_x','furkan88','tolga_g','elif_99','deno_bro','xkral_x','ayse_tv','serkan_z','emre_live','berk_07','kaanx','merve_98','barish_k','deniz_07','sude_g'];
+const POLL_FAKE_MSGS = ['$NUM açıyorum','$NUM e giriyorum','$NUM!','bence $NUM','$NUM var mı','$NUM :D','$NUM yazıyorum','$NUM olsun kesin','ya $NUM AÇIN','$NUM'];
+
+function openPollPopup(){
+  buildPollGrid();
+  document.getElementById('poll-overlay').classList.remove('hide');
+  document.getElementById('poll-overlay').classList.add('on');
+  if(!pollWs || pollWs.readyState > 1) connectKickChat();
+}
+function closePollPopup(){
+  const ov = document.getElementById('poll-overlay');
+  ov.classList.add('hide');
+  setTimeout(()=> ov.classList.remove('on','hide'), 350);
+}
+
+function setPollStatus(type, text){
+  const dot = document.getElementById('poll-status-dot');
+  const txt = document.getElementById('poll-status-text');
+  dot.className = 'poll-status-dot' + (type?' '+type:'');
+  txt.innerHTML = text;
+  const fabDot = document.getElementById('poll-fab-dot');
+  if(fabDot) fabDot.className = 'poll-fab-dot' + (type==='connected'?' live':'');
+}
+
+async function connectKickChat(){
+  setPollStatus('', 'Kick kanalına bağlanılıyor...');
+  try {
+    const res = await fetch('https://kick.com/api/v2/channels/'+POLL_SLUG, {headers:{'Accept':'application/json'}});
+    if(!res.ok) throw new Error('API yanıt vermedi (CORS)');
+    const data = await res.json();
+    const chatroomId = data.chatroom?.id;
+    if(!chatroomId) throw new Error('Chatroom ID bulunamadı');
+    const pusherKey = 'eb1d5f283081a78b932c';
+    pollWs = new WebSocket('wss://ws-us2.pusher.com/app/'+pusherKey+'?protocol=7&client=js&version=7.4.0&flash=false');
+    pollWs.onopen = ()=>{
+      pollWs.send(JSON.stringify({event:'pusher:subscribe',data:{auth:'',channel:'chatrooms.'+chatroomId+'.v2'}}));
+      setPollStatus('connected','Kick chat bağlandı — <span>'+POLL_SLUG+'</span>');
+    };
+    pollWs.onmessage = (e)=>{
+      try {
+        const msg = JSON.parse(e.data);
+        if(msg.event==='App\\Events\\ChatMessageEvent'){
+          const d = JSON.parse(msg.data);
+          pollProcessMessage(d.sender?.username||'Anonim', d.content||'');
+        }
+      } catch(err){}
+    };
+    pollWs.onerror = ()=> setPollStatus('error','WebSocket bağlantı hatası');
+    pollWs.onclose = ()=> setPollStatus('','Bağlantı kesildi');
+  } catch(err){
+    setPollStatus('error','Bağlanamadı: '+err.message);
+  }
+}
+
+function buildPollGrid(){
+  const g = document.getElementById('poll-votes-grid');
+  g.innerHTML = '';
+  const maxV = Math.max(...pollVotes.slice(1));
+  for(let i=1;i<=20;i++){
+    const isOpen = openedBoxes.has(i);
+    const v = pollVotes[i];
+    const pct = maxV>0 ? (v/maxV)*100 : 0;
+    const isWinner = !isOpen && v>0 && v===maxV;
+    const card = document.createElement('div');
+    card.className = 'pvc'+(isOpen?' opened':'')+(v>0?' has-votes':'')+(isWinner?' winner':'');
+    card.id = 'pvc-'+i;
+    card.style.cssText = 'position:relative;overflow:hidden;';
+
+    // Get box image — shuffleMap[gameIdx] = adminIdx, boxImages[adminIdx]
+    // Find gameIdx for box number i (1-based display = gameIdx i-1 in sorted order)
+    // Actually boxes are shuffled so we need to find which gameIdx has display number i
+    // We stored the shuffleMap: shuffleMap[gamePos] = adminIdx
+    // Box display number = gamePos+1, so gamePos = i-1
+    const adminIdx = (typeof shuffleMap !== 'undefined' && shuffleMap.length) ? shuffleMap[i-1] : null;
+    const imgSrc = (adminIdx !== null && boxImages && boxImages[adminIdx]) ? boxImages[adminIdx] : null;
+
+    const imgHtml = imgSrc
+      ? `<img src="${imgSrc}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:9px;opacity:${isOpen?'0.2':'0.85'}">`
+      : '';
+    const overlay = imgSrc ? 'position:relative;z-index:1;' : '';
+
+    card.innerHTML = imgHtml +
+      /* number bottom-left */
+      `<div style="position:absolute;bottom:22px;left:5px;z-index:2;font-family:var(--font-title);font-size:13px;color:#fff;line-height:1;text-shadow:0 0 8px #000,0 2px 4px #000;">${i}</div>` +
+      /* vote count bottom-right */
+      `<div id="pvc-v-${i}" style="position:absolute;bottom:22px;right:5px;z-index:2;font-family:var(--font-title);font-size:13px;color:${v>0?'var(--gold)':'rgba(255,255,255,0.4)'};line-height:1;text-shadow:0 0 6px #000;">${v>0?v:'—'}</div>` +
+      /* bar below image, outside/attached at bottom */
+      `<div id="pvc-b-wrap-${i}" style="position:absolute;bottom:0;left:0;right:0;height:18px;background:rgba(0,0,0,0.55);border-radius:0 0 9px 9px;display:flex;align-items:center;padding:0 4px;">` +
+        `<div style="flex:1;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;">` +
+          `<div id="pvc-b-${i}" style="height:100%;width:${pct}%;background:var(--gold);border-radius:2px;transition:width 0.4s ease;"></div>` +
+        `</div>` +
+      `</div>`;
+    g.appendChild(card);
+  }
+}
+
+function updatePollGrid(){
+  const maxV = Math.max(...pollVotes.slice(1));
+  for(let i=1;i<=20;i++){
+    const card = document.getElementById('pvc-'+i);
+    const vEl = document.getElementById('pvc-v-'+i);
+    const bEl = document.getElementById('pvc-b-'+i);
+    if(!card) continue;
+    const v = pollVotes[i];
+    const isOpen = openedBoxes.has(i);
+    const isWinner = !isOpen && v>0 && v===maxV;
+    const pct = maxV>0 ? (v/maxV)*100 : 0;
+    if(vEl) vEl.textContent = v>0?v:'—';
+    if(bEl) bEl.style.width = pct+'%';
+    card.className = 'pvc'+(isOpen?' opened':'')+(v>0?' has-votes':'')+(isWinner?' winner':'');
+  }
+}
+
+function pollProcessMessage(user, text){
+  if(!pollActive) return;
+  pollTotalMessages++;
+  document.getElementById('poll-msg-total').textContent = pollTotalMessages;
+  const nums = text.match(/\b([1-9]|1[0-9]|20)\b/g);
+  let voted = null;
+  if(nums){
+    for(const n of nums){
+      const num = parseInt(n);
+      if(num>=1&&num<=20&&!openedBoxes.has(num)){ voted=num; break; }
+    }
+  }
+  if(voted){ pollVotes[voted]++; pollTotalVotes++; document.getElementById('poll-vote-total').textContent=pollTotalVotes; updatePollGrid(); }
+  addPollChatMsg(user, text, voted);
+}
+
+function addPollChatMsg(user, text, vote){
+  const log = document.getElementById('poll-chat-log');
+  const empty = log.querySelector('.pcl-empty');
+  if(empty) empty.remove();
+  const d = document.createElement('div');
+  d.className = 'pcl-msg';
+  d.innerHTML = '<span class="pcl-user">'+escHtml(user)+':</span><span class="pcl-text">'+escHtml(text)+'</span>'+(vote?'<span class="pcl-vote"> ['+vote+']</span>':'');
+  log.appendChild(d);
+  if(log.children.length>100) log.removeChild(log.firstChild);
+  log.scrollTop = log.scrollHeight;
+}
+
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function startPoll(){
+  if(pollActive) return;
+  pollVotes = new Array(21).fill(0);
+  pollTotalMessages=0; pollTotalVotes=0;
+  document.getElementById('poll-msg-total').textContent=0;
+  document.getElementById('poll-vote-total').textContent=0;
+  document.getElementById('poll-chat-log').innerHTML='<div class="pcl-empty">Chat bekleniyor...</div>';
+  document.getElementById('poll-winner-banner').classList.remove('visible');
+  buildPollGrid();
+  pollActive=true;
+  pollTimeLeft = parseInt(document.getElementById('poll-duration').value)||30;
+  const total = pollTimeLeft;
+  document.getElementById('poll-timer-val').textContent=pollTimeLeft;
+  document.getElementById('poll-timer-bar').style.width='100%';
+  document.getElementById('poll-timer-wrap').classList.add('visible');
+  document.getElementById('poll-btn-start').disabled=true;
+  pollTimerInterval = setInterval(()=>{
+    pollTimeLeft--;
+    const tv = document.getElementById('poll-timer-val');
+    if(tv){ tv.textContent=pollTimeLeft; tv.className='poll-timer-val'+(pollTimeLeft<=5?' urgent':''); }
+    const tb = document.getElementById('poll-timer-bar');
+    if(tb) tb.style.width=((pollTimeLeft/total)*100)+'%';
+    if(pollTimeLeft<=0){ clearInterval(pollTimerInterval); endPoll(); }
+  },1000);
+}
+
+function endPoll(){
+  pollActive=false;
+  document.getElementById('poll-btn-start').disabled=false;
+  if(pollSimInterval){ clearInterval(pollSimInterval); pollSimInterval=null; }
+  let maxV=0, winner=-1;
+  for(let i=1;i<=20;i++){ if(!openedBoxes.has(i)&&pollVotes[i]>maxV){maxV=pollVotes[i];winner=i;} }
+  const banner=document.getElementById('poll-winner-banner');
+  document.getElementById('poll-winner-val').textContent = '';
+  document.getElementById('poll-winner-sub').textContent = winner>0?maxV+' oy — '+pollTotalVotes+' toplam':'Oy kullanılmadı';
+  // Show winner box image
+  const imgWrap = document.getElementById('poll-winner-img-wrap');
+  const imgEl = document.getElementById('poll-winner-img');
+  if(winner>0 && imgWrap && imgEl){
+    const adminIdx = (typeof shuffleMap!=='undefined'&&shuffleMap.length) ? shuffleMap[winner-1] : null;
+    const src = (adminIdx!==null&&boxImages&&boxImages[adminIdx]) ? boxImages[adminIdx] : null;
+    if(src){ imgEl.src=src; imgWrap.style.display='block'; }
+    else { imgWrap.style.display='none'; }
+  }
+  banner.classList.add('visible');
+  updatePollGrid();
+}
+
+function resetPoll(){
+  clearInterval(pollTimerInterval);
+  if(pollSimInterval){clearInterval(pollSimInterval);pollSimInterval=null;}
+  pollActive=false; pollVotes=new Array(21).fill(0); pollTotalMessages=0; pollTotalVotes=0;
+  document.getElementById('poll-timer-wrap').classList.remove('visible');
+  document.getElementById('poll-winner-banner').classList.remove('visible');
+  document.getElementById('poll-btn-start').disabled=false;
+  document.getElementById('poll-msg-total').textContent=0;
+  document.getElementById('poll-vote-total').textContent=0;
+  document.getElementById('poll-chat-log').innerHTML='<div class="pcl-empty">Anket başladığında chat burada görünecek</div>';
+  buildPollGrid();
+}
+
+function startSimulation(){
+  if(pollActive) return;
+  startPoll();
+  const weights=[0,3,3,5,5,8,4,4,2,2,6,6,3,3,4,4,2,2,5,5,8];
+  pollSimInterval=setInterval(()=>{
+    if(!pollActive){clearInterval(pollSimInterval);return;}
+    const user=POLL_FAKE_USERS[Math.floor(Math.random()*POLL_FAKE_USERS.length)];
+    if(Math.random()<0.3){pollProcessMessage(user,'haha');return;}
+    let box=1,total=weights.reduce((a,b)=>a+b,0),rand=Math.random()*total,cum=0;
+    for(let i=1;i<=20;i++){cum+=weights[i];if(rand<=cum){box=i;break;}}
+    const tmpl=POLL_FAKE_MSGS[Math.floor(Math.random()*POLL_FAKE_MSGS.length)];
+    pollProcessMessage(user,tmpl.replace('$NUM',box));
+  },280);
+}
+
 
 // START
 initGame();
