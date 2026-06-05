@@ -1144,8 +1144,8 @@ async function connectKickChat(){
     if(!res.ok) throw new Error('Proxy yanıt vermedi: '+res.status);
     const data = await res.json();
     if(data.error) throw new Error(data.error);
-    const chatroomId = data.chatroom?.id;
-    if(!chatroomId) throw new Error('Chatroom ID bulunamadı');
+    const chatroomId = data.chatroom?.id || data.id;
+    if(!chatroomId) throw new Error('Chatroom ID bulunamadı — kanal: '+JSON.stringify(Object.keys(data)));
     const pusherKey = 'eb1d5f283081a78b932c';
     pollWs = new WebSocket('wss://ws-us2.pusher.com/app/'+pusherKey+'?protocol=7&client=js&version=7.4.0&flash=false');
     pollWs.onopen = ()=>{
