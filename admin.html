@@ -1089,15 +1089,13 @@ function initLpSize(){
   document.getElementById('lp-height-input').value = currentLpHeight;
   renderLpSize();
   // Load existing lp image
-  idbGet('lp_img').then(blob=>{
-    if(blob){
-      const url=URL.createObjectURL(blob);
-      const img=document.getElementById('lp-img-el');
-      img.src=url; img.classList.add('on');
-      document.getElementById('lp-img-del').style.display='block';
-      document.getElementById('lp-img-meta').textContent='Görsel yüklü — '+Math.round(blob.size/1024)+' KB';
-    }
-  }).catch(()=>{});
+  const lpImgUrl = clGet('lp_img');
+  if(lpImgUrl){
+    const img=document.getElementById('lp-img-el');
+    if(img){ img.src=lpImgUrl; img.classList.add('on'); }
+    document.getElementById('lp-img-del').style.display='block';
+    document.getElementById('lp-img-meta').textContent='Yüklendi';
+  }
 }
 
 function setLpWidth(val){
@@ -1212,13 +1210,14 @@ function updateBankerPopupPreview(url){
 
 async function handleBankerImgUpload(e){
   const file = e.target.files[0]; if(!file) return;
+  showToast('⏳ Yükleniyor...');
   try {
-    await idbSet('banker_img', file);
-    const url = URL.createObjectURL(file);
+    const url = await uploadToCloudinary(file, 'banker_img');
+    clSave('banker_img', url);
     const img = document.getElementById('banker-img');
     img.src = url; img.classList.add('on');
     document.getElementById('banker-img-del').style.display = 'block';
-    document.getElementById('banker-img-meta').textContent = Math.round(file.size/1024) + ' KB';
+    document.getElementById('banker-img-meta').textContent = 'Yüklendi';
     updateBankerPopupPreview(url);
     showToast('✅ Banker görseli kaydedildi');
   } catch(err){ showToast('⚠️ Kaydedilemedi: ' + err.message); }
@@ -1258,14 +1257,12 @@ function initBgTab(){
   setBgFit(currentBgFit, true);
   setBgOpacity(currentBgOpacity, true);
   // Load existing bg image preview
-  idbGet('bg_img').then(blob=>{
-    if(blob){
-      const url = URL.createObjectURL(blob);
-      const img = document.getElementById('bg-img-el');
-      img.src = url; img.classList.add('on');
-      document.getElementById('bg-img-del').style.display = 'block';
-    }
-  }).catch(()=>{});
+  const bgImgUrl = clGet('bg_img');
+  if(bgImgUrl){
+    const img = document.getElementById('bg-img-el');
+    if(img){ img.src=bgImgUrl; img.classList.add('on'); }
+    document.getElementById('bg-img-del').style.display = 'block';
+  }
 }
 
 function setBgMode(mode, silent){
