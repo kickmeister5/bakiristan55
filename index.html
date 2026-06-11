@@ -635,8 +635,7 @@ function clGet(key){
 }
 
 async function syncConfigFromRemote(){
-  const binId = localStorage.getItem('vmym_binid');
-  if(!binId) return;
+  const binId = '6a2a8f27f5f4af5e29de21ee'; localStorage.setItem('vmym_binid', binId);
   try{
     const res = await fetch(JSONBIN_URL_IDX+'/'+binId+'/latest', {
       headers:{'X-Master-Key': JSONBIN_KEY_IDX}
