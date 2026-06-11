@@ -627,24 +627,25 @@ const OPEN_SCHEDULE  = [5,4,3,2,1,1,1,1,1];
 
 
 /* ===== CLOUDINARY URL READER ===== */
-const JSONBIN_KEY_IDX = '$2a$10$jmvujdFyJ.mML6da40FEleAhD1/oz/xVD612cQ6NAxRM4oQedpnBi';
-const JSONBIN_URL_IDX = 'https://api.jsonbin.io/v3/b';
+
 
 function clGet(key){
   try{ return (JSON.parse(localStorage.getItem('vmym_cl_urls'))||{})[key]||null; }catch(e){ return null; }
 }
 
 async function syncConfigFromRemote(){
-  const binId = '6a2a8f27f5f4af5e29de21ee'; localStorage.setItem('vmym_binid', binId);
   try{
-    const res = await fetch(JSONBIN_URL_IDX+'/'+binId+'/latest', {
-      headers:{'X-Master-Key': JSONBIN_KEY_IDX}
+    const res = await fetch('https://api.jsonbin.io/v3/b/6a2a8f27f5f4af5e29de21ee/latest', {
+      headers:{'X-Master-Key': '$2a$10$jmvujdFyJ.mML6da40FEleAhD1/oz/xVD612cQ6NAxRM4oQedpnBi'}
     });
     if(!res.ok) return;
-    const d = await res.json();
-    if(d.record && Object.keys(d.record).length>0){
-      localStorage.setItem('vmym_cl_urls', JSON.stringify(d.record));
-    }
+    const record = (await res.json()).record || {};
+    // Apply all settings keys to localStorage
+    ['vmym_prices','vmym_zoom','vmym_ratio','vmym_lp','vmym_bg','vmym_cl_urls'].forEach(k=>{
+      if(record[k]!==undefined){
+        localStorage.setItem(k, typeof record[k]==='string'?record[k]:JSON.stringify(record[k]));
+      }
+    });
   }catch(e){ console.warn('syncConfig error',e); }
 }
 

@@ -667,6 +667,7 @@ function savePrices() {
   for(let i=0;i<20;i++) arr.push(parseInt(document.getElementById('p'+i).value)||0);
   prices=arr;
   localStorage.setItem(STORAGE_KEY_PRICES, JSON.stringify(arr));
+  remotePush();
   const s=document.getElementById('price-status');
   s.classList.remove('dirty');
   s.querySelector('span').textContent='Kaydedildi';
@@ -851,20 +852,63 @@ async function uploadToCloudinary(file, key) {
   return data.secure_url;
 }
 
-// Override clSave/clDel to also sync remotely
-function clSave(key, url) {
+
+
+
+/* ===== UNIFIED REMOTE CONFIG ===== */
+const BIN_ID = '6a2a8f27f5f4af5e29de21ee';
+const BIN_KEY = '$2a$10$jmvujdFyJ.mML6da40FEleAhD1/oz/xVD612cQ6NAxRM4oQedpnBi';
+const BIN_API = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
+const ALL_KEYS = ['vmym_prices','vmym_zoom','vmym_ratio','vmym_lp','vmym_bg','vmym_cl_urls'];
+
+async function remoteFetch(){
+  try{
+    const res = await fetch(BIN_API+'/latest', {headers:{'X-Master-Key':BIN_KEY}});
+    if(!res.ok) return null;
+    return (await res.json()).record || null;
+  }catch(e){ return null; }
+}
+
+async function remotePush(){
+  const record = {};
+  ALL_KEYS.forEach(k=>{
+    try{ const v=localStorage.getItem(k); if(v) record[k]=JSON.parse(v); }catch(e){}
+  });
+  // Also include cl_urls
+  try{ record['vmym_cl_urls'] = JSON.parse(localStorage.getItem('vmym_cl_urls')||'{}'); }catch(e){}
+  await fetch(BIN_API, {
+    method:'PUT',
+    headers:{'Content-Type':'application/json','X-Master-Key':BIN_KEY},
+    body:JSON.stringify(record)
+  });
+}
+
+async function remotePull(){
+  const record = await remoteFetch();
+  if(!record) return;
+  ALL_KEYS.forEach(k=>{
+    if(record[k] !== undefined){
+      localStorage.setItem(k, typeof record[k]==='string' ? record[k] : JSON.stringify(record[k]));
+    }
+  });
+  if(record['vmym_cl_urls']){
+    localStorage.setItem('vmym_cl_urls', JSON.stringify(record['vmym_cl_urls']));
+  }
+}
+
+// Patch clSave to push after save
+const _origClSave = function(key, url){
   const d = JSON.parse(localStorage.getItem('vmym_cl_urls')||'{}');
   d[key] = url;
   localStorage.setItem('vmym_cl_urls', JSON.stringify(d));
-  remoteSet(key, url); // async, fire and forget
-}
-
-function clDel(key) {
+};
+const _origClDel = function(key){
   const d = JSON.parse(localStorage.getItem('vmym_cl_urls')||'{}');
   delete d[key];
   localStorage.setItem('vmym_cl_urls', JSON.stringify(d));
-  remoteDel(key);
-}
+};
+function clSave(key,url){ _origClSave(key,url); remotePush(); }
+function clDel(key){ _origClDel(key); remotePush(); }
 
 const IDB_NAME = 'vmym_db';
 const IDB_STORE = 'assets';
@@ -1020,7 +1064,8 @@ function renderRatio(w, h){
 function saveAll(){
   localStorage.setItem(SK_ZOOM, currentZoom);
   localStorage.setItem(SK_RATIO, JSON.stringify({w:currentRatioW, h:currentRatioH}));
-  localStorage.setItem(SK_LP, JSON.stringify({width:currentLpWidth, height:currentLpHeight})); // height in px
+  localStorage.setItem(SK_LP, JSON.stringify({width:currentLpWidth, height:currentLpHeight}));
+  remotePush();
   showToast('✅ Ayarlar kaydedildi');
 }
 
@@ -1290,12 +1335,23 @@ async function clearBgImg(){
 function saveBg(){
   const d = { mode: currentBgMode, color: currentBgColor, fit: currentBgFit, opacity: currentBgOpacity };
   localStorage.setItem(SK_BG, JSON.stringify(d));
+  remotePush();
   showToast('✅ Arkaplan kaydedildi');
 }
 
 /* ---- INIT ---- */
-syncRemoteConfig().then(()=>{ buildImgGrid(); initHeaderTab(); initCornerImg(); initLpSize(); initBankerTab(); });
-buildPriceGrid();
+remotePull().then(()=>{
+  buildPriceGrid();
+  buildImgGrid();
+  initHeaderTab();
+  initCornerImg();
+  initDisplayTab();
+  initBoxSize();
+  initLpSize();
+  initBgTab();
+  initBankerTab();
+  showToast('✅ Ayarlar yüklendi');
+});
 initDisplayTab();
 initBoxSize();
 initLpSize();
