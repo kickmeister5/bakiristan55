@@ -685,8 +685,7 @@ let images = new Array(20).fill(null); // object URLs for current session previe
 async function buildImgGrid() {
   const g=document.getElementById('img-grid'); g.innerHTML='';
   for(let i=0;i<20;i++){
-    const blob = await idbGet('box_'+i).catch(()=>null);
-    const url = blob ? URL.createObjectURL(blob) : null;
+    const url = clGet('box_'+i);
     images[i] = url;
     const div=document.createElement('div');
     div.className='ic'+(url?' filled':'');
@@ -708,9 +707,10 @@ async function buildImgGrid() {
 function triggerUpload(i){ document.getElementById('if'+i).click(); }
 async function handleUpload(e,i){
   const file=e.target.files[0]; if(!file) return;
+  showToast('⏳ Yükleniyor...');
   try {
-    await idbSet('box_'+i, file);
-    const url=URL.createObjectURL(file);
+    const url = await uploadToCloudinary(file, 'box_'+i);
+    clSave('box_'+i, url);
     if(images[i]) URL.revokeObjectURL(images[i]);
     images[i]=url;
     const img=document.getElementById('ip'+i);
@@ -720,7 +720,7 @@ async function handleUpload(e,i){
   } catch(err){ showToast('⚠️ Görsel kaydedilemedi: '+err.message); }
 }
 async function delImg(i){
-  try { await idbDel('box_'+i); } catch(err){}
+  clDel('box_'+i);
   if(images[i]) URL.revokeObjectURL(images[i]);
   images[i]=null;
   const img=document.getElementById('ip'+i);
@@ -732,7 +732,7 @@ async function delImg(i){
 async function clearAllImages(){
   if(!confirm('Tüm görseller silinecek. Emin misiniz?')) return;
   for(let i=0;i<20;i++){
-    try{ await idbDel('box_'+i); }catch(e){}
+    clDel('box_'+i);
     if(images[i]) URL.revokeObjectURL(images[i]);
     images[i]=null;
   }
@@ -751,6 +751,43 @@ function showToast(msg){
 
 
 /* ---- HEADER IMAGE TAB (IndexedDB) ---- */
+
+/* ===== CLOUDINARY UPLOAD ===== */
+const CLOUD_NAME = 'dhkchyuwr';
+const UPLOAD_PRESET = 'vmym_unsigned';
+const CL_KEY = 'vmym_cl_urls'; // localStorage key for all URLs
+
+function clUrls() {
+  try { return JSON.parse(localStorage.getItem(CL_KEY)) || {}; } catch(e) { return {}; }
+}
+function clSave(key, url) {
+  const d = clUrls(); d[key] = url;
+  localStorage.setItem(CL_KEY, JSON.stringify(d));
+}
+function clDel(key) {
+  const d = clUrls(); delete d[key];
+  localStorage.setItem(CL_KEY, JSON.stringify(d));
+}
+function clGet(key) {
+  return clUrls()[key] || null;
+}
+
+async function uploadToCloudinary(file, key) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', UPLOAD_PRESET);
+  formData.append('public_id', 'vmym_' + key);
+  formData.append('overwrite', 'true');
+  const res = await fetch('https://api.cloudinary.com/v1_1/' + CLOUD_NAME + '/image/upload', {
+    method: 'POST',
+    body: formData
+  });
+  if (!res.ok) throw new Error('Cloudinary yükleme hatası: ' + res.status);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.secure_url;
+}
+
 const IDB_NAME = 'vmym_db';
 const IDB_STORE = 'assets';
 const IDB_VER = 1;
@@ -797,45 +834,32 @@ function setHeaderMeta(file){
 }
 
 async function initHeaderTab(){
-  try {
-    const blob = await idbGet('header_img');
-    if(blob){
-      const url = URL.createObjectURL(blob);
-      const img = document.getElementById('hi-img');
-      img.src=url; img.classList.add('on');
-      document.getElementById('hi-del-btn').style.display='block';
-      const kb=Math.round(blob.size/1024);
-      document.getElementById('hi-meta').innerHTML=`Yüklendi — <span>${kb} KB</span>`;
-    }
-  } catch(e){ console.warn('initHeaderTab error',e); }
+  const url = clGet('header_img');
+  if(url){
+    const img = document.getElementById('hi-img');
+    img.src=url; img.classList.add('on');
+    document.getElementById('hi-del-btn').style.display='block';
+    document.getElementById('hi-meta').innerHTML='Yüklendi';
+  }
 }
 
-function handleHeaderUpload(e){
+async function handleHeaderUpload(e){
   const file=e.target.files[0]; if(!file) return;
-  // Get dimensions via Image
-  const url=URL.createObjectURL(file);
-  const tmpImg=new Image();
-  tmpImg.onload=async ()=>{
-    file._dim=`${tmpImg.naturalWidth}×${tmpImg.naturalHeight}`;
-    URL.revokeObjectURL(url);
-    try {
-      await idbSet('header_img', file);
-      const previewUrl=URL.createObjectURL(file);
-      const img=document.getElementById('hi-img');
-      img.src=previewUrl; img.classList.add('on');
-      document.getElementById('hi-del-btn').style.display='block';
-      setHeaderMeta(file);
-      showToast('✅ Başlık görseli kaydedildi!');
-    } catch(err){
-      showToast('⚠️ Görsel kaydedilemedi: '+err.message);
-    }
-  };
-  tmpImg.src=url;
+  showToast('⏳ Yükleniyor...');
+  try {
+    const url = await uploadToCloudinary(file, 'header_img');
+    clSave('header_img', url);
+    const img=document.getElementById('hi-img');
+    img.src=url; img.classList.add('on');
+    document.getElementById('hi-del-btn').style.display='block';
+    document.getElementById('hi-meta').textContent='Yüklendi';
+    showToast('✅ Başlık görseli kaydedildi!');
+  } catch(err){ showToast('⚠️ Görsel kaydedilemedi: '+err.message); }
 }
 
 async function clearHeaderImg(){
   if(!confirm('Başlık görseli silinecek. Emin misiniz?')) return;
-  try { await idbDel('header_img'); } catch(e){}
+  clDel('header_img');
   const img=document.getElementById('hi-img');
   img.src=''; img.classList.remove('on');
   document.getElementById('hi-del-btn').style.display='none';
@@ -973,9 +997,10 @@ function renderLpSize(){
 
 async function handleLpImgUpload(e){
   const file=e.target.files[0]; if(!file) return;
+  showToast('⏳ Yükleniyor...');
   try {
-    await idbSet('lp_img', file);
-    const url=URL.createObjectURL(file);
+    const url = await uploadToCloudinary(file, 'lp_img');
+    clSave('lp_img', url);
     const img=document.getElementById('lp-img-el');
     img.src=url; img.classList.add('on');
     document.getElementById('lp-img-del').style.display='block';
@@ -986,7 +1011,7 @@ async function handleLpImgUpload(e){
 
 async function clearLpImg(){
   if(!confirm('Panel görseli silinecek?')) return;
-  try { await idbDel('lp_img'); } catch(e){}
+  clDel('lp_img');
   const img=document.getElementById('lp-img-el');
   img.src=''; img.classList.remove('on');
   document.getElementById('lp-img-del').style.display='none';
@@ -999,39 +1024,37 @@ async function clearLpImg(){
 
 /* ---- CORNER IMAGE ---- */
 async function initCornerImg(){
-  try {
-    const blob = await idbGet('corner_img');
-    if(blob){
-      const url = URL.createObjectURL(blob);
-      const img = document.getElementById('corner-img');
-      if(!img) return;
-      img.src=url; img.style.display='block';
-      const ph = document.getElementById('corner-ph');
-      if(ph) ph.style.display='none';
-      document.getElementById('corner-del-btn').style.display='block';
-      document.getElementById('corner-meta').textContent = Math.round(blob.size/1024)+' KB';
-    }
-  } catch(e){}
+  const url = clGet('corner_img');
+  if(url){
+    const img = document.getElementById('corner-img');
+    if(!img) return;
+    img.src=url; img.style.display='block';
+    const ph = document.getElementById('corner-ph');
+    if(ph) ph.style.display='none';
+    document.getElementById('corner-del-btn').style.display='block';
+    document.getElementById('corner-meta').textContent='Yüklendi';
+  }
 }
 
 async function handleCornerUpload(e){
   const file=e.target.files[0]; if(!file) return;
+  showToast('⏳ Yükleniyor...');
   try {
-    await idbSet('corner_img', file);
-    const url=URL.createObjectURL(file);
+    const url = await uploadToCloudinary(file, 'corner_img');
+    clSave('corner_img', url);
     const img=document.getElementById('corner-img');
     img.src=url; img.style.display='block';
     const ph=document.getElementById('corner-ph');
     if(ph) ph.style.display='none';
     document.getElementById('corner-del-btn').style.display='block';
-    document.getElementById('corner-meta').textContent = Math.round(file.size/1024)+' KB';
+    document.getElementById('corner-meta').textContent='Yüklendi';
     showToast('✅ Köşe görseli kaydedildi');
   } catch(err){ showToast('⚠️ Kaydedilemedi: '+err.message); }
 }
 
 async function clearCornerImg(){
   if(!confirm('Köşe görseli silinecek?')) return;
-  try { await idbDel('corner_img'); } catch(e){}
+  clDel('corner_img');
   const img=document.getElementById('corner-img');
   img.src=''; img.style.display='none';
   const ph=document.getElementById('corner-ph');
@@ -1044,17 +1067,14 @@ async function clearCornerImg(){
 
 /* ---- BANKER IMAGE ---- */
 async function initBankerTab(){
-  try {
-    const blob = await idbGet('banker_img');
-    if(blob){
-      const url = URL.createObjectURL(blob);
-      const img = document.getElementById('banker-img');
-      img.src = url; img.classList.add('on');
-      document.getElementById('banker-img-del').style.display = 'block';
-      document.getElementById('banker-img-meta').textContent = Math.round(blob.size/1024) + ' KB';
-      updateBankerPopupPreview(url);
-    }
-  } catch(e){}
+  const url = clGet('banker_img');
+  if(url){
+    const img = document.getElementById('banker-img');
+    img.src = url; img.classList.add('on');
+    document.getElementById('banker-img-del').style.display = 'block';
+    document.getElementById('banker-img-meta').textContent = 'Yüklendi';
+    updateBankerPopupPreview(url);
+  }
 }
 
 function updateBankerPopupPreview(url){
@@ -1083,7 +1103,7 @@ async function handleBankerImgUpload(e){
 
 async function clearBankerImg(){
   if(!confirm('Banker görseli silinecek?')) return;
-  try { await idbDel('banker_img'); } catch(e){}
+  clDel('banker_img');
   const img = document.getElementById('banker-img');
   img.src = ''; img.classList.remove('on');
   document.getElementById('banker-img-del').style.display = 'none';
@@ -1165,9 +1185,10 @@ function setBgOpacity(val, silent){
 
 async function handleBgImgUpload(e){
   const file = e.target.files[0]; if(!file) return;
+  showToast('⏳ Yükleniyor...');
   try {
-    await idbSet('bg_img', file);
-    const url = URL.createObjectURL(file);
+    const url = await uploadToCloudinary(file, 'bg_img');
+    clSave('bg_img', url);
     const img = document.getElementById('bg-img-el');
     img.src = url; img.classList.add('on');
     document.getElementById('bg-img-del').style.display = 'block';
@@ -1180,7 +1201,7 @@ async function handleBgImgUpload(e){
 
 async function clearBgImg(){
   if(!confirm('Arkaplan görseli silinecek?')) return;
-  try { await idbDel('bg_img'); } catch(e){}
+  clDel('bg_img');
   const img = document.getElementById('bg-img-el');
   img.src=''; img.classList.remove('on');
   document.getElementById('bg-img-del').style.display='none';

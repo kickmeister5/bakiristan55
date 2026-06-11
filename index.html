@@ -625,6 +625,12 @@ const SK_PRICES = 'vmym_prices';
 const DEFAULT_PRICES = [100,250,500,1000,2500,5000,10000,20000,50000,100000,150000,200000,300000,400000,500000,600000,750000,900000,1000000,2000000];
 const OPEN_SCHEDULE  = [5,4,3,2,1,1,1,1,1];
 
+
+/* ===== CLOUDINARY URL READER ===== */
+function clGet(key){
+  try{ return (JSON.parse(localStorage.getItem('vmym_cl_urls'))||{})[key]||null; }catch(e){ return null; }
+}
+
 /* ===== IndexedDB helpers ===== */
 const IDB_NAME='vmym_db', IDB_STORE='assets', IDB_VER=1;
 function openDB(){
@@ -663,14 +669,11 @@ function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=
 /* ===== HEADER IMAGE ===== */
 async function applyHeaderImg(){
   try {
-    const blob = await idbGet('header_img');
+    const url = clGet('header_img');
     const wrap = document.getElementById('game-header-img-wrap');
     const txt  = document.getElementById('game-header-text');
     const img  = document.getElementById('game-header-img');
-    if(blob){
-      if(img._objUrl) URL.revokeObjectURL(img._objUrl);
-      const url = URL.createObjectURL(blob);
-      img._objUrl = url;
+    if(url){
       img.src = url;
       wrap.style.display = 'block';
       txt.style.display  = 'none';
@@ -731,9 +734,8 @@ async function applyBackground(){
       document.body.appendChild(layer);
       document.body.style.background = 'transparent';
     } else if(d.mode === 'image'){
-      const blob = await idbGet('bg_img');
-      if(!blob) return;
-      const url = URL.createObjectURL(blob);
+      const url = clGet('bg_img');
+      if(!url) return;
       const fitMap = {
         cover:   'center/cover no-repeat fixed',
         contain: 'center/contain no-repeat fixed',
@@ -753,31 +755,23 @@ async function applyBackground(){
 /* ===== CORNER IMAGE ===== */
 async function applyCornerImg(){
   try {
-    const blob = await idbGet('corner_img');
+    const url = clGet('corner_img');
     const img = document.getElementById('lp-corner-img');
     if(!img) return;
-    if(blob){
-      if(img._objUrl) URL.revokeObjectURL(img._objUrl);
-      const url = URL.createObjectURL(blob);
-      img._objUrl = url;
-      img.src = url;
-      img.classList.add('on');
-    } else {
-      img.classList.remove('on');
-    }
+    if(url){ img.src=url; img.classList.add('on'); }
+    else { img.classList.remove('on'); }
   } catch(e){}
 }
 
 /* ===== LEFT PANEL IMAGE (header only) ===== */
 async function applyLpImage(){
   try {
-    const blob = await idbGet('lp_img');
+    const url = clGet('lp_img');
     const titleEl = document.querySelector('.lp-title');
     const existingImg = document.getElementById('lp-header-img');
     if(existingImg) existingImg.remove();
 
-    if(blob){
-      const url = URL.createObjectURL(blob);
+    if(url){
       const img = document.createElement('img');
       img.id = 'lp-header-img';
       img.src = url;
@@ -800,11 +794,8 @@ async function initGame(){
   boxImages.forEach(u=>{ if(u) try{URL.revokeObjectURL(u);}catch(e){} });
   boxImages = new Array(20).fill(null);
 
-  // Load all box images from IndexedDB in parallel
-  const blobs = await Promise.all(
-    Array.from({length:20},(_,i)=>idbGet('box_'+i).catch(()=>null))
-  );
-  boxImages = blobs.map(b=>b?URL.createObjectURL(b):null);
+  // Load box images from Cloudinary URLs (shared across all users)
+  boxImages = Array.from({length:20},(_,i)=>clGet('box_'+i));
 
   const adminOrder = Array.from({length:20},(_,i)=>i);
   shuffleMap = shuffle(adminOrder);
@@ -1002,13 +993,12 @@ function buildOfferPriceList(){
 
 async function applyBankerImg(){
   try {
-    const blob = await idbGet('banker_img');
+    const url = clGet('banker_img');
     const phoneEl = document.querySelector('.offer-phone');
     const tagEl = document.querySelector('.offer-tag');
     const old = document.getElementById('banker-img-popup');
     if(old) old.remove();
-    if(blob){
-      const url = URL.createObjectURL(blob);
+    if(url){
       const img = document.createElement('img');
       img.id = 'banker-img-popup';
       img.src = url;
