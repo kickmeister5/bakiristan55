@@ -752,24 +752,88 @@ function showToast(msg){
 
 /* ---- HEADER IMAGE TAB (IndexedDB) ---- */
 
-/* ===== CLOUDINARY UPLOAD ===== */
+/* ===== CLOUDINARY + JSONBIN ===== */
 const CLOUD_NAME = 'dhkchyuwr';
 const UPLOAD_PRESET = 'vmym_unsigned';
-const CL_KEY = 'vmym_cl_urls'; // localStorage key for all URLs
+const JSONBIN_KEY = '$2a$10$jmvujdFyJ.mML6da40FEleAhD1/oz/xVD612cQ6NAxRM4oQedpnBi';
+const JSONBIN_URL = 'https://api.jsonbin.io/v3/b';
+let jsonbinId = localStorage.getItem('vmym_binid') || null;
 
-function clUrls() {
-  try { return JSON.parse(localStorage.getItem(CL_KEY)) || {}; } catch(e) { return {}; }
+// Remote config — read/write URL map to JSONBin
+async function remoteGet() {
+  if(!jsonbinId) return {};
+  try {
+    const res = await fetch(JSONBIN_URL + '/' + jsonbinId + '/latest', {
+      headers: {'X-Master-Key': JSONBIN_KEY}
+    });
+    if(!res.ok) return {};
+    const d = await res.json();
+    return d.record || {};
+  } catch(e) { return {}; }
 }
-function clSave(key, url) {
-  const d = clUrls(); d[key] = url;
-  localStorage.setItem(CL_KEY, JSON.stringify(d));
+
+async function remoteSet(key, url) {
+  try {
+    let record = await remoteGet();
+    record[key] = url;
+    if(!jsonbinId) {
+      // Create new bin
+      const res = await fetch(JSONBIN_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': JSONBIN_KEY,
+          'X-Bin-Name': 'vmym_config',
+          'X-Bin-Private': 'false'
+        },
+        body: JSON.stringify(record)
+      });
+      const d = await res.json();
+      jsonbinId = d.metadata?.id;
+      if(jsonbinId) localStorage.setItem('vmym_binid', jsonbinId);
+    } else {
+      await fetch(JSONBIN_URL + '/' + jsonbinId, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': JSONBIN_KEY
+        },
+        body: JSON.stringify(record)
+      });
+    }
+    // Also cache locally for speed
+    localStorage.setItem('vmym_cl_urls', JSON.stringify(record));
+  } catch(e) { console.warn('remoteSet error', e); }
 }
-function clDel(key) {
-  const d = clUrls(); delete d[key];
-  localStorage.setItem(CL_KEY, JSON.stringify(d));
+
+async function remoteDel(key) {
+  try {
+    let record = await remoteGet();
+    delete record[key];
+    if(jsonbinId) {
+      await fetch(JSONBIN_URL + '/' + jsonbinId, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY},
+        body: JSON.stringify(record)
+      });
+    }
+    localStorage.setItem('vmym_cl_urls', JSON.stringify(record));
+  } catch(e) {}
 }
+
 function clGet(key) {
-  return clUrls()[key] || null;
+  try{ return (JSON.parse(localStorage.getItem('vmym_cl_urls'))||{})[key]||null; }catch(e){ return null; }
+}
+
+// Sync remote config to localStorage on load
+async function syncRemoteConfig() {
+  if(!jsonbinId) return;
+  try {
+    const record = await remoteGet();
+    if(Object.keys(record).length > 0) {
+      localStorage.setItem('vmym_cl_urls', JSON.stringify(record));
+    }
+  } catch(e) {}
 }
 
 async function uploadToCloudinary(file, key) {
@@ -785,6 +849,21 @@ async function uploadToCloudinary(file, key) {
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);
   return data.secure_url;
+}
+
+// Override clSave/clDel to also sync remotely
+function clSave(key, url) {
+  const d = JSON.parse(localStorage.getItem('vmym_cl_urls')||'{}');
+  d[key] = url;
+  localStorage.setItem('vmym_cl_urls', JSON.stringify(d));
+  remoteSet(key, url); // async, fire and forget
+}
+
+function clDel(key) {
+  const d = JSON.parse(localStorage.getItem('vmym_cl_urls')||'{}');
+  delete d[key];
+  localStorage.setItem('vmym_cl_urls', JSON.stringify(d));
+  remoteDel(key);
 }
 
 const IDB_NAME = 'vmym_db';
@@ -1215,9 +1294,8 @@ function saveBg(){
 }
 
 /* ---- INIT ---- */
+syncRemoteConfig().then(()=>{ buildImgGrid(); initHeaderTab(); initCornerImg(); initLpSize(); initBankerTab(); });
 buildPriceGrid();
-buildImgGrid();
-initHeaderTab();
 initDisplayTab();
 initBoxSize();
 initLpSize();
