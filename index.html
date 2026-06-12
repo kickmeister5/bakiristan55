@@ -9,7 +9,8 @@
     var z = parseInt(localStorage.getItem('vmym_zoom')) || 150;
     var r = (function(){ try{ var d=JSON.parse(localStorage.getItem('vmym_ratio')); if(d&&d.w&&d.h) return d.w+'/'+d.h; }catch(e){} return '7/4'; })();
     var lp=(function(){ try{var d=JSON.parse(localStorage.getItem('vmym_lp'));if(d)return d;}catch(e){}return{width:260,height:900}; })();
-    document.write('<style>html{zoom:'+(z/100)+'}.box{aspect-ratio:'+r+'!important}.rp-img{aspect-ratio:'+r+'!important}.game-layout{grid-template-columns:'+lp.width+'px 1fr!important}.left-panel{max-height:'+lp.height+'px!important;height:'+lp.height+'px!important}</style>');
+    var hs=(function(){ try{var d=JSON.parse(localStorage.getItem('vmym_header_size'));if(d)return d;}catch(e){}return{maxWidth:1400,maxHeight:300}; })();
+    document.write('<style>html{zoom:'+(z/100)+'}.box{aspect-ratio:'+r+'!important}.rp-img{aspect-ratio:'+r+'!important}.game-layout{grid-template-columns:'+lp.width+'px 1fr!important}.left-panel{max-height:'+lp.height+'px!important;height:'+lp.height+'px!important}.game-header-img-wrap{max-width:'+hs.maxWidth+'px!important}.game-header-img-wrap img{max-height:'+hs.maxHeight+'px!important}</style>');
   })();
 </script>
 <title>Var Mısın? Yok Musun?</title>
@@ -23,24 +24,26 @@
   --text:#f0ead8; --muted:#6a6680;
   --font-title:'Bebas Neue',sans-serif; --font-body:'Outfit',sans-serif;
 }
-html,body { min-height:100vh; background:var(--bg); color:var(--text); font-family:var(--font-body); overflow-x:hidden; }
+html,body { height:100%; background:var(--bg); color:var(--text); font-family:var(--font-body); overflow:hidden; }
 body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index:-1;
   background: radial-gradient(ellipse 60% 40% at 20% 10%,rgba(240,192,64,0.04) 0%,transparent 60%),
               radial-gradient(ellipse 40% 60% at 80% 80%,rgba(100,80,200,0.04) 0%,transparent 60%); }
 #app { position:relative; z-index:1; }
 
 /* ===== SCREENS ===== */
-.screen { display:none; flex-direction:column; min-height:100vh; padding:22px 14px 48px; }
+.screen { display:none; flex-direction:column; height:100vh; overflow:hidden; padding:0; }
 .screen.active { display:flex; animation:fadeIn 0.35s ease; }
 @keyframes fadeIn { from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);} }
 
 /* ===== GAME SCREEN ===== */
 #game-screen {
-  padding: 16px 20px 40px;
+  padding: 14px 16px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .game-top {
@@ -60,6 +63,8 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
   width: 100%;
   max-width: 1060px;
   align-items: start;
+  flex: 1;
+  min-height: 0;
 }
 
 /* ====== LEFT — remaining prices ====== */
@@ -157,6 +162,8 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 .sel-glow { position:absolute; top:-1px; left:50%; transform:translateX(-50%); width:60%; height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent); border-radius:2px; }
 
 .sel-icon { font-size:56px; display:block; margin-bottom:16px; animation:floatIcon 2.5s ease-in-out infinite; }
+.sel-popup-img { width:100%; max-height:180px; object-fit:contain; display:none; border-radius:10px; margin-bottom:14px; }
+.sel-popup-img.on { display:block; }
 @keyframes floatIcon{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
 
 .sel-title { font-family:var(--font-title); font-size:38px; letter-spacing:4px; color:var(--gold); line-height:1; margin-bottom:6px; text-shadow:0 0 30px rgba(240,192,64,0.3); }
@@ -607,7 +614,8 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 <div class="sel-overlay" id="sel-overlay">
   <div class="sel-popup">
     <div class="sel-glow"></div>
-    <span class="sel-icon">🎁</span>
+    <img class="sel-popup-img" id="sel-popup-img" src="" alt="">
+    <span class="sel-icon" id="sel-icon-emoji">🎁</span>
     <div class="sel-title">KUTUNUZU SEÇİN</div>
     <div class="sel-divider"></div>
     <div class="sel-sub">
@@ -707,6 +715,17 @@ async function applyHeaderImg(){
 
 /* ===== SELECT POPUP ===== */
 function showSelectPopup(){
+  // Apply select popup image
+  const selImg = document.getElementById('sel-popup-img');
+  const selIcon = document.getElementById('sel-icon-emoji');
+  const selImgUrl = clGet('sel_img');
+  if(selImgUrl && selImg){
+    selImg.src=selImgUrl; selImg.classList.add('on');
+    if(selIcon) selIcon.style.display='none';
+  } else {
+    if(selImg) selImg.classList.remove('on');
+    if(selIcon) selIcon.style.display='';
+  }
   const ov = document.getElementById('sel-overlay');
   if(!ov) return;
   // spawn particles
