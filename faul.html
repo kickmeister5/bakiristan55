@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAUL! — Tabu Oyunu</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a6ef5; --blue-dark:#0f4ab8; --blue-light:#4d94ff;
+  --red:#e8192c; --red-dark:#b5101e;
+  --yellow:#f5c518; --yellow-dark:#d4a017;
+  --bg:#1252cc; --bg-dark:#0d3a99;
+  --white:#fff; --off-white:#f0f4ff;
+  --surface:rgba(255,255,255,0.1); --surface2:rgba(255,255,255,0.18);
+  --border:rgba(255,255,255,0.2); --border2:rgba(255,255,255,0.35);
+  --muted:rgba(255,255,255,0.55);
+  --font-title:'Bebas Neue',sans-serif; --font-body:'Outfit',sans-serif;
+  --shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+html,body{
+  min-height:100vh;
+  background: var(--bg);
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 2px,
+    transparent 2px, transparent 12px
+  );
+  color:var(--white);
+  font-family:var(--font-body);
+  overflow-x:hidden;
+}
+
+/* ===== SCREENS ===== */
+.screen{display:none;flex-direction:column;align-items:center;min-height:100vh;padding:0;}
+.screen.active{display:flex;animation:fadeIn 0.3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* ===== TOP BAR ===== */
+.topbar{
+  width:100%; background:rgba(0,0,0,0.25);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
+  padding:12px 24px;
+  display:flex; align-items:center; justify-content:space-between;
+  flex-shrink:0;
+}
+.topbar-logo{font-family:var(--font-title);font-size:clamp(28px,5vw,42px);letter-spacing:3px;color:var(--yellow);text-shadow:0 2px 8px rgba(0,0,0,0.4),-2px 2px 0 rgba(0,0,0,0.3);}
+.topbar-logo span{color:var(--white);}
+.topbar-actions{display:flex;gap:8px;align-items:center;}
+.tb-btn{background:rgba(255,255,255,0.12);border:1px solid var(--border);border-radius:12px;color:var(--white);font-size:12px;padding:8px 16px;cursor:pointer;font-family:var(--font-body);font-weight:500;transition:all 0.2s;display:flex;align-items:center;gap:6px;}
+.tb-btn:hover{background:rgba(255,255,255,0.22);border-color:var(--border2);}
+.tb-btn.primary{background:var(--yellow);color:#000;border-color:var(--yellow-dark);font-weight:700;}
+.tb-btn.primary:hover{background:#ffd700;}
+.tb-btn.danger{background:rgba(232,25,44,0.2);border-color:rgba(232,25,44,0.4);color:#ff6b7a;}
+.tb-btn.danger:hover{background:rgba(232,25,44,0.35);}
+.tb-btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* ===== ENTRY SCREEN (oda kurma / katılma) ===== */
+#entry-screen{align-items:center;justify-content:center;padding:20px;}
+.entry-card{
+  background:var(--white); border-radius:24px; padding:40px 32px;
+  max-width:420px; width:100%; text-align:center;
+  box-shadow:0 16px 50px rgba(0,0,0,0.35);
+}
+.entry-logo{font-family:var(--font-title);font-size:56px;letter-spacing:4px;color:var(--blue);line-height:1;margin-bottom:4px;}
+.entry-logo span{color:var(--red);}
+.entry-sub{font-size:13px;color:#777;margin-bottom:28px;font-weight:500;}
+.entry-tabs{display:flex;background:#f0f2f8;border-radius:12px;padding:4px;margin-bottom:22px;}
+.entry-tab{flex:1;padding:10px;border-radius:9px;font-size:13px;font-weight:700;color:#888;cursor:pointer;transition:all 0.2s;text-align:center;}
+.entry-tab.active{background:var(--white);color:var(--blue);box-shadow:0 2px 8px rgba(0,0,0,0.08);}
+.entry-input{width:100%;background:#f0f2f8;border:2px solid transparent;border-radius:12px;padding:14px 16px;font-size:15px;font-family:var(--font-body);outline:none;margin-bottom:14px;text-align:center;letter-spacing:2px;font-weight:700;color:#222;transition:border-color 0.2s;}
+.entry-input:focus{border-color:var(--blue);}
+.entry-input::placeholder{color:#aaa;letter-spacing:0;font-weight:400;}
+.entry-btn{width:100%;background:var(--blue);color:var(--white);font-family:var(--font-title);font-size:20px;letter-spacing:2px;border:none;border-radius:12px;padding:15px;cursor:pointer;transition:all 0.2s;box-shadow:0 6px 20px rgba(26,110,245,0.3);}
+.entry-btn:hover{background:var(--blue-dark);}
+.entry-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.entry-err{color:var(--red);font-size:12px;font-weight:600;margin-top:10px;min-height:16px;}
+.entry-or{font-size:11px;color:#bbb;margin:18px 0;letter-spacing:2px;font-weight:700;}
+.entry-roomcode-display{background:#f0f2f8;border-radius:12px;padding:16px;margin-bottom:16px;display:none;}
+.entry-roomcode-display.show{display:block;}
+.entry-roomcode-label{font-size:11px;color:#999;letter-spacing:1px;margin-bottom:6px;}
+.entry-roomcode-val{font-family:var(--font-title);font-size:32px;letter-spacing:6px;color:var(--blue);}
+.entry-share-link{display:flex;gap:8px;margin-top:10px;}
+.entry-share-link input{flex:1;background:var(--white);border:1px solid #ddd;border-radius:8px;padding:8px 10px;font-size:11px;color:#666;outline:none;}
+.entry-copy-btn{background:var(--yellow);border:none;border-radius:8px;padding:8px 14px;font-size:11px;font-weight:700;cursor:pointer;color:#000;}
+.entry-spinner{width:36px;height:36px;border:3px solid #eee;border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ===== JOIN / AVATAR SETUP SCREEN ===== */
+#setup-screen{align-items:center;justify-content:center;padding:20px;}
+.setup-card{
+  background:var(--white); border-radius:24px; padding:36px 32px;
+  max-width:440px; width:100%; text-align:center;
+  box-shadow:0 16px 50px rgba(0,0,0,0.35);
+}
+.setup-room-tag{display:inline-flex;align-items:center;gap:6px;background:#f0f2f8;border-radius:20px;padding:6px 14px;font-size:11px;color:#888;font-weight:700;letter-spacing:1px;margin-bottom:18px;}
+.setup-room-tag span{color:var(--blue);font-family:var(--font-title);font-size:14px;letter-spacing:2px;}
+.setup-title{font-family:var(--font-title);font-size:30px;letter-spacing:2px;color:#222;margin-bottom:4px;}
+.setup-sub{font-size:12px;color:#999;margin-bottom:24px;}
+
+.avatar-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:22px;}
+.avatar-opt{
+  aspect-ratio:1;border-radius:14px;background:#f0f2f8;
+  display:flex;align-items:center;justify-content:center;font-size:24px;
+  cursor:pointer;border:2.5px solid transparent;transition:all 0.15s;
+}
+.avatar-opt:hover{background:#e6eaf5;transform:scale(1.05);}
+.avatar-opt.selected{border-color:var(--blue);background:rgba(26,110,245,0.08);transform:scale(1.08);}
+
+.setup-input{width:100%;background:#f0f2f8;border:2px solid transparent;border-radius:12px;padding:14px 16px;font-size:16px;font-family:var(--font-body);font-weight:600;outline:none;margin-bottom:18px;text-align:center;color:#222;transition:border-color 0.2s;}
+.setup-input:focus{border-color:var(--blue);}
+.setup-input::placeholder{color:#aaa;font-weight:400;}
+
+.setup-btn{width:100%;background:var(--blue);color:var(--white);font-family:var(--font-title);font-size:20px;letter-spacing:2px;border:none;border-radius:12px;padding:15px;cursor:pointer;transition:all 0.2s;box-shadow:0 6px 20px rgba(26,110,245,0.3);}
+.setup-btn:hover{background:var(--blue-dark);}
+.setup-btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* ===== WAITING SCREEN (host bekleme ekranı görmesi için) ===== */
+#host-wait-banner{display:none;background:rgba(245,197,24,0.15);border:1px solid rgba(245,197,24,0.4);border-radius:14px;padding:14px 20px;margin:16px auto 0;max-width:1100px;width:calc(100% - 40px);text-align:center;}
+#host-wait-banner.show{display:block;}
+.hw-label{font-size:11px;color:var(--yellow);letter-spacing:2px;font-weight:700;margin-bottom:4px;}
+.hw-link-row{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;}
+.hw-link-input{background:rgba(255,255,255,0.12);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--white);min-width:240px;text-align:center;}
+.hw-copy{background:var(--yellow);color:#000;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;}
+.hw-room-code{font-family:var(--font-title);font-size:22px;color:var(--yellow);letter-spacing:4px;}
+
+/* ===== LOBBY SCREEN ===== */
+#lobby-screen{padding:0;justify-content:flex-start;}
+.lobby-content{
+  display:grid;
+  grid-template-columns:1fr 280px 1fr;
+  gap:20px;
+  width:100%;
+  max-width:1100px;
+  padding:24px 20px;
+  flex:1;
+  align-items:start;
+}
+@media(max-width:768px){
+  .lobby-content{grid-template-columns:1fr;max-width:440px;}
+}
+
+/* Team card */
+.team-card{
+  background:var(--white);
+  border-radius:22px;
+  overflow:hidden;
+  box-shadow:0 8px 32px rgba(0,0,0,0.25);
+}
+.team-header{
+  padding:16px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.team-header.red{background:var(--red);}
+.team-header.blue{background:var(--blue);}
+.team-dot{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,0.5);}
+.team-name{font-family:var(--font-title);font-size:clamp(20px,3vw,26px);letter-spacing:3px;color:var(--white);text-shadow:0 1px 4px rgba(0,0,0,0.3);}
+.team-count{background:rgba(255,255,255,0.25);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--white);font-family:var(--font-title);letter-spacing:1px;}
+.team-body{padding:12px;display:flex;flex-direction:column;gap:6px;}
+
+.player-slot{
+  border-radius:12px;
+  padding:12px 14px;
+  display:flex;align-items:center;gap:10px;
+  min-height:52px;
+  transition:all 0.2s;
+}
+.player-slot.captain{border:2px dashed rgba(232,25,44,0.35);}
+.player-slot.captain.blue-team{border-color:rgba(26,110,245,0.35);}
+.player-slot.regular{border:1.5px dashed rgba(0,0,0,0.1);background:rgba(0,0,0,0.02);}
+.player-slot.filled{border-style:solid;background:rgba(0,0,0,0.03);}
+.player-slot.captain.filled.red-team{border-color:rgba(232,25,44,0.4);background:rgba(232,25,44,0.05);}
+.player-slot.captain.filled.blue-team{border-color:rgba(26,110,245,0.4);background:rgba(26,110,245,0.05);}
+
+.slot-crown{font-size:14px;flex-shrink:0;}
+.slot-avatar{width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;overflow:hidden;}
+.slot-name{flex:1;font-size:13px;font-weight:600;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.slot-name.you{color:var(--blue);}
+.slot-empty{flex:1;font-size:11px;font-weight:600;letter-spacing:1px;color:rgba(0,0,0,0.25);text-transform:uppercase;}
+.slot-actions{display:flex;gap:4px;}
+.slot-act-btn{background:none;border:none;cursor:pointer;font-size:14px;padding:4px;border-radius:6px;transition:background 0.15s;opacity:0.6;}
+.slot-act-btn:hover{background:rgba(0,0,0,0.07);opacity:1;}
+
+/* Waiting list (center) */
+.waiting-card{
+  background:rgba(0,0,0,0.2);
+  border:1px solid var(--border);
+  border-radius:22px;
+  overflow:hidden;
+  box-shadow:0 8px 24px rgba(0,0,0,0.2);
+}
+.waiting-header{
+  background:rgba(0,0,0,0.25);
+  padding:16px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
+}
+.waiting-title{font-family:var(--font-title);font-size:20px;letter-spacing:2px;color:var(--white);display:flex;align-items:center;gap:8px;}
+.waiting-badge{background:var(--yellow);color:#000;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;}
+.waiting-body{padding:10px;display:flex;flex-direction:column;gap:5px;max-height:520px;overflow-y:auto;}
+.waiting-slot{
+  background:rgba(255,255,255,0.08);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 14px;
+  display:flex;align-items:center;gap:10px;
+  min-height:48px;
+  transition:all 0.2s;
+}
+.waiting-slot.has-player{background:rgba(255,255,255,0.12);border-color:var(--yellow);box-shadow:0 0 0 1px rgba(245,197,24,0.3);}
+.waiting-slot.empty-slot{opacity:0.4;}
+.ws-avatar{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;overflow:hidden;}
+.ws-name{flex:1;font-size:13px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ws-name.you{color:var(--yellow);}
+.ws-empty{flex:1;font-size:10px;color:var(--muted);letter-spacing:1px;}
+.ws-team-btns{display:flex;gap:4px;}
+.ws-btn{font-size:10px;font-weight:700;font-family:var(--font-title);letter-spacing:1px;border:none;border-radius:8px;padding:5px 10px;cursor:pointer;transition:all 0.2s;}
+.ws-btn.red{background:var(--red);color:var(--white);}
+.ws-btn.red:hover{background:var(--red-dark);}
+.ws-btn.blue{background:var(--blue);color:var(--white);}
+.ws-btn.blue:hover{background:var(--blue-dark);}
+
+/* Score bar */
+.score-bar{
+  width:100%;max-width:1100px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 24px 0;
+  gap:16px;
+}
+.score-team{display:flex;align-items:center;gap:10px;}
+.score-name{font-family:var(--font-title);font-size:clamp(18px,3vw,24px);letter-spacing:2px;}
+.score-name.red{color:#ff6b7a;}
+.score-name.blue{color:var(--blue-light);}
+.score-num{font-family:var(--font-title);font-size:clamp(28px,5vw,40px);color:var(--white);}
+.score-divider{font-family:var(--font-title);font-size:28px;color:var(--muted);}
+
+/* ===== GAME SCREEN ===== */
+#game-screen{padding:0;justify-content:flex-start;}
+.game-area{
+  display:flex;gap:20px;padding:20px;
+  width:100%;max-width:1100px;
+  flex:1;align-items:flex-start;
+}
+
+/* Word card */
+.word-card-wrap{flex:1;display:flex;flex-direction:column;gap:14px;}
+.active-team-bar{
+  background:rgba(255,255,255,0.1);border:1px solid var(--border);
+  border-radius:14px;padding:12px 18px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.atb-label{font-size:11px;color:var(--muted);letter-spacing:2px;}
+.atb-name{font-family:var(--font-title);font-size:22px;letter-spacing:3px;}
+.atb-name.red{color:#ff8a8a;}
+.atb-name.blue{color:var(--blue-light);}
+
+.word-card{
+  background:var(--white);border-radius:22px;
+  padding:32px 28px;text-align:center;
+  box-shadow:0 12px 40px rgba(0,0,0,0.3);
+  position:relative;overflow:hidden;
+}
+.wc-category{font-size:11px;letter-spacing:3px;color:rgba(0,0,0,0.35);margin-bottom:12px;font-weight:600;}
+.wc-word{font-family:var(--font-title);font-size:clamp(36px,7vw,58px);color:#111;letter-spacing:2px;line-height:1;margin-bottom:20px;}
+.taboo-list{display:flex;flex-direction:column;gap:7px;margin-bottom:16px;}
+.taboo-item{
+  background:rgba(232,25,44,0.08);border:1.5px solid rgba(232,25,44,0.2);
+  border-radius:10px;padding:9px 14px;
+  font-size:14px;font-weight:600;color:#c00;
+  display:flex;align-items:center;gap:8px;
+}
+.taboo-item::before{content:'✗';font-size:12px;color:var(--red);font-weight:700;}
+
+.wc-spectator-note{background:rgba(0,0,0,0.05);border-radius:10px;padding:14px;font-size:13px;color:#888;font-weight:600;}
+
+.wc-actions{display:flex;gap:10px;margin-top:16px;}
+.wc-btn{flex:1;font-family:var(--font-title);font-size:20px;letter-spacing:2px;border:none;border-radius:12px;padding:16px;cursor:pointer;transition:all 0.15s;}
+.wc-btn.correct{background:#20c060;color:#fff;box-shadow:0 4px 16px rgba(32,192,96,0.3);}
+.wc-btn.correct:hover{background:#18a050;}
+.wc-btn.pass{background:rgba(0,0,0,0.08);color:#555;}
+.wc-btn.pass:hover{background:rgba(0,0,0,0.14);}
+.wc-btn.foul{background:var(--red);color:#fff;box-shadow:0 4px 16px rgba(232,25,44,0.3);}
+.wc-btn.foul:hover{background:var(--red-dark);}
+
+/* Timer + score side */
+.game-side{width:260px;flex-shrink:0;display:flex;flex-direction:column;gap:14px;}
+.timer-card{
+  background:rgba(0,0,0,0.25);border:1px solid var(--border);
+  border-radius:18px;padding:20px;text-align:center;
+}
+.timer-label{font-size:10px;letter-spacing:3px;color:var(--muted);margin-bottom:6px;}
+.timer-val{font-family:var(--font-title);font-size:72px;color:var(--white);line-height:1;}
+.timer-val.urgent{color:#ff8a8a;animation:urgentPulse 0.5s ease infinite alternate;}
+@keyframes urgentPulse{from{opacity:1;}to{opacity:0.5;}}
+.timer-bar-wrap{height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;margin-top:10px;}
+.timer-bar{height:100%;background:linear-gradient(90deg,#ff4444,var(--yellow),#20c060);border-radius:3px;transition:width 1s linear;}
+
+.score-card{background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;}
+.sc-title{font-size:10px;letter-spacing:3px;color:var(--muted);text-align:center;}
+.sc-team-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:10px;}
+.sc-team-row.active{background:rgba(255,255,255,0.1);border:1px solid var(--border2);}
+.sc-team-name{font-family:var(--font-title);font-size:16px;letter-spacing:2px;}
+.sc-team-name.red{color:#ff8a8a;}
+.sc-team-name.blue{color:var(--blue-light);}
+.sc-score{font-family:var(--font-title);font-size:28px;color:var(--white);}
+.sc-round{font-size:11px;color:var(--muted);text-align:center;padding-top:4px;border-top:1px solid var(--border);}
+
+.start-turn-btn{
+  background:var(--yellow);color:#000;
+  font-family:var(--font-title);font-size:22px;letter-spacing:3px;
+  border:none;border-radius:14px;padding:18px;cursor:pointer;
+  transition:all 0.15s;box-shadow:0 6px 20px rgba(245,197,24,0.35);
+  width:100%;
+}
+.start-turn-btn:hover{background:#ffd700;box-shadow:0 8px 28px rgba(245,197,24,0.5);}
+.start-turn-btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* Log */
+.turn-log{background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:14px;padding:10px;max-height:180px;overflow-y:auto;scrollbar-width:none;}
+.log-item{font-size:11px;padding:4px 6px;border-radius:6px;margin-bottom:3px;display:flex;gap:6px;align-items:center;}
+.log-item.correct{background:rgba(32,192,96,0.12);color:#6effa8;}
+.log-item.pass{background:rgba(255,255,255,0.05);color:var(--muted);}
+.log-item.foul{background:rgba(232,25,44,0.12);color:#ff8a8a;}
+.log-icon{flex-shrink:0;}
+.log-word{flex:1;font-weight:600;}
+
+/* Toast */
+.ftost{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:rgba(0,0,0,0.85);border:1px solid var(--border2);border-radius:10px;padding:10px 20px;font-size:13px;color:var(--yellow);opacity:0;transition:all 0.3s;pointer-events:none;z-index:200;white-space:nowrap;max-width:90vw;text-overflow:ellipsis;overflow:hidden;}
+.ftost.on{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* Connection indicator */
+.conn-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;}
+.conn-dot.live{background:#20c060;animation:connPulse 1.5s ease infinite;}
+@keyframes connPulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+</style>
+</head>
+<body>
+
+<!-- ===== ENTRY SCREEN: oda kur / katıl ===== -->
+<div id="entry-screen" class="screen active">
+  <div class="entry-card">
+    <div class="entry-logo">FAUL<span>!</span></div>
+    <div class="entry-sub">TAKIM TABU OYUNU</div>
+
+    <div class="entry-tabs">
+      <div class="entry-tab active" id="tab-create" onclick="switchEntryTab('create')">ODA KUR</div>
+      <div class="entry-tab" id="tab-join" onclick="switchEntryTab('join')">KOD İLE KATIL</div>
+    </div>
+
+    <!-- CREATE ROOM -->
+    <div id="entry-create-panel">
+      <div class="entry-roomcode-display" id="entry-roomcode-display">
+        <div class="entry-roomcode-label">ODA KODUNUZ</div>
+        <div class="entry-roomcode-val" id="entry-roomcode-val">——</div>
+        <div class="entry-share-link">
+          <input type="text" id="entry-share-input" readonly value="">
+          <button class="entry-copy-btn" onclick="copyShareLink()">Kopyala</button>
+        </div>
+      </div>
+      <button class="entry-btn" id="btn-create-room" onclick="createRoom()">🎮 ODA OLUŞTUR</button>
+      <div class="entry-err" id="create-err"></div>
+    </div>
+
+    <!-- JOIN ROOM -->
+    <div id="entry-join-panel" style="display:none;">
+      <input type="text" class="entry-input" id="join-code-input" placeholder="ODA KODU" maxlength="6" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinRoom()">
+      <button class="entry-btn" onclick="joinRoom()">➔ KATIL</button>
+      <div class="entry-err" id="join-err"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SETUP SCREEN: isim + avatar seç ===== -->
+<div id="setup-screen" class="screen">
+  <div class="setup-card">
+    <div class="setup-room-tag">ODA: <span id="setup-room-code">——</span></div>
+    <div class="setup-title">PROFİLİNİ OLUŞTUR</div>
+    <div class="setup-sub">Avatarını seç ve adını yaz</div>
+
+    <div class="avatar-grid" id="avatar-grid"></div>
+
+    <input type="text" class="setup-input" id="setup-name-input" placeholder="Adın..." maxlength="16">
+
+    <button class="setup-btn" id="setup-confirm-btn" onclick="confirmSetup()" disabled>OYUNA GİR</button>
+  </div>
+</div>
+
+<!-- ===== LOBBY ===== -->
+<div id="lobby-screen" class="screen">
+
+  <div class="topbar">
+    <div class="topbar-logo">FAUL<span>!</span></div>
+    <div class="topbar-actions">
+      <div class="conn-dot" id="conn-dot"></div>
+      <button class="tb-btn" onclick="shareRoom()">➔ Davet Et</button>
+      <button class="tb-btn primary" id="btn-lock" onclick="lockAndStart()" style="display:none;">🔒 Kilitle &amp; Başla</button>
+      <a href="index.html" class="tb-btn">← Ana Sayfa</a>
+    </div>
+  </div>
+
+  <div id="host-wait-banner">
+    <div class="hw-label">ODA KODU</div>
+    <div class="hw-link-row">
+      <div class="hw-room-code" id="hw-room-code">——</div>
+      <input type="text" class="hw-link-input" id="hw-link-input" readonly value="">
+      <button class="hw-copy" onclick="copyShareLink()">Kopyala</button>
+    </div>
+  </div>
+
+  <div class="score-bar">
+    <div class="score-team">
+      <div class="score-name red">KIRMIZI</div>
+      <div class="score-num" id="lobby-score-red">0</div>
+    </div>
+    <div class="score-divider">:</div>
+    <div class="score-team">
+      <div class="score-num" id="lobby-score-blue">0</div>
+      <div class="score-name blue">MAVİ</div>
+    </div>
+  </div>
+
+  <div class="lobby-content">
+
+    <!-- RED TEAM -->
+    <div class="team-card" id="red-team-card">
+      <div class="team-header red">
+        <div class="team-dot"></div>
+        <div class="team-name">KIRMIZI</div>
+        <div class="team-count" id="red-count">0/5 OYUNCU</div>
+      </div>
+      <div class="team-body" id="red-slots"></div>
+    </div>
+
+    <!-- WAITING -->
+    <div class="waiting-card">
+      <div class="waiting-header">
+        <div class="waiting-title">
+          ➕ BEKLEYENLER
+          <div class="waiting-badge" id="waiting-badge">0</div>
+        </div>
+      </div>
+      <div class="waiting-body" id="waiting-slots"></div>
+    </div>
+
+    <!-- BLUE TEAM -->
+    <div class="team-card" id="blue-team-card">
+      <div class="team-header blue">
+        <div class="team-dot"></div>
+        <div class="team-name">MAVİ</div>
+        <div class="team-count" id="blue-count">0/5 OYUNCU</div>
+      </div>
+      <div class="team-body" id="blue-slots"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== GAME ===== -->
+<div id="game-screen" class="screen">
+  <div class="topbar">
+    <div class="topbar-logo">FAUL<span>!</span></div>
+    <div class="topbar-actions">
+      <div class="conn-dot" id="conn-dot-game"></div>
+      <button class="tb-btn danger" id="btn-end-game" onclick="endGame()" style="display:none;">🚪 Oyunu Bitir</button>
+    </div>
+  </div>
+
+  <div class="game-area">
+
+    <div class="word-card-wrap">
+      <div class="active-team-bar">
+        <div><div class="atb-label">OYNAYAN TAKIM</div><div class="atb-name" id="active-team-name">—</div></div>
+        <div><div class="atb-label">KAPTAN</div><div style="font-family:var(--font-title);font-size:16px;color:var(--white);" id="active-captain-name">—</div></div>
+      </div>
+
+      <div class="word-card" id="word-card">
+        <div id="word-card-active">
+          <div class="wc-category" id="wc-category">KATEGORİ</div>
+          <div class="wc-word" id="wc-word">—</div>
+          <div class="taboo-list" id="taboo-list"></div>
+          <div class="wc-actions">
+            <button class="wc-btn correct" onclick="markWord('correct')">✓ DOĞRU</button>
+            <button class="wc-btn foul" onclick="markWord('foul')">✗ FAUL</button>
+            <button class="wc-btn pass" onclick="markWord('pass')">⇒ PAS</button>
+          </div>
+        </div>
+        <div id="word-card-spectator" style="display:none;">
+          <div class="wc-category">ANLATICI ANLATIYOR</div>
+          <div class="wc-spectator-note" id="spectator-note">Kelimeyi göremezsin — sadece kaptan görür. Şimdi anlatma sırası!</div>
+        </div>
+      </div>
+
+      <div class="turn-log" id="turn-log"></div>
+    </div>
+
+    <div class="game-side">
+      <div class="timer-card">
+        <div class="timer-label">KALAN SÜRE</div>
+        <div class="timer-val" id="timer-val">60</div>
+        <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
+      </div>
+
+      <div class="score-card">
+        <div class="sc-title">SKOR</div>
+        <div class="sc-team-row" id="score-row-red">
+          <div class="sc-team-name red">KIRMIZI</div>
+          <div class="sc-score" id="score-red">0</div>
+        </div>
+        <div class="sc-team-row" id="score-row-blue">
+          <div class="sc-team-name blue">MAVİ</div>
+          <div class="sc-score" id="score-blue">0</div>
+        </div>
+        <div class="sc-round" id="round-info">Tur 1</div>
+      </div>
+
+      <button class="start-turn-btn" id="start-turn-btn" onclick="startTurn()" style="display:none;">▶ TURU BAŞLAT</button>
+
+      <div class="score-card">
+        <div class="sc-title">BU TURDA</div>
+        <div style="display:flex;justify-content:space-around;padding:4px 0;">
+          <div style="text-align:center;"><div style="font-family:var(--font-title);font-size:28px;color:#6effa8;" id="turn-correct">0</div><div style="font-size:9px;color:var(--muted);letter-spacing:1px;">DOĞRU</div></div>
+          <div style="text-align:center;"><div style="font-family:var(--font-title);font-size:28px;color:#ff8a8a;" id="turn-foul">0</div><div style="font-size:9px;color:var(--muted);letter-spacing:1px;">FAUL</div></div>
+          <div style="text-align:center;"><div style="font-family:var(--font-title);font-size:28px;color:var(--muted);" id="turn-pass">0</div><div style="font-size:9px;color:var(--muted);letter-spacing:1px;">PAS</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="ftost" id="ftost"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, deleteField, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyACr1JjQ3w3Ph0Pt5iPXsD_DnGRTP5eLOI",
+  authDomain: "faul-oyunu.firebaseapp.com",
+  projectId: "faul-oyunu",
+  storageBucket: "faul-oyunu.firebasestorage.app",
+  messagingSenderId: "241126841209",
+  appId: "1:241126841209:web:0548349d5e45dc4518ada8",
+  measurementId: "G-KJM1RL4CR7"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+
+window.__fb = { doc, setDoc, getDoc, updateDoc, onSnapshot, deleteField, serverTimestamp, db };
+window.__fbReady = true;
+window.dispatchEvent(new Event('fb-ready'));
+</script>
+<script>
+/* ============================================================
+   FAUL! — Multiplayer Tabu Oyunu
+   Firebase Firestore ile gerçek zamanlı senkronizasyon
+   ============================================================ */
+
+const MAX_PLAYERS = 5;
+const TURN_TIME = 60;
+const AVATARS = ['🦁','🐯','🐼','🐸','🦊','🐵','🐰','🐻','🐨','🐷','🦄','🐙','🦉','🐺','🐱','🐶','🦝','🐺'];
+
+let myPlayerId = null;     // unique id for this browser session
+let myName = '';
+let myAvatar = '';
+let roomCode = null;
+let isHost = false;
+let roomData = null;       // mirrored Firestore doc
+let unsubscribe = null;
+
+let turnTimer = null;
+let timeLeft = TURN_TIME;
+let shuffledWords = [];
+let wordIndex = 0;
+
+const WORDS = [
+  {word:'FUTBOL',cat:'SPOR',taboo:['TOP','SAHA','KALE','OYUNCU','GOL']},
+  {word:'PİZZA',cat:'YİYECEK',taboo:['İTALYA','HAMUR','PEYNİR','MANTAR','FIRIN']},
+  {word:'UÇAK',cat:'ULAŞIM',taboo:['PİLOT','KANAT','HAVA','YOLCU','BİLET']},
+  {word:'KÖPEK',cat:'HAYVAN',taboo:['HAVLAMA','KEMİK','PATİ','EVCİL','KUYRUK']},
+  {word:'BİLGİSAYAR',cat:'TEKNOLOJİ',taboo:['EKRAN','KLAVYE','İNTERNET','MOUSE','YAZILIM']},
+  {word:'DENİZ',cat:'COĞRAFYA',taboo:['DALGA','TUZ','GEMİ','PLAJ','BALIK']},
+  {word:'MÜZİK',cat:'SANAT',taboo:['NOTA','ENSTRÜMAN','ŞARKI','RİTİM','MELODİ']},
+  {word:'TELEFON',cat:'TEKNOLOJİ',taboo:['ARAMA','MESAJ','EKRAN','BATARYA','UYGULAMA']},
+  {word:'ELMA',cat:'MEYVE',taboo:['KIRMIZI','AĞAÇ','BAHÇE','TATLI','MEYVE']},
+  {word:'OKUL',cat:'EĞİTİM',taboo:['ÖĞRETMEN','DERS','SINIF','DEFTER','KALEM']},
+  {word:'ARABA',cat:'ULAŞIM',taboo:['DİREKSİYON','MOTOR','YOL','SÜRÜCÜ','TEKERLEK']},
+  {word:'GÜNEŞ',cat:'DOĞA',taboo:['SICAK','IŞIK','GEZEGEN','YILDIZ','SABAH']},
+  {word:'KİTAP',cat:'EĞİTİM',taboo:['OKUMAK','SAYFA','YAZAR','ROMAN','KÜTÜPHANE']},
+  {word:'SİNEMA',cat:'EĞLENCE',taboo:['FİLM','SEYİRCİ','BİLET','EKRAN','PATLAMIŞ MISIR']},
+  {word:'TÜRKİYE',cat:'COĞRAFYA',taboo:['ANKARA','İSTANBUL','BAYRAK','LİRA','ATATÜRK']},
+];
+
+/* ===== UTILS ===== */
+function showToast(msg, dur=2200){
+  const t=document.getElementById('ftost');
+  t.textContent=msg; t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'), dur);
+}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function genId(){ return 'p_' + Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+function genRoomCode(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s=''; for(let i=0;i<5;i++) s+=chars[Math.floor(Math.random()*chars.length)];
+  return s;
+}
+function shuffleArr(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function getUrlRoomCode(){
+  const params = new URLSearchParams(window.location.search);
+  return (params.get('oda')||'').toUpperCase() || null;
+}
+
+/* ===== FIREBASE WAIT ===== */
+function fb(){ return window.__fb; }
+function waitForFirebase(){
+  return new Promise(resolve=>{
+    if(window.__fbReady) return resolve();
+    window.addEventListener('fb-ready', ()=>resolve(), {once:true});
+  });
+}
+
+/* ===== ROOM DOC HELPERS ===== */
+function roomRef(code){
+  const {doc,db} = fb();
+  return doc(db, 'faul_rooms', code);
+}
+
+async function createRoomDoc(code){
+  const {setDoc,serverTimestamp} = fb();
+  const initial = {
+    createdAt: Date.now(),
+    state: 'lobby', // lobby | playing | ended
+    teams: { red: [null,null,null,null,null], blue: [null,null,null,null,null] },
+    waiting: [],
+    scores: { red:0, blue:0 },
+    activeTeam: 'red',
+    round: 1,
+    turn: null, // {active:bool, wordIndex, correct, foul, pass, startedAt, durationSec, currentWord:{word,cat,taboo}}
+    log: [],
+    hostId: myPlayerId
+  };
+  await setDoc(roomRef(code), initial);
+  return initial;
+}
+
+/* ===== ENTRY SCREEN ===== */
+function switchEntryTab(tab){
+  document.getElementById('tab-create').classList.toggle('active', tab==='create');
+  document.getElementById('tab-join').classList.toggle('active', tab==='join');
+  document.getElementById('entry-create-panel').style.display = tab==='create' ? 'block' : 'none';
+  document.getElementById('entry-join-panel').style.display = tab==='join' ? 'block' : 'none';
+}
+
+async function createRoom(){
+  const btn = document.getElementById('btn-create-room');
+  btn.disabled = true; btn.textContent = 'Oluşturuluyor...';
+  document.getElementById('create-err').textContent = '';
+  try {
+    await waitForFirebase();
+    const code = genRoomCode();
+    await createRoomDoc(code);
+    roomCode = code;
+    isHost = true;
+    const url = window.location.origin + window.location.pathname + '?oda=' + code;
+    document.getElementById('entry-roomcode-val').textContent = code;
+    document.getElementById('entry-share-input').value = url;
+    document.getElementById('entry-roomcode-display').classList.add('show');
+    btn.textContent = '✅ Oda oluşturuldu';
+    setTimeout(()=> goToSetup(code), 600);
+  } catch(err){
+    document.getElementById('create-err').textContent = 'Hata: ' + err.message;
+    btn.disabled = false; btn.textContent = '🎮 ODA OLUŞTUR';
+  }
+}
+
+async function joinRoom(){
+  const code = document.getElementById('join-code-input').value.trim().toUpperCase();
+  const errEl = document.getElementById('join-err');
+  errEl.textContent = '';
+  if(!code || code.length < 4){ errEl.textContent = 'Geçerli bir oda kodu girin'; return; }
+  try {
+    await waitForFirebase();
+    const {getDoc} = fb();
+    const snap = await getDoc(roomRef(code));
+    if(!snap.exists()){ errEl.textContent = 'Oda bulunamadı. Kodu kontrol edin.'; return; }
+    roomCode = code;
+    isHost = false;
+    goToSetup(code);
+  } catch(err){
+    errEl.textContent = 'Hata: ' + err.message;
+  }
+}
+
+function goToSetup(code){
+  document.getElementById('setup-room-code').textContent = code;
+  buildAvatarGrid();
+  showScreen('setup-screen');
+}
+
+/* ===== SETUP SCREEN (avatar + name) ===== */
+let selectedAvatar = null;
+function buildAvatarGrid(){
+  const g = document.getElementById('avatar-grid');
+  g.innerHTML = '';
+  AVATARS.forEach((a,i)=>{
+    const d = document.createElement('div');
+    d.className = 'avatar-opt' + (i===0?' selected':'');
+    d.textContent = a;
+    d.onclick = ()=>{
+      g.querySelectorAll('.avatar-opt').forEach(o=>o.classList.remove('selected'));
+      d.classList.add('selected');
+      selectedAvatar = a;
+      checkSetupValid();
+    };
+    g.appendChild(d);
+  });
+  selectedAvatar = AVATARS[0];
+}
+
+document.addEventListener('input', e=>{
+  if(e.target.id==='setup-name-input') checkSetupValid();
+});
+
+function checkSetupValid(){
+  const name = document.getElementById('setup-name-input').value.trim();
+  document.getElementById('setup-confirm-btn').disabled = !(name.length>=1 && selectedAvatar);
+}
+
+async function confirmSetup(){
+  myName = document.getElementById('setup-name-input').value.trim().slice(0,16);
+  myAvatar = selectedAvatar;
+  myPlayerId = genId();
+  try { localStorage.setItem('faul_player_id', myPlayerId); localStorage.setItem('faul_player_name', myName); localStorage.setItem('faul_player_avatar', myAvatar); } catch(e){}
+
+  // Add to waiting list
+  const {updateDoc} = fb();
+  const player = { id: myPlayerId, name: myName, avatar: myAvatar };
+  try {
+    const {getDoc} = fb();
+    const snap = await getDoc(roomRef(roomCode));
+    const data = snap.data();
+    const waiting = data.waiting || [];
+    waiting.push(player);
+    await updateDoc(roomRef(roomCode), { waiting });
+    enterLobby();
+  } catch(err){
+    showToast('⚠️ Katılırken hata: ' + err.message);
+  }
+}
+
+/* ===== LOBBY ===== */
+function enterLobby(){
+  showScreen('lobby-screen');
+  document.getElementById('hw-room-code').textContent = roomCode;
+  const url = window.location.origin + window.location.pathname + '?oda=' + roomCode;
+  document.getElementById('hw-link-input').value = url;
+  if(isHost){
+    document.getElementById('host-wait-banner').classList.add('show');
+    document.getElementById('btn-lock').style.display = 'flex';
+  }
+  subscribeRoom();
+}
+
+function shareRoom(){
+  const url = window.location.origin + window.location.pathname + '?oda=' + roomCode;
+  if(navigator.share){
+    navigator.share({ title:'FAUL! Oyununa Katıl', text:'Oda kodu: '+roomCode, url });
+  } else {
+    navigator.clipboard.writeText(url);
+    showToast('🔗 Link kopyalandı!');
+  }
+}
+function copyShareLink(){
+  const input = document.getElementById('entry-share-input').value ? document.getElementById('entry-share-input') : document.getElementById('hw-link-input');
+  navigator.clipboard.writeText(input.value);
+  showToast('🔗 Link kopyalandı!');
+}
+
+/* ===== FIRESTORE SUBSCRIPTION ===== */
+function subscribeRoom(){
+  if(unsubscribe) unsubscribe();
+  const {onSnapshot} = fb();
+  unsubscribe = onSnapshot(roomRef(roomCode), (snap)=>{
+    if(!snap.exists()){ showToast('⚠️ Oda kapatıldı'); return; }
+    roomData = snap.data();
+    document.getElementById('conn-dot').className = 'conn-dot live';
+    document.getElementById('conn-dot-game').className = 'conn-dot live';
+    onRoomUpdate();
+  }, (err)=>{
+    document.getElementById('conn-dot').className = 'conn-dot';
+    document.getElementById('conn-dot-game').className = 'conn-dot';
+  });
+}
+
+function onRoomUpdate(){
+  if(!roomData) return;
+
+  if(roomData.state === 'lobby'){
+    if(document.getElementById('game-screen').classList.contains('active')){
+      showScreen('lobby-screen');
+    }
+    renderLobby();
+  } else if(roomData.state === 'playing'){
+    if(!document.getElementById('game-screen').classList.contains('active')){
+      showScreen('game-screen');
+    }
+    renderGame();
+  }
+}
+
+/* ===== LOBBY RENDER ===== */
+function renderLobby(){
+  const teams = roomData.teams || {red:[null,null,null,null,null], blue:[null,null,null,null,null]};
+  const waiting = roomData.waiting || [];
+  buildTeamSlots('red', teams.red, 'red-slots', 'red-count');
+  buildTeamSlots('blue', teams.blue, 'blue-slots', 'blue-count');
+  buildWaiting(waiting);
+  document.getElementById('lobby-score-red').textContent = (roomData.scores||{}).red || 0;
+  document.getElementById('lobby-score-blue').textContent = (roomData.scores||{}).blue || 0;
+}
+
+function buildTeamSlots(team, arr, slotsId, countId){
+  arr = arr || [null,null,null,null,null];
+  const g=document.getElementById(slotsId);
+  g.innerHTML='';
+  const count = arr.filter(p=>p).length;
+  document.getElementById(countId).textContent = count+'/'+MAX_PLAYERS+' OYUNCU';
+
+  for(let i=0;i<MAX_PLAYERS;i++){
+    const p = arr[i];
+    const slot = document.createElement('div');
+    const isCapt = i===0;
+    const teamClass = team==='red' ? 'red-team' : 'blue-team';
+    slot.className = 'player-slot ' + (isCapt ? 'captain '+teamClass : 'regular') + (p ? ' filled' : '');
+    if(p){
+      const isYou = p.id === myPlayerId;
+      const canManage = isHost || isYou;
+      slot.innerHTML = `
+        <div class="slot-crown">${isCapt?'👑':''}</div>
+        <div class="slot-avatar">${p.avatar||'🙂'}</div>
+        <div class="slot-name${isYou?' you':''}">${escapeHtml(p.name)}${isYou?' (Sen)':''}</div>
+        <div class="slot-actions">
+          ${canManage ? `<button class="slot-act-btn" onclick="moveToWaiting('${team}',${i})" title="Bekleyenlere Al">↩</button>` : ''}
+          ${isHost ? `<button class="slot-act-btn" onclick="removePlayer('${team}',${i})" title="Sil">✕</button>` : ''}
+        </div>`;
+    } else {
+      slot.innerHTML = `
+        <div class="slot-crown">${isCapt?'👑':''}</div>
+        <div class="slot-avatar" style="opacity:0.3">👤</div>
+        <div class="slot-empty">${isCapt?'KAPTAN BEKLENİYOR':'BOŞ'}</div>`;
+    }
+    g.appendChild(slot);
+  }
+}
+
+function buildWaiting(waiting){
+  const g = document.getElementById('waiting-slots');
+  g.innerHTML = '';
+  document.getElementById('waiting-badge').textContent = waiting.length;
+
+  if(waiting.length===0){
+    g.innerHTML = '<div class="waiting-slot empty-slot"><div class="ws-empty">Henüz kimse yok</div></div>';
+    return;
+  }
+
+  waiting.forEach((p,i)=>{
+    const isYou = p.id === myPlayerId;
+    const slot = document.createElement('div');
+    slot.className = 'waiting-slot has-player';
+    slot.innerHTML = `
+      <div class="ws-avatar">${p.avatar||'🙂'}</div>
+      <div class="ws-name${isYou?' you':''}">${escapeHtml(p.name)}${isYou?' (Sen)':''}</div>
+      <div class="ws-team-btns">
+        <button class="ws-btn red" onclick="moveToTeam(${i},'red')">🔴</button>
+        <button class="ws-btn blue" onclick="moveToTeam(${i},'blue')">🔵</button>
+      </div>`;
+    g.appendChild(slot);
+  });
+}
+
+function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ===== TEAM MANAGEMENT (writes to Firestore) ===== */
+async function moveToTeam(waitingIdx, team){
+  const {updateDoc} = fb();
+  const waiting = [...(roomData.waiting||[])];
+  const teams = JSON.parse(JSON.stringify(roomData.teams||{red:[null,null,null,null,null],blue:[null,null,null,null,null]}));
+  const p = waiting[waitingIdx];
+  if(!p) return;
+  const arr = teams[team];
+  const freeIdx = arr.findIndex(x=>!x);
+  if(freeIdx === -1){ showToast('⚠️ Takım dolu'); return; }
+  arr[freeIdx] = p;
+  waiting.splice(waitingIdx,1);
+  await updateDoc(roomRef(roomCode), { teams, waiting });
+}
+
+async function moveToWaiting(team, idx){
+  const {updateDoc} = fb();
+  const teams = JSON.parse(JSON.stringify(roomData.teams||{red:[null,null,null,null,null],blue:[null,null,null,null,null]}));
+  const waiting = [...(roomData.waiting||[])];
+  const p = teams[team][idx];
+  if(!p) return;
+  teams[team][idx] = null;
+  waiting.push(p);
+  await updateDoc(roomRef(roomCode), { teams, waiting });
+}
+
+async function removePlayer(team, idx){
+  const {updateDoc} = fb();
+  const teams = JSON.parse(JSON.stringify(roomData.teams||{red:[null,null,null,null,null],blue:[null,null,null,null,null]}));
+  teams[team][idx] = null;
+  await updateDoc(roomRef(roomCode), { teams });
+}
+
+/* ===== START GAME (host only) ===== */
+async function lockAndStart(){
+  const teams = roomData.teams || {};
+  const redCount = (teams.red||[]).filter(x=>x).length;
+  const blueCount = (teams.blue||[]).filter(x=>x).length;
+  if(redCount<1 || blueCount<1){ showToast('⚠️ Her takımda en az 1 oyuncu olmalı'); return; }
+
+  shuffleWords();
+  const {updateDoc} = fb();
+  await updateDoc(roomRef(roomCode), {
+    state: 'playing',
+    activeTeam: 'red',
+    round: 1,
+    scores: { red:0, blue:0 },
+    turn: null,
+    log: []
+  });
+}
+
+function shuffleWords(){ shuffledWords = shuffleArr(WORDS); wordIndex = 0; }
+
+/* ===== GAME RENDER ===== */
+function getMyTeamRole(){
+  // returns {team:'red'|'blue', isCaptain:bool} or null if spectator/not in game
+  const teams = roomData.teams || {};
+  for(const team of ['red','blue']){
+    const arr = teams[team]||[];
+    const idx = arr.findIndex(p=>p && p.id===myPlayerId);
+    if(idx !== -1) return { team, isCaptain: idx===0 };
+  }
+  return null;
+}
+
+function renderGame(){
+  const activeTeam = roomData.activeTeam;
+  const teams = roomData.teams || {};
+  const capt = (teams[activeTeam]||[])[0];
+  const scores = roomData.scores || {red:0,blue:0};
+  const turn = roomData.turn;
+  const myRole = getMyTeamRole();
+
+  document.getElementById('active-team-name').textContent = activeTeam==='red'?'KIRMIZI':'MAVİ';
+  document.getElementById('active-team-name').className = 'atb-name '+(activeTeam==='red'?'red':'blue');
+  document.getElementById('active-captain-name').textContent = capt ? capt.name : '?';
+  document.getElementById('score-red').textContent = scores.red;
+  document.getElementById('score-blue').textContent = scores.blue;
+  document.getElementById('round-info').textContent = 'Tur ' + (roomData.round||1);
+
+  document.querySelectorAll('.sc-team-row').forEach(el=>el.classList.remove('active'));
+  document.getElementById('score-row-'+activeTeam).classList.add('active');
+
+  const isMyTeamCaptainTurn = myRole && myRole.team===activeTeam && myRole.isCaptain;
+  document.getElementById('btn-end-game').style.display = isHost ? 'flex' : 'none';
+
+  const startBtn = document.getElementById('start-turn-btn');
+  if(turn && turn.active){
+    startBtn.style.display = 'none';
+    renderActiveTurn(turn, isMyTeamCaptainTurn);
+    runLocalTimer(turn);
+  } else {
+    clearInterval(turnTimer);
+    if(isMyTeamCaptainTurn){
+      startBtn.style.display = 'block';
+      startBtn.disabled = false;
+    } else {
+      startBtn.style.display = 'none';
+    }
+    document.getElementById('word-card-active').style.display = 'none';
+    document.getElementById('word-card-spectator').style.display = 'block';
+    const note = document.getElementById('spectator-note');
+    if(myRole && myRole.team===activeTeam){
+      note.textContent = capt ? capt.name+' turu başlatacak...' : 'Kaptan bekleniyor...';
+    } else if(myRole){
+      note.textContent = 'Rakip takımın turu başlamasını bekleyin...';
+    } else {
+      note.textContent = 'Tur başlamadı. Kaptanlar hazır olduğunda başlayacak.';
+    }
+    document.getElementById('timer-val').textContent = TURN_TIME;
+    document.getElementById('timer-bar').style.width = '100%';
+    updateTurnCounts(0,0,0);
+  }
+
+  renderLog(roomData.log||[]);
+}
+
+function renderActiveTurn(turn, isMyTeamCaptainTurn){
+  document.getElementById('word-card-spectator').style.display='none';
+  document.getElementById('word-card-active').style.display='block';
+  const word = turn.currentWord || {word:'—',cat:'',taboo:[]};
+  document.getElementById('wc-category').textContent = word.cat;
+  document.getElementById('wc-word').textContent = word.word;
+  const tl = document.getElementById('taboo-list');
+  tl.innerHTML='';
+  (word.taboo||[]).forEach(t=>{
+    const d=document.createElement('div'); d.className='taboo-item'; d.textContent=t;
+    tl.appendChild(d);
+  });
+  document.querySelectorAll('.wc-btn').forEach(b=> b.disabled = !isMyTeamCaptainTurn );
+  document.getElementById('word-card').style.opacity = isMyTeamCaptainTurn ? '1' : '0.5';
+  if(!isMyTeamCaptainTurn){
+    // Show as spectator overlay instead if not captain of active team
+    document.getElementById('word-card-active').style.display='none';
+    document.getElementById('word-card-spectator').style.display='block';
+    document.getElementById('spectator-note').textContent = '⏱ Tur devam ediyor — kaptan kelimeleri anlatıyor!';
+  }
+  updateTurnCounts(turn.correct||0, turn.foul||0, turn.pass||0);
+}
+
+function updateTurnCounts(c,f,p){
+  document.getElementById('turn-correct').textContent=c;
+  document.getElementById('turn-foul').textContent=f;
+  document.getElementById('turn-pass').textContent=p;
+}
+
+function renderLog(log){
+  const el = document.getElementById('turn-log');
+  el.innerHTML='';
+  [...log].slice(-30).reverse().forEach(item=>{
+    const d=document.createElement('div');
+    d.className='log-item '+item.type;
+    const icon = item.type==='correct'?'✓':item.type==='foul'?'✗':'⇒';
+    d.innerHTML = `<span class="log-icon">${icon}</span><span class="log-word">${escapeHtml(item.word)}</span>`;
+    el.appendChild(d);
+  });
+}
+
+/* ===== LOCAL TIMER (visual only, host owns truth via startedAt) ===== */
+function runLocalTimer(turn){
+  clearInterval(turnTimer);
+  const total = turn.durationSec || TURN_TIME;
+  function tick(){
+    const elapsed = Math.floor((Date.now() - turn.startedAt) / 1000);
+    const left = Math.max(0, total - elapsed);
+    document.getElementById('timer-val').textContent = left;
+    document.getElementById('timer-val').className = 'timer-val'+(left<=10?' urgent':'');
+    document.getElementById('timer-bar').style.width = ((left/total)*100)+'%';
+    if(left<=0){
+      clearInterval(turnTimer);
+      const myRole = getMyTeamRole();
+      if(myRole && myRole.team===roomData.activeTeam && myRole.isCaptain){
+        timeExpired();
+      }
+    }
+  }
+  tick();
+  turnTimer = setInterval(tick, 250);
+}
+
+/* ===== TURN ACTIONS (captain writes) ===== */
+async function startTurn(){
+  const {updateDoc} = fb();
+  if(wordIndex>=shuffledWords.length || shuffledWords.length===0) shuffleWords();
+  const w = shuffledWords[wordIndex++];
+  const turn = {
+    active: true,
+    correct: 0, foul: 0, pass: 0,
+    startedAt: Date.now(),
+    durationSec: TURN_TIME,
+    currentWord: w
+  };
+  document.getElementById('start-turn-btn').disabled = true;
+  await updateDoc(roomRef(roomCode), { turn, log: [] });
+}
+
+async function markWord(type){
+  if(!roomData.turn || !roomData.turn.active) return;
+  const {updateDoc} = fb();
+  const turn = JSON.parse(JSON.stringify(roomData.turn));
+  const scores = JSON.parse(JSON.stringify(roomData.scores||{red:0,blue:0}));
+  const log = [...(roomData.log||[])];
+  const activeTeam = roomData.activeTeam;
+  const word = turn.currentWord.word;
+
+  if(type==='correct'){ turn.correct++; scores[activeTeam] = (scores[activeTeam]||0)+1; log.push({type,word}); }
+  else if(type==='foul'){ turn.foul++; scores[activeTeam] = Math.max(0,(scores[activeTeam]||0)-1); log.push({type,word}); showToast('🚨 FAUL! -1 puan'); }
+  else { turn.pass++; log.push({type,word}); }
+
+  if(wordIndex>=shuffledWords.length) shuffleWords();
+  turn.currentWord = shuffledWords[wordIndex++];
+
+  await updateDoc(roomRef(roomCode), { turn, scores, log });
+}
+
+async function timeExpired(){
+  const {updateDoc} = fb();
+  showToast('⏰ Süre doldu!');
+  const turn = JSON.parse(JSON.stringify(roomData.turn));
+  turn.active = false;
+  let nextTeam = roomData.activeTeam;
+  let round = roomData.round || 1;
+  if(nextTeam==='red'){ nextTeam='blue'; } else { nextTeam='red'; round++; }
+  await updateDoc(roomRef(roomCode), { turn: null, activeTeam: nextTeam, round });
+}
+
+async function endGame(){
+  if(!confirm('Oyunu bitirmek istiyor musunuz?')) return;
+  const {updateDoc} = fb();
+  const scores = roomData.scores || {red:0,blue:0};
+  const winner = scores.red>scores.blue?'KIRMIZI':scores.blue>scores.red?'MAVİ':'BERABERE';
+  alert(winner==='BERABERE' ? '🤝 Berabere!' : '🏆 '+winner+' takımı kazandı!\n'+scores.red+' — '+scores.blue);
+  await updateDoc(roomRef(roomCode), {
+    state: 'lobby',
+    teams: { red:[null,null,null,null,null], blue:[null,null,null,null,null] },
+    waiting: [],
+    scores: { red:0, blue:0 },
+    activeTeam: 'red',
+    round: 1,
+    turn: null,
+    log: []
+  });
+}
+
+/* ===== INIT ===== */
+(async function init(){
+  await waitForFirebase();
+  const urlCode = getUrlRoomCode();
+  if(urlCode){
+    // Direct join via link
+    try {
+      const {getDoc} = fb();
+      const snap = await getDoc(roomRef(urlCode));
+      if(snap.exists()){
+        roomCode = urlCode;
+        isHost = false;
+        switchEntryTab('join');
+        document.getElementById('join-code-input').value = urlCode;
+        goToSetup(urlCode);
+        return;
+      }
+    } catch(e){}
+  }
+})();
+</script>
+</body></html>
