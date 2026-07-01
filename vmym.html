@@ -11,7 +11,7 @@
     var r = (function(){ try{ var d=JSON.parse(localStorage.getItem('vmym_ratio')); if(d&&d.w&&d.h) return d.w+'/'+d.h; }catch(e){} return '7/4'; })();
     var lp=(function(){ try{var d=JSON.parse(localStorage.getItem('vmym_lp'));if(d)return d;}catch(e){}return{width:260,height:900}; })();
     var hs=(function(){ try{var d=JSON.parse(localStorage.getItem('vmym_header_size'));if(d)return d;}catch(e){}return{maxWidth:1400,maxHeight:300}; })();
-    document.write('<style>html{zoom:'+(z/100)+'}.box{aspect-ratio:'+r+'!important}.rp-img{aspect-ratio:'+r+'!important}.game-layout{grid-template-columns:'+lp.width+'px 1fr!important}.left-panel{max-height:'+lp.height+'px!important;height:'+lp.height+'px!important}.game-header-img-wrap{max-width:'+hs.maxWidth+'px!important}.game-header-img-wrap img{max-height:'+hs.maxHeight+'px!important}</style>');
+    document.write('<style>html{zoom:'+(z/100)+'}.box{aspect-ratio:'+r+'!important}.sbp-img-wrap{aspect-ratio:'+r+'!important}.game-layout{grid-template-columns:'+lp.width+'px 1fr!important}.left-panel{max-height:'+lp.height+'px!important;height:'+lp.height+'px!important}.game-header-img-wrap{max-width:'+hs.maxWidth+'px!important}.game-header-img-wrap img{max-height:'+hs.maxHeight+'px!important}</style>');
   })();
 </script>
 <style>
@@ -131,15 +131,26 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 .pl-item.active-price.lo .pl-val { color: var(--red); }
 .pl-item.gone .pl-val { text-decoration: line-through; color: var(--muted); }
 
-/* SOL ALT KÖŞE GÖRSELİ */
-.left-col { display:flex; flex-direction:column; min-height:0; }
-.lp-corner-img { width:77%; display:none; object-fit:contain; flex-shrink:0; margin-left:0; }
-.lp-corner-img.on { display:block; }
+/* SEÇİLEN KUTU GÖRSELİ — Kalan Tutarlar altında */
+.left-col { display:flex; flex-direction:column; min-height:0; gap:10px; }
+.selected-box-panel { display:none; flex-direction:column; align-items:center; gap:6px; background:rgba(8,8,18,0.55); border-radius:14px; padding:10px 8px; backdrop-filter:blur(6px); flex-shrink:0; }
+.selected-box-panel.on { display:flex; animation:sbpIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes sbpIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.sbp-label { font-family:var(--font-title); font-size:11px; letter-spacing:2px; color:var(--muted); }
+.sbp-img-wrap { width:100%; aspect-ratio:7/4; border-radius:10px; overflow:hidden; border:2px solid var(--gold); box-shadow:0 0 20px rgba(240,192,64,0.18); background:var(--surface2); display:flex; align-items:center; justify-content:center; position:relative; animation:sbpGlow 2.5s ease-in-out infinite; }
+@keyframes sbpGlow{0%,100%{box-shadow:0 0 14px rgba(240,192,64,0.15);}50%{box-shadow:0 0 26px rgba(240,192,64,0.32);}}
+.sbp-img-wrap img { width:100%; height:100%; object-fit:cover; display:none; }
+.sbp-img-wrap img.on { display:block; }
+.sbp-fallback { display:flex; flex-direction:column; align-items:center; gap:2px; }
+.sbp-icon { font-size:24px; }
+.sbp-num { font-family:var(--font-title); font-size:30px; color:var(--gold); line-height:1; }
+.sbp-tag { font-family:var(--font-title); font-size:11px; letter-spacing:1px; color:var(--gold); background:rgba(240,192,64,0.08); border:1px solid var(--border2); border-radius:14px; padding:3px 10px; }
 
 /* ====== CENTER ====== */
-.center-panel { display:flex; flex-direction:column; align-items:stretch; width:100%; min-height:0; overflow:hidden; height:100%; }
+.center-panel { display:flex; flex-direction:column; align-items:stretch; width:100%; min-height:0; overflow:hidden; }
 
 .status-row { display:flex; align-items:center; justify-content:space-between; width:100%; margin-bottom:8px; min-height:24px; }
+.status-row.removed-by-request { display:none; }
 .status-msg { font-size:12px; color:var(--muted); }
 .status-msg span { color:var(--gold); font-weight:500; }
 .open-badge { background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:4px 12px; font-size:11px; color:var(--gold); display:none; }
@@ -160,18 +171,17 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 .box-amt.lo { color:var(--red)!important; }
 .box-amt.md { color:#c0a040!important; }
 
-/* ====== RIGHT — player box (fixed) ====== */
-.right-panel { background:var(--surface); border:1px solid var(--border2); border-radius:16px; padding:16px 14px; display:flex; flex-direction:column; align-items:center; gap:10px; position:fixed; right:18px; top:50%; transform:translateY(-50%) translateX(260px); opacity:0; transition:opacity 0.4s ease, transform 0.45s cubic-bezier(0.34,1.2,0.64,1); pointer-events:none; z-index:50; width:200px; box-shadow:0 8px 40px rgba(0,0,0,0.5); }
-.right-panel.on { opacity:1; transform:translateY(-50%) translateX(0); pointer-events:auto; }
-.rp-label { font-family:var(--font-title); font-size:13px; letter-spacing:3px; color:var(--muted); }
-.rp-img { width:100%; aspect-ratio:7/4; border-radius:12px; overflow:hidden; border:2px solid var(--gold); box-shadow:0 0 28px rgba(240,192,64,0.2); background:var(--surface2); display:flex; align-items:center; justify-content:center; animation:rpGlow 2.5s ease-in-out infinite; }
-@keyframes rpGlow{0%,100%{box-shadow:0 0 20px rgba(240,192,64,0.18);}50%{box-shadow:0 0 38px rgba(240,192,64,0.38);}}
-.rp-img img { width:100%; height:100%; object-fit:cover; display:none; border-radius:inherit; }
-.rp-img img.on { display:block; }
-.rp-fallback { display:flex; flex-direction:column; align-items:center; gap:6px; }
-.rp-icon { font-size:36px; }
-.rp-num { font-family:var(--font-title); font-size:48px; color:var(--gold); line-height:1; }
-.rp-tag { font-family:var(--font-title); font-size:12px; letter-spacing:2px; color:var(--gold); background:rgba(240,192,64,0.08); border:1px solid var(--border2); border-radius:20px; padding:4px 14px; }
+/* ====== RIGHT — kalan kutu göstergesi (küçültülmüş, fixed) ====== */
+.remain-panel { background:var(--surface); border:1px solid var(--border2); border-radius:14px; padding:12px 14px; display:flex; flex-direction:column; align-items:center; gap:8px; position:fixed; right:18px; top:50%; transform:translateY(-50%) translateX(220px); opacity:0; transition:opacity 0.4s ease, transform 0.45s cubic-bezier(0.34,1.2,0.64,1); pointer-events:none; z-index:50; width:150px; box-shadow:0 8px 32px rgba(0,0,0,0.45); }
+.remain-panel.on { opacity:1; transform:translateY(-50%) translateX(0); pointer-events:auto; }
+.rmp-label { font-family:var(--font-title); font-size:11px; letter-spacing:2px; color:var(--muted); text-align:center; line-height:1.3; }
+.rmp-grid { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; max-width:120px; }
+.rmp-box { width:24px; height:24px; border-radius:6px; background:var(--surface2); border:1.5px solid var(--border2); display:flex; align-items:center; justify-content:center; font-size:11px; transition:all 0.25s; }
+.rmp-box.done { background:rgba(32,192,96,0.15); border-color:rgba(32,192,96,0.4); opacity:0.5; }
+.rmp-box.pending { background:rgba(240,192,64,0.1); border-color:var(--border2); animation:rmpPulse 1.8s ease-in-out infinite; }
+@keyframes rmpPulse{0%,100%{box-shadow:0 0 0 rgba(240,192,64,0);}50%{box-shadow:0 0 8px rgba(240,192,64,0.35);}}
+.rmp-count { font-family:var(--font-title); font-size:22px; color:var(--gold); line-height:1; }
+.rmp-sub { font-size:10px; color:var(--muted); text-align:center; }
 
 /* ===== SELECT POPUP ===== */
 .sel-overlay { position:fixed; inset:0; z-index:999; background:rgba(4,4,10,0.82); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; animation:overlayIn 0.35s ease; }
@@ -356,13 +366,14 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 @media(max-width:900px){
   .game-layout { grid-template-columns:200px 1fr; gap:12px; }
   .pl-val { font-size:12px; }
-  .right-panel { width:150px; right:8px; }
+  .remain-panel { width:120px; right:8px; padding:10px; }
 }
 @media(max-width:640px){
   .game-layout { grid-template-columns:1fr; }
   .left-panel { position:static; max-height:none; }
   .price-list { grid-template-columns:repeat(3,1fr); }
-  .right-panel { width:110px; right:6px; }
+  .remain-panel { width:100px; right:6px; padding:8px; }
+  .rmp-box { width:18px; height:18px; }
   .boxes-grid { grid-template-columns:repeat(3,1fr); }
 }
 </style>
@@ -386,18 +397,28 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 
   <div class="game-layout">
 
-    <!-- LEFT: remaining prices + corner image -->
+    <!-- LEFT: remaining prices + selected box -->
     <div class="left-col">
       <div class="left-panel">
         <div class="lp-title">KALAN TUTARLAR</div>
         <div class="price-list" id="price-list"></div>
       </div>
-      <img class="lp-corner-img" id="lp-corner-img" src="" alt="">
+      <div class="selected-box-panel" id="selected-box-panel">
+        <div class="sbp-label">SENİN KUTUN</div>
+        <div class="sbp-img-wrap" id="sbp-img-wrap">
+          <img id="sbp-img-el" src="" alt="">
+          <div class="sbp-fallback" id="sbp-fallback">
+            <div class="sbp-icon">⭐</div>
+            <div class="sbp-num" id="sbp-num">?</div>
+          </div>
+        </div>
+        <div class="sbp-tag" id="sbp-tag">KUTU #?</div>
+      </div>
     </div>
 
     <!-- CENTER: boxes -->
     <div class="center-panel">
-      <div class="status-row">
+      <div class="status-row removed-by-request">
         <div class="status-msg" id="status-msg">Bir kutu seçin</div>
         <div class="open-badge" id="open-badge"></div>
       </div>
@@ -406,17 +427,12 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 
   </div>
 
-  <!-- RIGHT: fixed player box panel -->
-  <div class="right-panel" id="right-panel">
-    <div class="rp-label">SENİN KUTUN</div>
-    <div class="rp-img" id="rp-img">
-      <img id="rp-img-el" src="" alt="">
-      <div class="rp-fallback" id="rp-fallback">
-        <div class="rp-icon">⭐</div>
-        <div class="rp-num" id="rp-num">?</div>
-      </div>
-    </div>
-    <div class="rp-tag" id="rp-tag">KUTU #?</div>
+  <!-- RIGHT: fixed kalan kutu göstergesi -->
+  <div class="remain-panel" id="remain-panel">
+    <div class="rmp-label">TEKLİFE KALAN</div>
+    <div class="rmp-count" id="rmp-count">0</div>
+    <div class="rmp-grid" id="rmp-grid"></div>
+    <div class="rmp-sub" id="rmp-sub">kutu açın</div>
   </div>
 
 </div>
@@ -676,17 +692,6 @@ async function applyLpImage(){
   } catch(e){ console.warn('applyLpImage error', e); }
 }
 
-/* ===== CORNER IMAGE ===== */
-async function applyCornerImg(){
-  try {
-    const url = clGet('corner_img');
-    const img = document.getElementById('lp-corner-img');
-    if(!img) return;
-    if(url){ img.src=url; img.classList.add('on'); }
-    else { img.classList.remove('on'); }
-  } catch(e){}
-}
-
 /* ===== SELECT POPUP IMAGE ===== */
 function applySelPopupImage(){
   const selImg = document.getElementById('sel-popup-img');
@@ -758,7 +763,6 @@ async function initGame(){
   applyHeaderImg();
   applyBackground();
   applyLpImage();
-  applyCornerImg();
   buildGame();
   buildPriceList();
   setTimeout(showSelectPopup, 600);
@@ -772,7 +776,7 @@ function buildGame(){
   if(offerOv){ offerOv.classList.remove('on','hide'); }
   const ob=document.getElementById('open-badge');
   if(ob) ob.classList.remove('on');
-  const rp=document.getElementById('right-panel');
+  const rp=document.getElementById('remain-panel');
   if(rp) rp.classList.remove('on');
 
   for(let i=0;i<20;i++){
@@ -815,15 +819,17 @@ function clickBox(idx){
 
     const adminIdx = shuffleMap[idx];
     const src = boxImages[adminIdx];
-    const rpImg = document.getElementById('rp-img-el');
-    const rpFb = document.getElementById('rp-fallback');
-    document.getElementById('rp-num').textContent = idx+1;
-    document.getElementById('rp-tag').textContent = 'KUTU #'+(idx+1);
-    if(src){ rpImg.src=src; rpImg.classList.add('on'); rpFb.style.display='none'; }
-    else { rpImg.src=''; rpImg.classList.remove('on'); rpFb.style.display=''; }
-    setTimeout(()=>document.getElementById('right-panel').classList.add('on'),200);
+    const sbpImg = document.getElementById('sbp-img-el');
+    const sbpFb = document.getElementById('sbp-fallback');
+    document.getElementById('sbp-num').textContent = idx+1;
+    document.getElementById('sbp-tag').textContent = 'KUTU #'+(idx+1);
+    if(src){ sbpImg.src=src; sbpImg.classList.add('on'); sbpFb.style.display='none'; }
+    else { sbpImg.src=''; sbpImg.classList.remove('on'); sbpFb.style.display=''; }
+    setTimeout(()=>document.getElementById('selected-box-panel').classList.add('on'),200);
+    setTimeout(()=>document.getElementById('remain-panel').classList.add('on'),300);
 
     updateBadge();
+    updateRemainPanel();
     setStatus(`Kutu ${idx+1} sizin! <span>${openTarget} kutu</span> açın.`);
     buildPriceRow();
     return;
@@ -855,6 +861,7 @@ function clickBox(idx){
   openCount++;
   buildPriceRow();
   updateBadge();
+  updateRemainPanel();
 
   const remaining=20-openedBoxes.size-1;
   if(openCount>=openTarget){
@@ -871,6 +878,23 @@ function updateBadge(){
   if(!b) return;
   if(gameState==='open'&&openTarget-openCount>0){ b.textContent=`Kalan: ${openTarget-openCount}`; b.classList.add('on'); }
   else b.classList.remove('on');
+}
+
+function updateRemainPanel(){
+  const panel = document.getElementById('remain-panel');
+  if(!panel) return;
+  if(gameState!=='open'){ panel.classList.remove('on'); return; }
+  const left = Math.max(0, openTarget - openCount);
+  document.getElementById('rmp-count').textContent = left;
+  document.getElementById('rmp-sub').textContent = left===1 ? 'kutu açın' : 'kutu açın';
+  const grid = document.getElementById('rmp-grid');
+  grid.innerHTML = '';
+  for(let i=0;i<openTarget;i++){
+    const b = document.createElement('div');
+    b.className = 'rmp-box ' + (i<openCount ? 'done' : 'pending');
+    b.textContent = i<openCount ? '✓' : '🎁';
+    grid.appendChild(b);
+  }
 }
 
 function buildPriceRow(){
@@ -966,6 +990,7 @@ function rejectDeal(){
     openTarget=Math.min(OPEN_SCHEDULE[roundNumber]||1,remaining);
     gameState='open';
     updateBadge();
+    updateRemainPanel();
     setStatus(`Yok! <span>${openTarget}</span> kutu daha açın.`);
   }, 350);
 }
@@ -1058,11 +1083,10 @@ async function connectKickChat(){
   if(pollPingInterval){ clearInterval(pollPingInterval); pollPingInterval=null; }
   try {
     const chatroomId = 12002567; // batuhanfurkan5
-    const pusherKey = 'eb1d5f283081a78b932c';
-    pollWs = new WebSocket('wss://ws-us2.pusher.com/app/'+pusherKey+'?protocol=7&client=js&version=7.6.0&flash=false');
+    const pusherKey = '32cbd69e4b950bf97679';
+    pollWs = new WebSocket('wss://ws-us2.pusher.com/app/'+pusherKey+'?protocol=7&client=js&version=8.4.0-rc2&flash=false');
     pollWs.onopen = ()=>{
       pollWs.send(JSON.stringify({event:'pusher:subscribe',data:{auth:'',channel:'chatrooms.'+chatroomId+'.v2'}}));
-      setPollStatus('connected','Kick chat bağlandı — <span>batuhanfurkan5</span>');
       pollPingInterval = setInterval(()=>{
         if(pollWs && pollWs.readyState===1){ pollWs.send(JSON.stringify({event:'pusher:ping',data:{}})); }
       }, 25000);
@@ -1070,17 +1094,30 @@ async function connectKickChat(){
     pollWs.onmessage = (e)=>{
       try {
         const msg = JSON.parse(e.data);
-        if(msg.event==='pusher:pong') return;
-        if(msg.event==='App\\Events\\ChatMessageEvent'){
-          const d = JSON.parse(msg.data);
-          pollProcessMessage(d.sender?.username||'Anonim', d.content||'');
+        console.log('[Kick WS]', msg.event, msg.data);
+        if(msg.event==='pusher:pong' || msg.event==='pusher:ping') return;
+        if(msg.event==='pusher_internal:subscription_succeeded'){
+          setPollStatus('connected','Kick chat bağlandı — <span>batuhanfurkan5</span> ✓');
+          return;
         }
-      } catch(err){}
+        if(msg.event==='pusher:error' || msg.event==='pusher_internal:subscription_error'){
+          console.error('[Kick WS] subscription/connection error:', msg.data);
+          setPollStatus('error', 'Pusher hatası: ' + JSON.stringify(msg.data).slice(0,80));
+          return;
+        }
+        if(msg.event==='App\\Events\\ChatMessageEvent' || msg.event==='App\\Events\\ChatMessageSentEvent'){
+          const d = JSON.parse(msg.data);
+          const sender = d.sender || d.user || (d.message && d.message.sender) || {};
+          const content = d.content || (d.message && d.message.message) || '';
+          pollProcessMessage(sender.username||'Anonim', content);
+        }
+      } catch(err){ console.warn('[Kick WS] parse error', err, e.data); }
     };
-    pollWs.onerror = ()=> setPollStatus('error','Bağlantı hatası — yeniden deneniyor...');
-    pollWs.onclose = ()=>{
+    pollWs.onerror = (ev)=>{ console.error('[Kick WS] onerror', ev); setPollStatus('error','Bağlantı hatası — yeniden deneniyor...'); };
+    pollWs.onclose = (ev)=>{
+      console.warn('[Kick WS] onclose code=', ev.code, 'reason=', ev.reason, 'wasClean=', ev.wasClean);
       clearInterval(pollPingInterval);
-      setPollStatus('','Bağlantı kesildi — 3sn sonra yeniden bağlanılıyor...');
+      setPollStatus('','Bağlantı kesildi (kod:'+ev.code+') — 3sn sonra yeniden bağlanılıyor...');
       setTimeout(connectKickChat, 3000);
     };
   } catch(err){

@@ -32,9 +32,10 @@ html,body{
   font-family:var(--font-body);
   overflow-x:hidden;
 }
+#bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;transition:opacity 0.5s;}
 
 /* ===== SCREENS ===== */
-.screen{display:none;flex-direction:column;align-items:center;min-height:100vh;padding:0;}
+.screen{display:none;flex-direction:column;align-items:center;min-height:100vh;padding:0;position:relative;z-index:1;}
 .screen.active{display:flex;animation:fadeIn 0.3s ease;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
@@ -79,6 +80,11 @@ html,body{
 .entry-btn:disabled{opacity:0.5;cursor:not-allowed;}
 .entry-err{color:var(--red);font-size:12px;font-weight:600;margin-top:10px;min-height:16px;}
 .entry-or{font-size:11px;color:#bbb;margin:18px 0;letter-spacing:2px;font-weight:700;}
+.join-code-wrap{position:relative;margin-bottom:14px;}
+.join-code-input{margin-bottom:0;padding-right:46px;}
+.join-code-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:18px;cursor:pointer;color:#999;width:34px;height:34px;border-radius:8px;transition:all 0.15s;}
+.join-code-eye:hover{background:#f0f2f8;color:#555;}
+.join-code-eye.showing{color:var(--blue);}
 .entry-roomcode-display{background:#f0f2f8;border-radius:12px;padding:16px;margin-bottom:16px;display:none;}
 .entry-roomcode-display.show{display:block;}
 .entry-roomcode-label{font-size:11px;color:#999;letter-spacing:1px;margin-bottom:6px;}
@@ -89,39 +95,35 @@ html,body{
 .entry-spinner{width:36px;height:36px;border:3px solid #eee;border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
-/* ===== JOIN / AVATAR SETUP SCREEN ===== */
-#setup-screen{align-items:center;justify-content:center;padding:20px;}
-.setup-card{
-  background:var(--white); border-radius:24px; padding:36px 32px;
-  max-width:440px; width:100%; text-align:center;
-  box-shadow:0 16px 50px rgba(0,0,0,0.35);
+/* ===== AVATAR CAROUSEL (top of entry screen) ===== */
+.avatar-carousel{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px;}
+.ac-arrow{
+  width:38px;height:38px;border-radius:50%;flex-shrink:0;
+  background:#f0f2f8;border:none;font-size:22px;color:var(--blue);
+  cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-body);font-weight:700;
 }
-.setup-room-tag{display:inline-flex;align-items:center;gap:6px;background:#f0f2f8;border-radius:20px;padding:6px 14px;font-size:11px;color:#888;font-weight:700;letter-spacing:1px;margin-bottom:18px;}
-.setup-room-tag span{color:var(--blue);font-family:var(--font-title);font-size:14px;letter-spacing:2px;}
-.setup-title{font-family:var(--font-title);font-size:30px;letter-spacing:2px;color:#222;margin-bottom:4px;}
-.setup-sub{font-size:12px;color:#999;margin-bottom:24px;}
-
-.avatar-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:22px;}
-.avatar-opt{
-  aspect-ratio:1;border-radius:14px;background:#f0f2f8;
-  display:flex;align-items:center;justify-content:center;font-size:24px;
-  cursor:pointer;border:2.5px solid transparent;transition:all 0.15s;
+.ac-arrow:hover{background:#e0e6f5;transform:scale(1.08);}
+.ac-arrow:active{transform:scale(0.95);}
+.ac-viewport{width:120px;height:120px;border-radius:24px;overflow:hidden;position:relative;flex-shrink:0;background:#f0f2f8;}
+.ac-track{display:flex;height:100%;transition:transform 0.32s cubic-bezier(0.34,1.2,0.64,1);}
+.ac-slide{width:120px;height:120px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.ac-slide img{width:100%;height:100%;object-fit:cover;}
+.ac-slide .ac-emoji-fallback{font-size:56px;}
+.ac-viewport::after{
+  content:'';position:absolute;inset:0;border-radius:24px;
+  border:3px solid var(--blue);pointer-events:none;
+  box-shadow:0 0 0 4px rgba(26,110,245,0.12);
 }
-.avatar-opt:hover{background:#e6eaf5;transform:scale(1.05);}
-.avatar-opt.selected{border-color:var(--blue);background:rgba(26,110,245,0.08);transform:scale(1.08);}
-
-.setup-input{width:100%;background:#f0f2f8;border:2px solid transparent;border-radius:12px;padding:14px 16px;font-size:16px;font-family:var(--font-body);font-weight:600;outline:none;margin-bottom:18px;text-align:center;color:#222;transition:border-color 0.2s;}
-.setup-input:focus{border-color:var(--blue);}
-.setup-input::placeholder{color:#aaa;font-weight:400;}
-
-.setup-btn{width:100%;background:var(--blue);color:var(--white);font-family:var(--font-title);font-size:20px;letter-spacing:2px;border:none;border-radius:12px;padding:15px;cursor:pointer;transition:all 0.2s;box-shadow:0 6px 20px rgba(26,110,245,0.3);}
-.setup-btn:hover{background:var(--blue-dark);}
-.setup-btn:disabled{opacity:0.4;cursor:not-allowed;}
 
 /* ===== WAITING SCREEN (host bekleme ekranı görmesi için) ===== */
 #host-wait-banner{display:none;background:rgba(245,197,24,0.15);border:1px solid rgba(245,197,24,0.4);border-radius:14px;padding:14px 20px;margin:16px auto 0;max-width:1100px;width:calc(100% - 40px);text-align:center;}
 #host-wait-banner.show{display:block;}
 .hw-label{font-size:11px;color:var(--yellow);letter-spacing:2px;font-weight:700;margin-bottom:4px;}
+.hw-label-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:4px;}
+.hw-toggle-btn{background:rgba(255,255,255,0.12);border:1px solid var(--border);border-radius:8px;color:var(--white);font-size:11px;font-weight:700;padding:5px 12px;cursor:pointer;transition:all 0.2s;letter-spacing:1px;}
+.hw-toggle-btn:hover{background:rgba(255,255,255,0.22);}
+.hw-toggle-btn.active{background:var(--yellow);color:#000;border-color:var(--yellow-dark);}
 .hw-link-row{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;}
 .hw-link-input{background:rgba(255,255,255,0.12);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--white);min-width:240px;text-align:center;}
 .hw-copy{background:var(--yellow);color:#000;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;}
@@ -138,9 +140,16 @@ html,body{
   padding:24px 20px;
   flex:1;
   align-items:start;
+  transition:grid-template-columns 0.3s ease;
+}
+/* Oyun modunda: yan paneller küçülür (%90 oranında daraltılır), orta panel büyür (%30 daha geniş) */
+.lobby-content.game-mode{
+  grid-template-columns: 0.62fr 460px 0.62fr;
+  max-width:1180px;
 }
 @media(max-width:768px){
   .lobby-content{grid-template-columns:1fr;max-width:440px;}
+  .lobby-content.game-mode{grid-template-columns:1fr;max-width:440px;}
 }
 
 /* Team card */
@@ -149,16 +158,40 @@ html,body{
   border-radius:22px;
   overflow:hidden;
   box-shadow:0 8px 32px rgba(0,0,0,0.25);
+  transition:transform 0.3s ease, opacity 0.3s ease;
+}
+.lobby-content.game-mode .team-card{
+  transform:scale(0.9);
+  transform-origin:top center;
 }
 .team-header{
   padding:16px 20px;
   display:flex;align-items:center;justify-content:space-between;
+  gap:10px;
 }
 .team-header.red{background:var(--red);}
 .team-header.blue{background:var(--blue);}
 .team-dot{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,0.5);}
 .team-name{font-family:var(--font-title);font-size:clamp(20px,3vw,26px);letter-spacing:3px;color:var(--white);text-shadow:0 1px 4px rgba(0,0,0,0.3);}
-.team-count{background:rgba(255,255,255,0.25);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--white);font-family:var(--font-title);letter-spacing:1px;}
+.team-count{background:rgba(255,255,255,0.25);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--white);font-family:var(--font-title);letter-spacing:1px;flex-shrink:0;}
+.team-join-btn{
+  flex:1;
+  text-align:center;
+  background:rgba(255,255,255,0.92);
+  border:none;
+  border-radius:20px;
+  padding:7px 14px;
+  font-family:var(--font-title);
+  font-size:14px;
+  letter-spacing:2px;
+  cursor:pointer;
+  transition:all 0.18s;
+  margin:0 4px;
+}
+.team-header.red .team-join-btn{color:var(--red);}
+.team-header.blue .team-join-btn{color:var(--blue);}
+.team-join-btn:hover{background:#fff;transform:scale(1.04);}
+.team-join-btn:active{transform:scale(0.97);}
 .team-body{padding:12px;display:flex;flex-direction:column;gap:6px;}
 
 .player-slot{
@@ -176,7 +209,7 @@ html,body{
 .player-slot.captain.filled.blue-team{border-color:rgba(26,110,245,0.4);background:rgba(26,110,245,0.05);}
 
 .slot-crown{font-size:14px;flex-shrink:0;}
-.slot-avatar{width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;overflow:hidden;}
+.slot-avatar{width:45px;height:45px;border-radius:50%;background:rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;overflow:hidden;}
 .slot-name{flex:1;font-size:13px;font-weight:600;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .slot-name.you{color:var(--blue);}
 .slot-empty{flex:1;font-size:11px;font-weight:600;letter-spacing:1px;color:rgba(0,0,0,0.25);text-transform:uppercase;}
@@ -191,6 +224,7 @@ html,body{
   border-radius:22px;
   overflow:hidden;
   box-shadow:0 8px 24px rgba(0,0,0,0.2);
+  transition:transform 0.3s ease;
 }
 .waiting-header{
   background:rgba(0,0,0,0.25);
@@ -212,7 +246,7 @@ html,body{
 }
 .waiting-slot.has-player{background:rgba(255,255,255,0.12);border-color:var(--yellow);box-shadow:0 0 0 1px rgba(245,197,24,0.3);}
 .waiting-slot.empty-slot{opacity:0.4;}
-.ws-avatar{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;overflow:hidden;}
+.ws-avatar{width:45px;height:45px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;overflow:hidden;}
 .ws-name{flex:1;font-size:13px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ws-name.you{color:var(--yellow);}
 .ws-empty{flex:1;font-size:10px;color:var(--muted);letter-spacing:1px;}
@@ -235,7 +269,12 @@ html,body{
 .score-name.red{color:#ff6b7a;}
 .score-name.blue{color:var(--blue-light);}
 .score-num{font-family:var(--font-title);font-size:clamp(28px,5vw,40px);color:var(--white);}
-.score-divider{font-family:var(--font-title);font-size:28px;color:var(--muted);}
+.score-divider{font-family:var(--font-title);font-size:28px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px;min-width:60px;}
+.score-timer{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.score-timer-val{font-family:var(--font-title);font-size:30px;color:var(--yellow);line-height:1;}
+.score-timer-val.urgent{color:#ff5252;animation:urgentPulse 0.5s ease infinite alternate;}
+.score-timer-bar-wrap{width:54px;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;overflow:hidden;}
+.score-timer-bar{height:100%;background:linear-gradient(90deg,#ff4444,var(--yellow),#20c060);border-radius:2px;transition:width 1s linear;}
 
 /* ===== GAME SCREEN ===== */
 #game-screen{padding:0;justify-content:flex-start;}
@@ -263,21 +302,21 @@ html,body{
   box-shadow:0 12px 40px rgba(0,0,0,0.3);
   position:relative;overflow:hidden;
 }
-.wc-category{font-size:11px;letter-spacing:3px;color:rgba(0,0,0,0.35);margin-bottom:12px;font-weight:600;}
-.wc-word{font-family:var(--font-title);font-size:clamp(36px,7vw,58px);color:#111;letter-spacing:2px;line-height:1;margin-bottom:20px;}
-.taboo-list{display:flex;flex-direction:column;gap:7px;margin-bottom:16px;}
+.wc-category{font-size:12px;letter-spacing:3px;color:rgba(0,0,0,0.35);margin-bottom:12px;font-weight:600;}
+.wc-word{font-family:var(--font-title);font-size:clamp(40px,8vw,64px);color:#111;letter-spacing:2px;line-height:1;margin-bottom:20px;}
+.taboo-list{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;}
 .taboo-item{
   background:rgba(232,25,44,0.08);border:1.5px solid rgba(232,25,44,0.2);
-  border-radius:10px;padding:9px 14px;
-  font-size:14px;font-weight:600;color:#c00;
+  border-radius:10px;padding:10px 16px;
+  font-size:15px;font-weight:600;color:#c00;
   display:flex;align-items:center;gap:8px;
 }
-.taboo-item::before{content:'✗';font-size:12px;color:var(--red);font-weight:700;}
+.taboo-item::before{content:'✗';font-size:13px;color:var(--red);font-weight:700;}
 
-.wc-spectator-note{background:rgba(0,0,0,0.05);border-radius:10px;padding:14px;font-size:13px;color:#888;font-weight:600;}
+.wc-spectator-note{background:rgba(0,0,0,0.05);border-radius:10px;padding:16px;font-size:14px;color:#888;font-weight:600;}
 
 .wc-actions{display:flex;gap:10px;margin-top:16px;}
-.wc-btn{flex:1;font-family:var(--font-title);font-size:20px;letter-spacing:2px;border:none;border-radius:12px;padding:16px;cursor:pointer;transition:all 0.15s;}
+.wc-btn{flex:1;font-family:var(--font-title);font-size:22px;letter-spacing:2px;border:none;border-radius:12px;padding:18px;cursor:pointer;transition:all 0.15s;}
 .wc-btn.correct{background:#20c060;color:#fff;box-shadow:0 4px 16px rgba(32,192,96,0.3);}
 .wc-btn.correct:hover{background:#18a050;}
 .wc-btn.pass{background:rgba(0,0,0,0.08);color:#555;}
@@ -331,6 +370,23 @@ html,body{
 .ftost{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:rgba(0,0,0,0.85);border:1px solid var(--border2);border-radius:10px;padding:10px 20px;font-size:13px;color:var(--yellow);opacity:0;transition:all 0.3s;pointer-events:none;z-index:200;white-space:nowrap;max-width:90vw;text-overflow:ellipsis;overflow:hidden;}
 .ftost.on{opacity:1;transform:translateX(-50%) translateY(0);}
 
+/* ===== READY/START MODALS ===== */
+.modal-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.on{display:flex;animation:fadeIn 0.25s ease;}
+.modal{background:var(--white);border-radius:24px;padding:36px 30px;max-width:380px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.4);animation:modalPop 0.35s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes modalPop{from{opacity:0;transform:scale(0.85) translateY(14px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.modal-title{font-family:var(--font-title);font-size:26px;letter-spacing:2px;color:#222;}
+.setup-btn{width:100%;border:none;border-radius:12px;padding:15px;font-family:var(--font-title);font-size:20px;letter-spacing:2px;color:#fff;cursor:pointer;transition:opacity 0.15s;}
+.setup-btn:hover{opacity:0.9;}
+.setup-btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* ===== COUNTDOWN OVERLAY ===== */
+.countdown-overlay{position:fixed;inset:0;z-index:350;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;}
+.countdown-overlay.on{display:flex;}
+.countdown-num{font-family:var(--font-title);font-size:180px;color:var(--yellow);line-height:1;text-shadow:0 0 60px rgba(245,197,24,0.6);animation:countdownPulse 1s ease infinite;}
+@keyframes countdownPulse{0%{transform:scale(0.6);opacity:0;}30%{transform:scale(1.1);opacity:1;}100%{transform:scale(1);opacity:1;}}
+.countdown-num.go{color:#20c060;font-size:120px;text-shadow:0 0 60px rgba(32,192,96,0.6);}
+
 /* Connection indicator */
 .conn-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;}
 .conn-dot.live{background:#20c060;animation:connPulse 1.5s ease infinite;}
@@ -338,12 +394,24 @@ html,body{
 </style>
 </head>
 <body>
+<div id="bg-layer"></div>
 
 <!-- ===== ENTRY SCREEN: oda kur / katıl ===== -->
 <div id="entry-screen" class="screen active">
   <div class="entry-card">
     <div class="entry-logo">FAUL<span>!</span></div>
     <div class="entry-sub">TAKIM TABU OYUNU</div>
+
+    <!-- AVATAR CAROUSEL -->
+    <div class="avatar-carousel">
+      <button class="ac-arrow" onclick="carouselPrev()">‹</button>
+      <div class="ac-viewport" id="ac-viewport">
+        <div class="ac-track" id="ac-track"></div>
+      </div>
+      <button class="ac-arrow" onclick="carouselNext()">›</button>
+    </div>
+
+    <input type="text" class="entry-input" id="entry-name-input" placeholder="Adın..." maxlength="16" style="letter-spacing:0;font-weight:600;margin-top:16px;">
 
     <div class="entry-tabs">
       <div class="entry-tab active" id="tab-create" onclick="switchEntryTab('create')">ODA KUR</div>
@@ -366,25 +434,13 @@ html,body{
 
     <!-- JOIN ROOM -->
     <div id="entry-join-panel" style="display:none;">
-      <input type="text" class="entry-input" id="join-code-input" placeholder="ODA KODU" maxlength="6" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinRoom()">
+      <div class="join-code-wrap">
+        <input type="password" class="entry-input join-code-input" id="join-code-input" placeholder="ODA KODU" maxlength="6" autocomplete="off" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinRoom()">
+        <button type="button" class="join-code-eye" id="join-code-eye" onclick="toggleJoinCodeVisibility()" title="Kodu göster/gizle">👁</button>
+      </div>
       <button class="entry-btn" onclick="joinRoom()">➔ KATIL</button>
       <div class="entry-err" id="join-err"></div>
     </div>
-  </div>
-</div>
-
-<!-- ===== SETUP SCREEN: isim + avatar seç ===== -->
-<div id="setup-screen" class="screen">
-  <div class="setup-card">
-    <div class="setup-room-tag">ODA: <span id="setup-room-code">——</span></div>
-    <div class="setup-title">PROFİLİNİ OLUŞTUR</div>
-    <div class="setup-sub">Avatarını seç ve adını yaz</div>
-
-    <div class="avatar-grid" id="avatar-grid"></div>
-
-    <input type="text" class="setup-input" id="setup-name-input" placeholder="Adın..." maxlength="16">
-
-    <button class="setup-btn" id="setup-confirm-btn" onclick="confirmSetup()" disabled>OYUNA GİR</button>
   </div>
 </div>
 
@@ -395,15 +451,19 @@ html,body{
     <div class="topbar-logo">FAUL<span>!</span></div>
     <div class="topbar-actions">
       <div class="conn-dot" id="conn-dot"></div>
-      <button class="tb-btn" onclick="shareRoom()">➔ Davet Et</button>
+      <button class="tb-btn" id="btn-share" onclick="shareRoom()">➔ Davet Et</button>
       <button class="tb-btn primary" id="btn-lock" onclick="lockAndStart()" style="display:none;">🔒 Kilitle &amp; Başla</button>
+      <button class="tb-btn danger" id="btn-end-game" onclick="endGame()" style="display:none;">🚪 Oyunu Bitir</button>
       <a href="index.html" class="tb-btn">← Ana Sayfa</a>
     </div>
   </div>
 
   <div id="host-wait-banner">
-    <div class="hw-label">ODA KODU</div>
-    <div class="hw-link-row">
+    <div class="hw-label-row">
+      <div class="hw-label">ODA KODU &amp; LİNK</div>
+      <button class="hw-toggle-btn" id="hw-toggle-btn" onclick="toggleHostCodeVisibility()">👁 GÖSTER</button>
+    </div>
+    <div class="hw-link-row" id="hw-link-row" style="display:none;">
       <div class="hw-room-code" id="hw-room-code">——</div>
       <input type="text" class="hw-link-input" id="hw-link-input" readonly value="">
       <button class="hw-copy" onclick="copyShareLink()">Kopyala</button>
@@ -415,7 +475,13 @@ html,body{
       <div class="score-name red">KIRMIZI</div>
       <div class="score-num" id="lobby-score-red">0</div>
     </div>
-    <div class="score-divider">:</div>
+    <div class="score-divider" id="score-divider-wrap">
+      <span id="score-divider-colon">:</span>
+      <div class="score-timer" id="score-timer" style="display:none;">
+        <div class="score-timer-val" id="score-timer-val">60</div>
+        <div class="score-timer-bar-wrap"><div class="score-timer-bar" id="score-timer-bar" style="width:100%"></div></div>
+      </div>
+    </div>
     <div class="score-team">
       <div class="score-num" id="lobby-score-blue">0</div>
       <div class="score-name blue">MAVİ</div>
@@ -429,20 +495,66 @@ html,body{
       <div class="team-header red">
         <div class="team-dot"></div>
         <div class="team-name">KIRMIZI</div>
+        <button class="team-join-btn" id="join-red-btn" onclick="joinTeamFromHeader('red')" style="display:none;">Katıl</button>
         <div class="team-count" id="red-count">0/5 OYUNCU</div>
       </div>
       <div class="team-body" id="red-slots"></div>
     </div>
 
-    <!-- WAITING -->
-    <div class="waiting-card">
-      <div class="waiting-header">
-        <div class="waiting-title">
-          ➕ BEKLEYENLER
-          <div class="waiting-badge" id="waiting-badge">0</div>
+    <!-- MIDDLE: Bekleyenler (lobby) / Kelime Kartı (oyun) -->
+    <div class="waiting-card" id="middle-panel">
+
+      <!-- LOBBY MODE: Bekleyenler -->
+      <div id="middle-lobby-view">
+        <div class="waiting-header">
+          <div class="waiting-title">
+            ➕ BEKLEYENLER
+            <div class="waiting-badge" id="waiting-badge">0</div>
+          </div>
+        </div>
+        <div class="waiting-body" id="waiting-slots"></div>
+      </div>
+
+      <!-- GAME MODE: Kelime Kartı -->
+      <div id="middle-game-view" style="display:none;">
+        <div class="waiting-header">
+          <div class="waiting-title" id="active-team-name" style="color:var(--white);">—</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div id="narrator-avatar-wrap" style="width:45px;height:45px;border-radius:50%;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;flex-shrink:0;"></div>
+            <div style="font-size:12px;color:var(--white);font-weight:600;" id="active-captain-name">—</div>
+          </div>
+        </div>
+
+        <div style="padding:14px;">
+          <div class="word-card" id="word-card">
+            <div id="word-card-active">
+              <div class="wc-category" id="wc-category">KATEGORİ</div>
+              <div class="wc-word" id="wc-word">—</div>
+              <div class="taboo-list" id="taboo-list"></div>
+              <div class="wc-actions" id="wc-actions-row">
+                <button class="wc-btn correct" onclick="markWord('correct')">✓ DOĞRU</button>
+                <button class="wc-btn pass" onclick="markWord('pass')">⇒ PAS</button>
+                <button class="wc-btn foul" id="faul-watch-btn" onclick="reportFaul()" style="display:none;">🚨 FAUL!</button>
+              </div>
+            </div>
+            <div id="word-card-spectator" style="display:none;">
+              <div id="spectator-avatar-wrap" style="width:45px;height:45px;border-radius:50%;background:rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;margin:0 auto 12px;"></div>
+              <div class="wc-category" id="spectator-name">—</div>
+              <div class="wc-spectator-note" id="spectator-note">Kelimeyi göremezsin — sadece anlatıcı görür. Şimdi anlatma sırası!</div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-around;padding:10px 4px 0;">
+            <div style="text-align:center;"><div style="font-family:var(--font-title);font-size:24px;color:#6effa8;" id="turn-correct">0</div><div style="font-size:9px;color:var(--muted);letter-spacing:1px;">DOĞRU</div></div>
+            <div style="text-align:center;"><div style="font-family:var(--font-title);font-size:24px;color:#ff8a8a;" id="turn-foul">0</div><div style="font-size:9px;color:var(--muted);letter-spacing:1px;">FAUL</div></div>
+            <div style="text-align:center;"><div style="font-family:var(--font-title);font-size:24px;color:var(--muted);" id="turn-pass">0</div><div style="font-size:9px;color:var(--muted);letter-spacing:1px;">PAS</div></div>
+            <div style="text-align:center;"><div style="font-family:var(--font-title);font-size:24px;color:var(--white);" id="round-info">1</div><div style="font-size:9px;color:var(--muted);letter-spacing:1px;">TUR</div></div>
+          </div>
+
+          <div class="turn-log" id="turn-log" style="margin-top:10px;"></div>
         </div>
       </div>
-      <div class="waiting-body" id="waiting-slots"></div>
+
     </div>
 
     <!-- BLUE TEAM -->
@@ -450,6 +562,7 @@ html,body{
       <div class="team-header blue">
         <div class="team-dot"></div>
         <div class="team-name">MAVİ</div>
+        <button class="team-join-btn" id="join-blue-btn" onclick="joinTeamFromHeader('blue')" style="display:none;">Katıl</button>
         <div class="team-count" id="blue-count">0/5 OYUNCU</div>
       </div>
       <div class="team-body" id="blue-slots"></div>
@@ -458,77 +571,19 @@ html,body{
   </div>
 </div>
 
-<!-- ===== GAME ===== -->
-<div id="game-screen" class="screen">
-  <div class="topbar">
-    <div class="topbar-logo">FAUL<span>!</span></div>
-    <div class="topbar-actions">
-      <div class="conn-dot" id="conn-dot-game"></div>
-      <button class="tb-btn danger" id="btn-end-game" onclick="endGame()" style="display:none;">🚪 Oyunu Bitir</button>
-    </div>
+<!-- ===== TURU BAŞLAT POPUP (anlatıcı için) ===== -->
+<div class="modal-overlay" id="start-overlay">
+  <div class="modal" style="text-align:center;">
+    <div id="start-avatar-wrap" style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden;margin:0 auto 16px;"></div>
+    <div class="modal-title">SIRA SENDE</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:22px;">Hazır olduğunda turu başlatabilirsin.</div>
+    <button class="setup-btn" id="start-action-btn" onclick="startTurn()" style="background:var(--yellow);color:#000;">▶ TURU BAŞLAT</button>
   </div>
+</div>
 
-  <div class="game-area">
-
-    <div class="word-card-wrap">
-      <div class="active-team-bar">
-        <div><div class="atb-label">OYNAYAN TAKIM</div><div class="atb-name" id="active-team-name">—</div></div>
-        <div><div class="atb-label">KAPTAN</div><div style="font-family:var(--font-title);font-size:16px;color:var(--white);" id="active-captain-name">—</div></div>
-      </div>
-
-      <div class="word-card" id="word-card">
-        <div id="word-card-active">
-          <div class="wc-category" id="wc-category">KATEGORİ</div>
-          <div class="wc-word" id="wc-word">—</div>
-          <div class="taboo-list" id="taboo-list"></div>
-          <div class="wc-actions">
-            <button class="wc-btn correct" onclick="markWord('correct')">✓ DOĞRU</button>
-            <button class="wc-btn foul" onclick="markWord('foul')">✗ FAUL</button>
-            <button class="wc-btn pass" onclick="markWord('pass')">⇒ PAS</button>
-          </div>
-        </div>
-        <div id="word-card-spectator" style="display:none;">
-          <div class="wc-category">ANLATICI ANLATIYOR</div>
-          <div class="wc-spectator-note" id="spectator-note">Kelimeyi göremezsin — sadece kaptan görür. Şimdi anlatma sırası!</div>
-        </div>
-      </div>
-
-      <div class="turn-log" id="turn-log"></div>
-    </div>
-
-    <div class="game-side">
-      <div class="timer-card">
-        <div class="timer-label">KALAN SÜRE</div>
-        <div class="timer-val" id="timer-val">60</div>
-        <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
-      </div>
-
-      <div class="score-card">
-        <div class="sc-title">SKOR</div>
-        <div class="sc-team-row" id="score-row-red">
-          <div class="sc-team-name red">KIRMIZI</div>
-          <div class="sc-score" id="score-red">0</div>
-        </div>
-        <div class="sc-team-row" id="score-row-blue">
-          <div class="sc-team-name blue">MAVİ</div>
-          <div class="sc-score" id="score-blue">0</div>
-        </div>
-        <div class="sc-round" id="round-info">Tur 1</div>
-      </div>
-
-      <button class="start-turn-btn" id="start-turn-btn" onclick="startTurn()" style="display:none;">▶ TURU BAŞLAT</button>
-
-      <div class="score-card">
-        <div class="sc-title">BU TURDA</div>
-        <div style="display:flex;justify-content:space-around;padding:4px 0;">
-          <div style="text-align:center;"><div style="font-family:var(--font-title);font-size:28px;color:#6effa8;" id="turn-correct">0</div><div style="font-size:9px;color:var(--muted);letter-spacing:1px;">DOĞRU</div></div>
-          <div style="text-align:center;"><div style="font-family:var(--font-title);font-size:28px;color:#ff8a8a;" id="turn-foul">0</div><div style="font-size:9px;color:var(--muted);letter-spacing:1px;">FAUL</div></div>
-          <div style="text-align:center;"><div style="font-family:var(--font-title);font-size:28px;color:var(--muted);" id="turn-pass">0</div><div style="font-size:9px;color:var(--muted);letter-spacing:1px;">PAS</div></div>
-        </div>
-      </div>
-    </div>
-
-  </div>
+<!-- ===== GERİ SAYIM OVERLAY ===== -->
+<div class="countdown-overlay" id="countdown-overlay">
+  <div class="countdown-num" id="countdown-num">3</div>
 </div>
 
 <!-- TOAST -->
@@ -566,7 +621,9 @@ window.dispatchEvent(new Event('fb-ready'));
 
 const MAX_PLAYERS = 5;
 const TURN_TIME = 60;
-const AVATARS = ['🦁','🐯','🐼','🐸','🦊','🐵','🐰','🐻','🐨','🐷','🦄','🐙','🦉','🐺','🐱','🐶','🦝','🐺'];
+const FALLBACK_AVATARS = ['🦁','🐯','🐼','🐸','🦊','🐵','🐰','🐻','🐨','🐷','🦄','🐙','🦉','🐺','🐱','🐶'];
+let AVATAR_LIST = []; // populated from admin (faul_avatars) or fallback emojis
+let carouselIndex = 0;
 
 let myPlayerId = null;     // unique id for this browser session
 let myName = '';
@@ -645,6 +702,8 @@ async function createRoomDoc(code){
     waiting: [],
     scores: { red:0, blue:0 },
     activeTeam: 'red',
+    narratorIdx: { red:0, blue:0 }, // hangi slot sırada anlatacak
+    ready: false, // sıradaki anlatıcı "Hazırım" dedi mi
     round: 1,
     turn: null, // {active:bool, wordIndex, correct, foul, pass, startedAt, durationSec, currentWord:{word,cat,taboo}}
     log: [],
@@ -662,12 +721,137 @@ function switchEntryTab(tab){
   document.getElementById('entry-join-panel').style.display = tab==='join' ? 'block' : 'none';
 }
 
+function toggleJoinCodeVisibility(){
+  const input = document.getElementById('join-code-input');
+  const eye = document.getElementById('join-code-eye');
+  const showing = input.type === 'text';
+  input.type = showing ? 'password' : 'text';
+  eye.classList.toggle('showing', !showing);
+  eye.textContent = showing ? '👁' : '🙈';
+}
+
+/* ===== AVATAR CAROUSEL ===== */
+let __jsonbinRecordCache = null;
+
+async function fetchJsonbinRecord(){
+  if(__jsonbinRecordCache) return __jsonbinRecordCache;
+  try{
+    const res = await fetch('https://api.jsonbin.io/v3/b/6a2a8f27f5f4af5e29de21ee/latest', {
+      headers:{'X-Master-Key':'$2a$10$jmvujdFyJ.mML6da40FEleAhD1/oz/xVD612cQ6NAxRM4oQedpnBi'}
+    });
+    if(res.ok){
+      __jsonbinRecordCache = (await res.json()).record || {};
+      return __jsonbinRecordCache;
+    }
+  } catch(e){}
+  return {};
+}
+
+async function loadAvatarList(){
+  try{
+    const record = await fetchJsonbinRecord();
+    const urls = record.vmym_cl_urls || {};
+    const count = parseInt(record.faul_avatar_count) || 8;
+    const found = [];
+    for(let i=0;i<count;i++){
+      const url = urls['faul_avatar_'+i];
+      if(url) found.push({type:'img', url});
+    }
+    if(found.length>0){ AVATAR_LIST = found; return; }
+  } catch(e){}
+  AVATAR_LIST = FALLBACK_AVATARS.map(e=>({type:'emoji', value:e}));
+}
+
+async function applyFaulBackground(){
+  try{
+    const record = await fetchJsonbinRecord();
+    const bg = record.faul_bg || {};
+    const layer = document.getElementById('bg-layer');
+    if(!layer) return;
+    if(bg.mode === 'color'){
+      layer.style.background = bg.color || '#1252cc';
+      layer.style.opacity = '1';
+      document.body.style.background = 'transparent';
+    } else if(bg.mode === 'image'){
+      const urls = record.vmym_cl_urls || {};
+      const url = urls['faul_bg_img'];
+      if(url){
+        const fitMap = {
+          cover:   'center/cover no-repeat fixed',
+          contain: 'center/contain no-repeat fixed',
+          repeat:  'top left repeat fixed',
+          center:  'center/auto no-repeat fixed'
+        };
+        layer.style.background = `url('${url}') ${fitMap[bg.fit]||fitMap.cover}`;
+        layer.style.opacity = ((bg.opacity||100)/100).toString();
+        document.body.style.background = 'transparent';
+      }
+    } else {
+      // none / varsayılan — orijinal mavi degrade arka plan kalsın
+      layer.style.background = 'transparent';
+      layer.style.opacity = '1';
+      document.body.style.background = '';
+    }
+  } catch(e){ console.warn('applyFaulBackground error', e); }
+}
+
+function buildCarousel(){
+  const track = document.getElementById('ac-track');
+  track.innerHTML = '';
+  AVATAR_LIST.forEach(av=>{
+    const slide = document.createElement('div');
+    slide.className = 'ac-slide';
+    if(av.type==='img'){
+      slide.innerHTML = `<img src="${av.url}" alt="">`;
+    } else {
+      slide.innerHTML = `<div class="ac-emoji-fallback">${av.value}</div>`;
+    }
+    track.appendChild(slide);
+  });
+  carouselIndex = 0;
+  updateCarouselPosition();
+}
+
+function updateCarouselPosition(){
+  const track = document.getElementById('ac-track');
+  track.style.transform = `translateX(${-carouselIndex*120}px)`;
+}
+
+function carouselPrev(){
+  if(AVATAR_LIST.length===0) return;
+  carouselIndex = (carouselIndex - 1 + AVATAR_LIST.length) % AVATAR_LIST.length;
+  updateCarouselPosition();
+}
+function carouselNext(){
+  if(AVATAR_LIST.length===0) return;
+  carouselIndex = (carouselIndex + 1) % AVATAR_LIST.length;
+  updateCarouselPosition();
+}
+
+function getSelectedAvatar(){
+  const av = AVATAR_LIST[carouselIndex];
+  if(!av) return '🙂';
+  return av.type==='img' ? av.url : av.value;
+}
+
+/* Validate name before allowing create/join */
+function getEntryName(){
+  return document.getElementById('entry-name-input').value.trim().slice(0,16);
+}
+function requireNameOrWarn(){
+  const name = getEntryName();
+  if(!name){ showToast('⚠️ Lütfen adını yaz'); return false; }
+  return true;
+}
+
 async function createRoom(){
+  if(!requireNameOrWarn()) return;
   const btn = document.getElementById('btn-create-room');
   btn.disabled = true; btn.textContent = 'Oluşturuluyor...';
   document.getElementById('create-err').textContent = '';
   try {
     await waitForFirebase();
+    setMyIdentity();
     const code = genRoomCode();
     await createRoomDoc(code);
     roomCode = code;
@@ -677,7 +861,7 @@ async function createRoom(){
     document.getElementById('entry-share-input').value = url;
     document.getElementById('entry-roomcode-display').classList.add('show');
     btn.textContent = '✅ Oda oluşturuldu';
-    setTimeout(()=> goToSetup(code), 600);
+    setTimeout(()=> joinAsPlayerAndEnterLobby(), 500);
   } catch(err){
     document.getElementById('create-err').textContent = 'Hata: ' + err.message;
     btn.disabled = false; btn.textContent = '🎮 ODA OLUŞTUR';
@@ -685,6 +869,7 @@ async function createRoom(){
 }
 
 async function joinRoom(){
+  if(!requireNameOrWarn()) return;
   const code = document.getElementById('join-code-input').value.trim().toUpperCase();
   const errEl = document.getElementById('join-err');
   errEl.textContent = '';
@@ -696,58 +881,24 @@ async function joinRoom(){
     if(!snap.exists()){ errEl.textContent = 'Oda bulunamadı. Kodu kontrol edin.'; return; }
     roomCode = code;
     isHost = false;
-    goToSetup(code);
+    setMyIdentity();
+    await joinAsPlayerAndEnterLobby();
   } catch(err){
     errEl.textContent = 'Hata: ' + err.message;
   }
 }
 
-function goToSetup(code){
-  document.getElementById('setup-room-code').textContent = code;
-  buildAvatarGrid();
-  showScreen('setup-screen');
-}
-
-/* ===== SETUP SCREEN (avatar + name) ===== */
-let selectedAvatar = null;
-function buildAvatarGrid(){
-  const g = document.getElementById('avatar-grid');
-  g.innerHTML = '';
-  AVATARS.forEach((a,i)=>{
-    const d = document.createElement('div');
-    d.className = 'avatar-opt' + (i===0?' selected':'');
-    d.textContent = a;
-    d.onclick = ()=>{
-      g.querySelectorAll('.avatar-opt').forEach(o=>o.classList.remove('selected'));
-      d.classList.add('selected');
-      selectedAvatar = a;
-      checkSetupValid();
-    };
-    g.appendChild(d);
-  });
-  selectedAvatar = AVATARS[0];
-}
-
-document.addEventListener('input', e=>{
-  if(e.target.id==='setup-name-input') checkSetupValid();
-});
-
-function checkSetupValid(){
-  const name = document.getElementById('setup-name-input').value.trim();
-  document.getElementById('setup-confirm-btn').disabled = !(name.length>=1 && selectedAvatar);
-}
-
-async function confirmSetup(){
-  myName = document.getElementById('setup-name-input').value.trim().slice(0,16);
-  myAvatar = selectedAvatar;
+function setMyIdentity(){
+  myName = getEntryName();
+  myAvatar = getSelectedAvatar();
   myPlayerId = genId();
   try { localStorage.setItem('faul_player_id', myPlayerId); localStorage.setItem('faul_player_name', myName); localStorage.setItem('faul_player_avatar', myAvatar); } catch(e){}
+}
 
-  // Add to waiting list
-  const {updateDoc} = fb();
+async function joinAsPlayerAndEnterLobby(){
+  const {updateDoc, getDoc} = fb();
   const player = { id: myPlayerId, name: myName, avatar: myAvatar };
   try {
-    const {getDoc} = fb();
     const snap = await getDoc(roomRef(roomCode));
     const data = snap.data();
     const waiting = data.waiting || [];
@@ -787,6 +938,15 @@ function copyShareLink(){
   showToast('🔗 Link kopyalandı!');
 }
 
+function toggleHostCodeVisibility(){
+  const row = document.getElementById('hw-link-row');
+  const btn = document.getElementById('hw-toggle-btn');
+  const showing = row.style.display !== 'none';
+  row.style.display = showing ? 'none' : 'flex';
+  btn.textContent = showing ? '👁 GÖSTER' : '🙈 GİZLE';
+  btn.classList.toggle('active', !showing);
+}
+
 /* ===== FIRESTORE SUBSCRIPTION ===== */
 function subscribeRoom(){
   if(unsubscribe) unsubscribe();
@@ -795,26 +955,31 @@ function subscribeRoom(){
     if(!snap.exists()){ showToast('⚠️ Oda kapatıldı'); return; }
     roomData = snap.data();
     document.getElementById('conn-dot').className = 'conn-dot live';
-    document.getElementById('conn-dot-game').className = 'conn-dot live';
     onRoomUpdate();
   }, (err)=>{
     document.getElementById('conn-dot').className = 'conn-dot';
-    document.getElementById('conn-dot-game').className = 'conn-dot';
   });
 }
 
 function onRoomUpdate(){
   if(!roomData) return;
 
+  const lobbyContent = document.querySelector('.lobby-content');
+
   if(roomData.state === 'lobby'){
-    if(document.getElementById('game-screen').classList.contains('active')){
-      showScreen('lobby-screen');
-    }
+    showScreen('lobby-screen');
+    if(lobbyContent) lobbyContent.classList.remove('game-mode');
+    document.getElementById('middle-lobby-view').style.display = 'block';
+    document.getElementById('middle-game-view').style.display = 'none';
+    document.getElementById('btn-share').style.display = 'flex';
     renderLobby();
   } else if(roomData.state === 'playing'){
-    if(!document.getElementById('game-screen').classList.contains('active')){
-      showScreen('game-screen');
-    }
+    showScreen('lobby-screen');
+    if(lobbyContent) lobbyContent.classList.add('game-mode');
+    document.getElementById('middle-lobby-view').style.display = 'none';
+    document.getElementById('middle-game-view').style.display = 'block';
+    document.getElementById('btn-share').style.display = 'none';
+    document.getElementById('btn-lock').style.display = 'none';
     renderGame();
   }
 }
@@ -828,6 +993,28 @@ function renderLobby(){
   buildWaiting(waiting);
   document.getElementById('lobby-score-red').textContent = (roomData.scores||{}).red || 0;
   document.getElementById('lobby-score-blue').textContent = (roomData.scores||{}).blue || 0;
+  updateJoinButtons(teams, waiting);
+}
+
+function updateJoinButtons(teams, waiting){
+  // "Katıl" butonu sadece kullanıcı şu an Bekleyenler listesindeyse ve o takımda boş slot varsa görünür
+  const myWaitingIdx = waiting.findIndex(p => p && p.id === myPlayerId);
+  const iAmWaiting = myWaitingIdx !== -1;
+
+  const redFree = (teams.red||[]).some(p => !p);
+  const blueFree = (teams.blue||[]).some(p => !p);
+
+  const redBtn = document.getElementById('join-red-btn');
+  const blueBtn = document.getElementById('join-blue-btn');
+  if(redBtn) redBtn.style.display = (iAmWaiting && redFree) ? 'block' : 'none';
+  if(blueBtn) blueBtn.style.display = (iAmWaiting && blueFree) ? 'block' : 'none';
+}
+
+async function joinTeamFromHeader(team){
+  const waiting = roomData.waiting || [];
+  const myWaitingIdx = waiting.findIndex(p => p && p.id === myPlayerId);
+  if(myWaitingIdx === -1) return;
+  await moveToTeam(myWaitingIdx, team);
 }
 
 function buildTeamSlots(team, arr, slotsId, countId){
@@ -845,14 +1032,13 @@ function buildTeamSlots(team, arr, slotsId, countId){
     slot.className = 'player-slot ' + (isCapt ? 'captain '+teamClass : 'regular') + (p ? ' filled' : '');
     if(p){
       const isYou = p.id === myPlayerId;
-      const canManage = isHost || isYou;
       slot.innerHTML = `
         <div class="slot-crown">${isCapt?'👑':''}</div>
-        <div class="slot-avatar">${p.avatar||'🙂'}</div>
+        <div class="slot-avatar">${avatarHtml(p.avatar)}</div>
         <div class="slot-name${isYou?' you':''}">${escapeHtml(p.name)}${isYou?' (Sen)':''}</div>
         <div class="slot-actions">
-          ${canManage ? `<button class="slot-act-btn" onclick="moveToWaiting('${team}',${i})" title="Bekleyenlere Al">↩</button>` : ''}
-          ${isHost ? `<button class="slot-act-btn" onclick="removePlayer('${team}',${i})" title="Sil">✕</button>` : ''}
+          ${isYou ? `<button class="slot-act-btn" onclick="moveToWaiting('${team}',${i})" title="Bekleyenlere Dön">↩</button>` : ''}
+          ${isHost && !isYou ? `<button class="slot-act-btn" onclick="removePlayer('${team}',${i})" title="Oyundan Çıkar">✕</button>` : ''}
         </div>`;
     } else {
       slot.innerHTML = `
@@ -879,17 +1065,23 @@ function buildWaiting(waiting){
     const slot = document.createElement('div');
     slot.className = 'waiting-slot has-player';
     slot.innerHTML = `
-      <div class="ws-avatar">${p.avatar||'🙂'}</div>
+      <div class="ws-avatar">${avatarHtml(p.avatar)}</div>
       <div class="ws-name${isYou?' you':''}">${escapeHtml(p.name)}${isYou?' (Sen)':''}</div>
       <div class="ws-team-btns">
-        <button class="ws-btn red" onclick="moveToTeam(${i},'red')">🔴</button>
-        <button class="ws-btn blue" onclick="moveToTeam(${i},'blue')">🔵</button>
+        <span style="font-size:10px;color:var(--muted);letter-spacing:1px;">${isYou ? 'TAKIM SEÇ ↑' : 'BEKLİYOR'}</span>
       </div>`;
     g.appendChild(slot);
   });
 }
 
 function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function avatarHtml(av){
+  if(!av) return '🙂';
+  if(typeof av==='string' && av.startsWith('http')){
+    return `<img src="${av}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+  }
+  return av;
+}
 
 /* ===== TEAM MANAGEMENT (writes to Firestore) ===== */
 async function moveToTeam(waitingIdx, team){
@@ -898,6 +1090,7 @@ async function moveToTeam(waitingIdx, team){
   const teams = JSON.parse(JSON.stringify(roomData.teams||{red:[null,null,null,null,null],blue:[null,null,null,null,null]}));
   const p = waiting[waitingIdx];
   if(!p) return;
+  if(p.id !== myPlayerId){ showToast('⚠️ Sadece kendi takımını seçebilirsin'); return; }
   const arr = teams[team];
   const freeIdx = arr.findIndex(x=>!x);
   if(freeIdx === -1){ showToast('⚠️ Takım dolu'); return; }
@@ -912,6 +1105,7 @@ async function moveToWaiting(team, idx){
   const waiting = [...(roomData.waiting||[])];
   const p = teams[team][idx];
   if(!p) return;
+  if(p.id !== myPlayerId){ showToast('⚠️ Sadece kendini bekleyenlere alabilirsin'); return; }
   teams[team][idx] = null;
   waiting.push(p);
   await updateDoc(roomRef(roomCode), { teams, waiting });
@@ -936,6 +1130,8 @@ async function lockAndStart(){
   await updateDoc(roomRef(roomCode), {
     state: 'playing',
     activeTeam: 'red',
+    narratorIdx: { red:0, blue:0 },
+    ready: false,
     round: 1,
     scores: { red:0, blue:0 },
     turn: null,
@@ -946,89 +1142,150 @@ async function lockAndStart(){
 function shuffleWords(){ shuffledWords = shuffleArr(WORDS); wordIndex = 0; }
 
 /* ===== GAME RENDER ===== */
+function getActiveSlotIndices(team){
+  // Dolu slotların orijinal index'lerini sırayla döner (boşları atlar)
+  const arr = (roomData.teams||{})[team]||[];
+  const result = [];
+  arr.forEach((p,i)=>{ if(p) result.push(i); });
+  return result;
+}
+
+function getCurrentNarratorSlot(team){
+  // narratorIdx, dolu slotlar içindeki sıradaki pozisyonu tutar (0,1,2...)
+  const slots = getActiveSlotIndices(team);
+  if(slots.length===0) return -1;
+  const pos = ((roomData.narratorIdx||{})[team]||0) % slots.length;
+  return slots[pos];
+}
+
 function getMyTeamRole(){
-  // returns {team:'red'|'blue', isCaptain:bool} or null if spectator/not in game
+  // returns {team:'red'|'blue', isCaptain:bool, isNarrator:bool} or null if spectator/not in game
   const teams = roomData.teams || {};
   for(const team of ['red','blue']){
     const arr = teams[team]||[];
     const idx = arr.findIndex(p=>p && p.id===myPlayerId);
-    if(idx !== -1) return { team, isCaptain: idx===0 };
+    if(idx !== -1){
+      const narratorSlot = getCurrentNarratorSlot(team);
+      return { team, isCaptain: idx===0, isNarrator: idx===narratorSlot };
+    }
   }
   return null;
 }
 
+function getNarratorPlayer(team){
+  const slot = getCurrentNarratorSlot(team);
+  if(slot===-1) return null;
+  return ((roomData.teams||{})[team]||[])[slot];
+}
+
 function renderGame(){
   const activeTeam = roomData.activeTeam;
-  const teams = roomData.teams || {};
-  const capt = (teams[activeTeam]||[])[0];
+  const narrator = getNarratorPlayer(activeTeam);
   const scores = roomData.scores || {red:0,blue:0};
   const turn = roomData.turn;
   const myRole = getMyTeamRole();
+  const isReady = !!roomData.ready;
 
-  document.getElementById('active-team-name').textContent = activeTeam==='red'?'KIRMIZI':'MAVİ';
-  document.getElementById('active-team-name').className = 'atb-name '+(activeTeam==='red'?'red':'blue');
-  document.getElementById('active-captain-name').textContent = capt ? capt.name : '?';
-  document.getElementById('score-red').textContent = scores.red;
-  document.getElementById('score-blue').textContent = scores.blue;
-  document.getElementById('round-info').textContent = 'Tur ' + (roomData.round||1);
+  // Skorlar — takım başlıklarının üstündeki score-bar
+  document.getElementById('lobby-score-red').textContent = scores.red;
+  document.getElementById('lobby-score-blue').textContent = scores.blue;
 
-  document.querySelectorAll('.sc-team-row').forEach(el=>el.classList.remove('active'));
-  document.getElementById('score-row-'+activeTeam).classList.add('active');
+  // Orta panel başlığı: oynayan takım + anlatıcı
+  const teamNameEl = document.getElementById('active-team-name');
+  teamNameEl.textContent = (activeTeam==='red'?'KIRMIZI':'MAVİ') + ' OYNUYOR';
+  teamNameEl.style.color = activeTeam==='red' ? '#ff8a8a' : 'var(--blue-light)';
+  document.getElementById('active-captain-name').textContent = narrator ? narrator.name : '?';
+  const narratorAvatarWrap = document.getElementById('narrator-avatar-wrap');
+  if(narratorAvatarWrap) narratorAvatarWrap.innerHTML = narrator ? avatarHtml(narrator.avatar) : '👤';
 
-  const isMyTeamCaptainTurn = myRole && myRole.team===activeTeam && myRole.isCaptain;
+  const specAvatarWrap = document.getElementById('spectator-avatar-wrap');
+  const specName = document.getElementById('spectator-name');
+  if(specAvatarWrap) specAvatarWrap.innerHTML = narrator ? avatarHtml(narrator.avatar) : '👤';
+  if(specName) specName.textContent = narrator ? narrator.name : 'Anlatıcı bekleniyor';
+
+  const isMyTurnToNarrate = myRole && myRole.team===activeTeam && myRole.isNarrator;
+  const isOpponent = myRole && myRole.team!==activeTeam;
   document.getElementById('btn-end-game').style.display = isHost ? 'flex' : 'none';
 
-  const startBtn = document.getElementById('start-turn-btn');
+  const startOverlay = document.getElementById('start-overlay');
+  const scoreTimer = document.getElementById('score-timer');
+  const scoreColon = document.getElementById('score-divider-colon');
+
   if(turn && turn.active){
-    startBtn.style.display = 'none';
-    renderActiveTurn(turn, isMyTeamCaptainTurn);
+    startOverlay.classList.remove('on');
+    if(scoreTimer){ scoreTimer.style.display='flex'; }
+    if(scoreColon){ scoreColon.style.display='none'; }
+    renderActiveTurn(turn, isMyTurnToNarrate, isOpponent);
     runLocalTimer(turn);
   } else {
     clearInterval(turnTimer);
-    if(isMyTeamCaptainTurn){
-      startBtn.style.display = 'block';
-      startBtn.disabled = false;
-    } else {
-      startBtn.style.display = 'none';
-    }
+    if(scoreTimer){ scoreTimer.style.display='none'; }
+    if(scoreColon){ scoreColon.style.display='inline'; }
     document.getElementById('word-card-active').style.display = 'none';
     document.getElementById('word-card-spectator').style.display = 'block';
+    document.getElementById('faul-watch-btn').style.display = 'none';
+
     const note = document.getElementById('spectator-note');
-    if(myRole && myRole.team===activeTeam){
-      note.textContent = capt ? capt.name+' turu başlatacak...' : 'Kaptan bekleniyor...';
-    } else if(myRole){
-      note.textContent = 'Rakip takımın turu başlamasını bekleyin...';
+    if(isMyTurnToNarrate){
+      const avW = document.getElementById('start-avatar-wrap');
+      if(avW) avW.innerHTML = avatarHtml(myAvatar);
+      startOverlay.classList.add('on');
+      note.textContent = 'Sıra sende — hazır olduğunda turu başlat!';
     } else {
-      note.textContent = 'Tur başlamadı. Kaptanlar hazır olduğunda başlayacak.';
+      startOverlay.classList.remove('on');
+      if(myRole && myRole.team===activeTeam){
+        note.textContent = (narrator?narrator.name:'Anlatıcı')+' turu başlatacak...';
+      } else if(myRole){
+        note.textContent = 'Rakip takımın turu başlamasını bekleyin...';
+      } else {
+        note.textContent = 'Tur başlamak üzere...';
+      }
     }
-    document.getElementById('timer-val').textContent = TURN_TIME;
-    document.getElementById('timer-bar').style.width = '100%';
+
+    if(scoreTimer){ document.getElementById('score-timer-val').textContent = TURN_TIME; document.getElementById('score-timer-bar').style.width = '100%'; }
     updateTurnCounts(0,0,0);
   }
 
   renderLog(roomData.log||[]);
 }
 
-function renderActiveTurn(turn, isMyTeamCaptainTurn){
+function renderActiveTurn(turn, isMyTurnToNarrate, isOpponent){
   document.getElementById('word-card-spectator').style.display='none';
   document.getElementById('word-card-active').style.display='block';
   const word = turn.currentWord || {word:'—',cat:'',taboo:[]};
-  document.getElementById('wc-category').textContent = word.cat;
-  document.getElementById('wc-word').textContent = word.word;
-  const tl = document.getElementById('taboo-list');
-  tl.innerHTML='';
-  (word.taboo||[]).forEach(t=>{
-    const d=document.createElement('div'); d.className='taboo-item'; d.textContent=t;
-    tl.appendChild(d);
-  });
-  document.querySelectorAll('.wc-btn').forEach(b=> b.disabled = !isMyTeamCaptainTurn );
-  document.getElementById('word-card').style.opacity = isMyTeamCaptainTurn ? '1' : '0.5';
-  if(!isMyTeamCaptainTurn){
-    // Show as spectator overlay instead if not captain of active team
-    document.getElementById('word-card-active').style.display='none';
-    document.getElementById('word-card-spectator').style.display='block';
-    document.getElementById('spectator-note').textContent = '⏱ Tur devam ediyor — kaptan kelimeleri anlatıyor!';
+
+  // Kelimeyi sadece anlatıcının kendisi VE rakip takım görür.
+  // Anlatıcının kendi takım arkadaşları kelimeyi GÖRMEMELİ (bilmemeli).
+  const canSeeWord = isMyTurnToNarrate || isOpponent;
+
+  if(canSeeWord){
+    document.getElementById('wc-category').textContent = word.cat;
+    document.getElementById('wc-word').textContent = word.word;
+    const tl = document.getElementById('taboo-list');
+    tl.innerHTML='';
+    (word.taboo||[]).forEach(t=>{
+      const d=document.createElement('div'); d.className='taboo-item'; d.textContent=t;
+      tl.appendChild(d);
+    });
+  } else {
+    document.getElementById('wc-category').textContent = '🙈 KELİME GİZLİ';
+    document.getElementById('wc-word').textContent = '???';
+    document.getElementById('taboo-list').innerHTML = '';
   }
+
+  // DOĞRU / PAS butonları sadece sıradaki anlatıcıya ait
+  document.querySelectorAll('.wc-btn').forEach(b=> b.style.display = isMyTurnToNarrate ? 'flex' : 'none' );
+
+  // FAUL! izleme butonu — rakip takım için (anlatan takımın hatasını bildirir)
+  const faulBtn = document.getElementById('faul-watch-btn');
+  if(isOpponent){
+    faulBtn.style.display = 'flex';
+  } else {
+    faulBtn.style.display = 'none';
+  }
+
+  document.getElementById('wc-actions-row').style.display = (isMyTurnToNarrate || isOpponent) ? 'flex' : 'none';
+  document.getElementById('word-card').style.opacity = '1';
   updateTurnCounts(turn.correct||0, turn.foul||0, turn.pass||0);
 }
 
@@ -1057,13 +1314,14 @@ function runLocalTimer(turn){
   function tick(){
     const elapsed = Math.floor((Date.now() - turn.startedAt) / 1000);
     const left = Math.max(0, total - elapsed);
-    document.getElementById('timer-val').textContent = left;
-    document.getElementById('timer-val').className = 'timer-val'+(left<=10?' urgent':'');
-    document.getElementById('timer-bar').style.width = ((left/total)*100)+'%';
+    const valEl = document.getElementById('score-timer-val');
+    const barEl = document.getElementById('score-timer-bar');
+    if(valEl){ valEl.textContent = left; valEl.className = 'score-timer-val'+(left<=10?' urgent':''); }
+    if(barEl){ barEl.style.width = ((left/total)*100)+'%'; }
     if(left<=0){
       clearInterval(turnTimer);
       const myRole = getMyTeamRole();
-      if(myRole && myRole.team===roomData.activeTeam && myRole.isCaptain){
+      if(myRole && myRole.team===roomData.activeTeam && myRole.isNarrator){
         timeExpired();
       }
     }
@@ -1072,8 +1330,45 @@ function runLocalTimer(turn){
   turnTimer = setInterval(tick, 250);
 }
 
-/* ===== TURN ACTIONS (captain writes) ===== */
+/* ===== TURN ACTIONS ===== */
 async function startTurn(){
+  // Önce buton/popup'ı kapat, geri sayımı oynat, sonra turu gerçekten başlat
+  const startBtn = document.getElementById('start-action-btn');
+  if(startBtn) startBtn.disabled = true;
+  document.getElementById('start-overlay').classList.remove('on');
+  await runCountdown();
+  await reallyStartTurn();
+}
+
+function runCountdown(){
+  return new Promise(resolve=>{
+    const overlay = document.getElementById('countdown-overlay');
+    const numEl = document.getElementById('countdown-num');
+    const seq = ['3','2','1','BAŞLA!'];
+    let i = 0;
+    overlay.classList.add('on');
+    function step(){
+      numEl.textContent = seq[i];
+      numEl.classList.toggle('go', seq[i]==='BAŞLA!');
+      numEl.style.animation = 'none';
+      void numEl.offsetWidth;
+      numEl.style.animation = 'countdownPulse 0.6s cubic-bezier(0.34,1.56,0.64,1)';
+      i++;
+      if(i < seq.length){
+        setTimeout(step, 700);
+      } else {
+        setTimeout(()=>{
+          overlay.classList.remove('on');
+          numEl.classList.remove('go');
+          resolve();
+        }, 700);
+      }
+    }
+    step();
+  });
+}
+
+async function reallyStartTurn(){
   const {updateDoc} = fb();
   if(wordIndex>=shuffledWords.length || shuffledWords.length===0) shuffleWords();
   const w = shuffledWords[wordIndex++];
@@ -1084,7 +1379,6 @@ async function startTurn(){
     durationSec: TURN_TIME,
     currentWord: w
   };
-  document.getElementById('start-turn-btn').disabled = true;
   await updateDoc(roomRef(roomCode), { turn, log: [] });
 }
 
@@ -1098,7 +1392,6 @@ async function markWord(type){
   const word = turn.currentWord.word;
 
   if(type==='correct'){ turn.correct++; scores[activeTeam] = (scores[activeTeam]||0)+1; log.push({type,word}); }
-  else if(type==='foul'){ turn.foul++; scores[activeTeam] = Math.max(0,(scores[activeTeam]||0)-1); log.push({type,word}); showToast('🚨 FAUL! -1 puan'); }
   else { turn.pass++; log.push({type,word}); }
 
   if(wordIndex>=shuffledWords.length) shuffleWords();
@@ -1107,15 +1400,46 @@ async function markWord(type){
   await updateDoc(roomRef(roomCode), { turn, scores, log });
 }
 
+/* Rakip takım "FAUL!" butonuna basınca: otomatik -1 puan, kelime değişmez (anlatım sürer) */
+let faulCooldown = false;
+async function reportFaul(){
+  if(faulCooldown) return;
+  if(!roomData.turn || !roomData.turn.active) return;
+  const myRole = getMyTeamRole();
+  if(!myRole || myRole.team===roomData.activeTeam) return; // sadece rakip takım basabilir
+
+  faulCooldown = true;
+  const btn = document.getElementById('faul-watch-btn');
+  if(btn){ btn.disabled = true; setTimeout(()=>{ btn.disabled=false; faulCooldown=false; }, 1500); }
+
+  const {updateDoc} = fb();
+  const turn = JSON.parse(JSON.stringify(roomData.turn));
+  const scores = JSON.parse(JSON.stringify(roomData.scores||{red:0,blue:0}));
+  const log = [...(roomData.log||[])];
+  const activeTeam = roomData.activeTeam;
+  const word = turn.currentWord ? turn.currentWord.word : '—';
+
+  turn.foul = (turn.foul||0) + 1;
+  scores[activeTeam] = Math.max(0, (scores[activeTeam]||0) - 1);
+  log.push({type:'foul', word: word + ' (rakip işaretledi)'});
+  showToast('🚨 FAUL bildirdin! -1 puan');
+
+  await updateDoc(roomRef(roomCode), { turn, scores, log });
+}
+
 async function timeExpired(){
   const {updateDoc} = fb();
   showToast('⏰ Süre doldu!');
-  const turn = JSON.parse(JSON.stringify(roomData.turn));
-  turn.active = false;
   let nextTeam = roomData.activeTeam;
   let round = roomData.round || 1;
+  const narratorIdx = JSON.parse(JSON.stringify(roomData.narratorIdx||{red:0,blue:0}));
+
+  // Az önce anlatan takımın sırasını bir ileri kaydır (bir dahaki sefer sırada farklı oyuncu olsun)
+  narratorIdx[nextTeam] = (narratorIdx[nextTeam]||0) + 1;
+
   if(nextTeam==='red'){ nextTeam='blue'; } else { nextTeam='red'; round++; }
-  await updateDoc(roomRef(roomCode), { turn: null, activeTeam: nextTeam, round });
+
+  await updateDoc(roomRef(roomCode), { turn: null, activeTeam: nextTeam, round, narratorIdx, ready: false });
 }
 
 async function endGame(){
@@ -1138,20 +1462,20 @@ async function endGame(){
 
 /* ===== INIT ===== */
 (async function init(){
+  await applyFaulBackground();
+  await loadAvatarList();
+  buildCarousel();
+
   await waitForFirebase();
   const urlCode = getUrlRoomCode();
   if(urlCode){
-    // Direct join via link
+    // Direct join via link — pre-fill join tab with code, user still picks avatar+name then taps KATIL
     try {
       const {getDoc} = fb();
       const snap = await getDoc(roomRef(urlCode));
       if(snap.exists()){
-        roomCode = urlCode;
-        isHost = false;
         switchEntryTab('join');
         document.getElementById('join-code-input').value = urlCode;
-        goToSetup(urlCode);
-        return;
       }
     } catch(e){}
   }
