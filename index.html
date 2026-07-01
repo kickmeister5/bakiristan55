@@ -4,276 +4,203 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Oyun Merkezi</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --gold:#f0c040; --bg:#07070f; --surface:#10101a; --surface2:#18182a;
-  --border:rgba(240,192,64,0.15); --border2:rgba(240,192,64,0.3);
-  --text:#f0ead8; --muted:#6a6680;
-  --font-title:'Bebas Neue',sans-serif; --font-body:'Outfit',sans-serif;
+  --gold:#f0c040;--bg:#07070f;--surface:#10101a;--surface2:#18182a;
+  --border:rgba(240,192,64,0.15);--border2:rgba(240,192,64,0.3);
+  --text:#f0ead8;--muted:#6a6680;
+  --font-title:'Bebas Neue',sans-serif;--font-body:'Outfit',sans-serif;
+  --card-min-w:300px;--card-banner-h:300px;
 }
 html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--font-body);overflow-x:hidden;}
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
-  background:radial-gradient(ellipse 60% 40% at 20% 10%,rgba(240,192,64,0.05) 0%,transparent 60%),
-             radial-gradient(ellipse 40% 60% at 80% 80%,rgba(100,80,200,0.05) 0%,transparent 60%);}
-#bg-layer{position:fixed;inset:0;z-index:-1;pointer-events:none;transition:opacity 0.5s;background-size:cover;}
+  background:radial-gradient(ellipse 60% 40% at 20% 10%,rgba(240,192,64,0.04) 0%,transparent 60%),
+             radial-gradient(ellipse 40% 60% at 80% 80%,rgba(100,80,200,0.04) 0%,transparent 60%);}
+#bg-layer{position:fixed;inset:0;z-index:-1;pointer-events:none;transition:opacity 0.5s;}
 
-#app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:48px 20px 60px;}
+#app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 0 60px;}
 
-/* HEADER */
-.hdr{text-align:center;margin-bottom:56px;}
-.hdr-eyebrow{font-size:11px;letter-spacing:5px;color:var(--muted);margin-bottom:10px;}
-.hdr-title{font-family:var(--font-title);font-size:clamp(40px,8vw,80px);letter-spacing:6px;color:var(--gold);line-height:1;text-shadow:0 0 60px rgba(240,192,64,0.25);}
-.hdr-sub{font-family:var(--font-title);font-size:clamp(14px,2.5vw,20px);letter-spacing:8px;color:var(--muted);margin-top:6px;}
-.hdr-line{width:120px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:18px auto 0;}
-
-/* ADMIN LINK */
-.admin-link{
-  display:inline-flex;align-items:center;gap:6px;
-  font-size:11px;color:var(--muted);text-decoration:none;
-  border:1px solid var(--border);border-radius:20px;padding:5px 14px;
-  transition:all 0.2s;margin-bottom:40px;
-}
-.admin-link:hover{color:var(--gold);border-color:var(--border2);}
+/* HEADER IMAGE */
+.site-header{width:100%;display:none;flex-shrink:0;}
+.site-header.on{display:block;}
+.site-header img{width:100%;height:auto;display:block;object-fit:contain;}
 
 /* GAMES GRID */
 .games-grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(var(--card-min-w,300px),1fr));
-  gap:20px;
-  width:100%;
-  max-width:760px;
+  gap:20px;width:100%;max-width:900px;
+  padding:40px 20px 0;
 }
 
+/* GAME CARD — sadece banner */
 .game-card{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:22px;
-  overflow:hidden;
-  cursor:pointer;
+  border-radius:18px;overflow:hidden;cursor:pointer;
   transition:all 0.25s cubic-bezier(0.25,0.8,0.25,1);
-  text-decoration:none;
-  display:flex;flex-direction:column;
-  position:relative;
+  text-decoration:none;display:block;position:relative;
+  border:1px solid rgba(255,255,255,0.06);
 }
-.game-card::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse at 50% 0%,rgba(240,192,64,0.07),transparent 65%);
-  opacity:0;transition:opacity 0.25s;
-}
-.game-card:hover{
-  border-color:var(--border2);
-  transform:translateY(-6px);
-  box-shadow:0 16px 40px rgba(0,0,0,0.4),0 0 0 1px rgba(240,192,64,0.1);
-}
-.game-card:hover::before{opacity:1;}
+.game-card:hover{transform:translateY(-5px);box-shadow:0 20px 50px rgba(0,0,0,0.5);}
+.game-card.inactive{cursor:default;pointer-events:none;}
 
-/* Card banner */
+/* BANNER */
 .gc-banner{
-  width:100%;height:var(--card-banner-h,180px);
-  display:flex;align-items:center;justify-content:center;
-  position:relative;overflow:hidden;flex-shrink:0;
+  width:100%;height:var(--card-banner-h,300px);
+  position:relative;overflow:hidden;display:block;
+  background:#0a0a14;
 }
-.gc-banner.vmym{ background:linear-gradient(135deg,#0a0a14 0%,#1a1228 50%,#0e0e1c 100%); }
-.gc-banner.faul{ background:linear-gradient(135deg,#0d2a6e 0%,#1a52cc 50%,#0d1f55 100%); }
-.gc-banner.game3,.gc-banner.game4{ background:linear-gradient(135deg,#1a1a1a 0%,#2a2a2a 50%,#161616 100%); }
-.gc-banner img.gc-banner-img{ position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none; }
-.gc-banner img.gc-banner-img.on{ display:block; }
-.gc-banner img.gc-banner-img.on ~ .gc-banner-icon{ display:none; }
-.gc-banner-icon{font-size:72px;line-height:1;filter:drop-shadow(0 4px 20px rgba(0,0,0,0.5));animation:floatIcon 3s ease-in-out infinite;position:relative;z-index:1;}
-@keyframes floatIcon{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
-.gc-banner-deco{
-  position:absolute;inset:0;
-  background:repeating-linear-gradient(45deg,rgba(255,255,255,0.015) 0px,rgba(255,255,255,0.015) 1px,transparent 1px,transparent 12px);
-}
-.gc-badge{
-  position:absolute;top:14px;right:14px;z-index:2;
-  font-family:var(--font-title);font-size:10px;letter-spacing:2px;
-  padding:4px 12px;border-radius:20px;
-}
-.gc-badge.live{background:rgba(32,192,96,0.2);color:#20c060;border:1px solid rgba(32,192,96,0.35);}
-.gc-badge.new{background:rgba(240,192,64,0.15);color:var(--gold);border:1px solid rgba(240,192,64,0.3);}
-.gc-badge.soon{background:rgba(106,102,128,0.15);color:var(--muted);border:1px solid rgba(106,102,128,0.2);}
+.gc-banner img.gc-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;}
+.gc-banner img.gc-bg.on{display:block;}
+.gc-banner-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:80px;filter:drop-shadow(0 4px 24px rgba(0,0,0,0.6));animation:floatIcon 3s ease-in-out infinite;}
+@keyframes floatIcon{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+.gc-banner img.gc-bg.on ~ .gc-banner-icon{display:none;}
 
-/* Card body */
-.gc-body{padding:20px 22px 22px;flex:1;display:flex;flex-direction:column;gap:8px;}
-.gc-name{font-family:var(--font-title);font-size:28px;letter-spacing:3px;color:var(--text);line-height:1;}
-.gc-desc{font-size:13px;color:var(--muted);line-height:1.6;}
-.gc-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
-.gc-tag{font-size:10px;font-weight:500;letter-spacing:1px;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid rgba(255,255,255,0.06);}
-.gc-footer{
-  border-top:1px solid var(--border);
-  padding:14px 22px;
-  display:flex;align-items:center;justify-content:space-between;
+/* INACTIVE OVERLAY */
+.gc-inactive-overlay{
+  position:absolute;inset:0;z-index:5;
+  display:none;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.55);
 }
-.gc-play{
-  font-family:var(--font-title);font-size:14px;letter-spacing:2px;
-  color:var(--gold);display:flex;align-items:center;gap:6px;
-}
-.gc-play-arrow{
-  width:28px;height:28px;border-radius:50%;
-  background:rgba(240,192,64,0.12);border:1px solid rgba(240,192,64,0.25);
-  display:flex;align-items:center;justify-content:center;font-size:12px;
-  transition:all 0.2s;
-}
-.game-card:hover .gc-play-arrow{background:var(--gold);border-color:var(--gold);color:#07070f;}
-.gc-players{font-size:11px;color:var(--muted);}
-
-.game-card.disabled{ opacity:0.4; cursor:default; pointer-events:none; }
-
-/* BOTTOM TEXT */
-.bottom-note{margin-top:40px;font-size:11px;color:var(--muted);letter-spacing:1px;text-align:center;}
+.game-card.inactive .gc-inactive-overlay{display:flex;}
+.gc-inactive-img{max-width:70%;max-height:70%;object-fit:contain;display:none;}
+.gc-inactive-img.on{display:block;}
+.gc-inactive-default{font-family:var(--font-title);font-size:clamp(28px,5vw,46px);letter-spacing:4px;color:rgba(255,255,255,0.7);}
 </style>
 </head>
 <body>
 <div id="bg-layer"></div>
 <div id="app">
 
-  <div class="hdr">
-    <div class="hdr-eyebrow">CANLI YAYINCININ</div>
-    <div class="hdr-title">OYUN MERKEZİ</div>
-    <div class="hdr-sub">HANGİ OYUNU OYNAYACAKSINIZ?</div>
-    <div class="hdr-line"></div>
+  <!-- HEADER GÖRSELİ -->
+  <div class="site-header" id="site-header">
+    <img id="site-header-img" src="" alt="Header">
   </div>
-
- 
 
   <div class="games-grid" id="games-grid">
 
     <!-- VAR MISIN YOK MUSUN -->
     <a href="vmym.html" class="game-card" id="card-vmym">
-      <div class="gc-banner vmym">
-        <div class="gc-banner-deco"></div>
-        <img class="gc-banner-img" id="img-vmym" src="" alt="">
+      <div class="gc-banner">
+        <img class="gc-bg" id="img-vmym" src="" alt="">
         <div class="gc-banner-icon">🎁</div>
-        <div class="gc-badge live">AKTİF</div>
-      </div>
-      <div class="gc-body">
-        <div class="gc-name" id="name-vmym">VAR MISIN? YOK MUSUN?</div>
-        <div class="gc-desc">20 kutu, 1 şanslı oyuncu. Banker'ın teklifini kabul et ya da reddet — doğru kararı verebilecek misin?</div>
-        <div class="gc-tags" id="tags-vmym">
-          <div class="gc-tag">1 OYUNCU</div>
-          <div class="gc-tag">20 KUTU</div>
-          <div class="gc-tag">BANKER</div>
-          <div class="gc-tag">CHAT OYLAMASİ</div>
+        <div class="gc-inactive-overlay" id="inact-vmym">
+          <img class="gc-inactive-img" id="inact-img-vmym" src="" alt="">
+          <div class="gc-inactive-default" id="inact-txt-vmym">YAKINDA</div>
         </div>
-      </div>
-      <div class="gc-footer">
-        <div class="gc-play">OYNA <div class="gc-play-arrow">▶</div></div>
-        <div class="gc-players">Tek oyunculu</div>
       </div>
     </a>
 
     <!-- FAUL -->
     <a href="faul.html" class="game-card" id="card-faul">
-      <div class="gc-banner faul">
-        <div class="gc-banner-deco"></div>
-        <img class="gc-banner-img" id="img-faul" src="" alt="">
+      <div class="gc-banner">
+        <img class="gc-bg" id="img-faul" src="" alt="">
         <div class="gc-banner-icon">🚨</div>
-        <div class="gc-badge new">YENİ</div>
-      </div>
-      <div class="gc-body">
-        <div class="gc-name" id="name-faul">FAUL!</div>
-        <div class="gc-desc">Tabu kelimelerini kullanmadan anlat! İki takım karşı karşıya, her faul puan kesiyor. En çok kelimeyi anlatan kazanır.</div>
-        <div class="gc-tags" id="tags-faul">
-          <div class="gc-tag">2 TAKIM</div>
-          <div class="gc-tag">TABU</div>
-          <div class="gc-tag">60 SANİYE</div>
-          <div class="gc-tag">PUANLAMA</div>
+        <div class="gc-inactive-overlay" id="inact-faul">
+          <img class="gc-inactive-img" id="inact-img-faul" src="" alt="">
+          <div class="gc-inactive-default" id="inact-txt-faul">YAKINDA</div>
         </div>
-      </div>
-      <div class="gc-footer">
-        <div class="gc-play">OYNA <div class="gc-play-arrow">▶</div></div>
-        <div class="gc-players">Çok oyunculu</div>
       </div>
     </a>
 
   </div>
 
-  <div class="bottom-note">Yeni oyunlar yakında ekleniyor ✦</div>
-
 </div>
 
 <script>
-const BIN_ID = '6a2a8f27f5f4af5e29de21ee';
+const BIN_ID  = '6a2a8f27f5f4af5e29de21ee';
 const BIN_KEY = '$2a$10$jmvujdFyJ.mML6da40FEleAhD1/oz/xVD612cQ6NAxRM4oQedpnBi';
 
-function clGetLocal(key){
+function clGet(key){
   try{ return (JSON.parse(localStorage.getItem('vmym_cl_urls'))||{})[key]||null; }catch(e){ return null; }
 }
 
-async function syncHomepageConfig(){
+async function syncConfig(){
   try{
-    const res = await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID+'/latest', {headers:{'X-Master-Key':BIN_KEY}});
+    const res = await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID+'/latest',{headers:{'X-Master-Key':BIN_KEY}});
     if(!res.ok) return;
-    const record = (await res.json()).record || {};
-    ['hp_bg','hp_card_w','hp_card_h','hp_cards','vmym_cl_urls'].forEach(k=>{
-      if(record[k]!==undefined){
-        localStorage.setItem(k, typeof record[k]==='string'?record[k]:JSON.stringify(record[k]));
-      }
+    const rec = (await res.json()).record||{};
+    ['hp_bg','hp_card_w','hp_card_h','hp_cards','hp_header','vmym_cl_urls'].forEach(k=>{
+      if(rec[k]!==undefined) localStorage.setItem(k, typeof rec[k]==='string'?rec[k]:JSON.stringify(rec[k]));
     });
-  }catch(e){ console.warn('sync error',e); }
+  }catch(e){}
 }
 
-function applyHomepageSettings(){
-  // Apply background
+function applySettings(){
+  /* 1 — arkaplan */
   try{
     const bg = JSON.parse(localStorage.getItem('hp_bg')||'{}');
     const layer = document.getElementById('bg-layer');
     if(bg.mode==='color'){
-      layer.style.background = bg.color || '#07070f';
-      document.body.style.background = 'transparent';
+      layer.style.background = bg.color||'#07070f';
+      document.body.style.background='transparent';
     } else if(bg.mode==='image'){
-      const url = clGetLocal('hp_bg_img');
+      const url = clGet('hp_bg_img');
       if(url){
-        const fitMap = {cover:'center/cover no-repeat fixed',contain:'center/contain no-repeat fixed',repeat:'top left repeat fixed',center:'center/auto no-repeat fixed'};
-        layer.style.background = "url('"+url+"') "+(fitMap[bg.fit]||fitMap.cover);
-        layer.style.opacity = '1';
-        document.body.style.background = 'transparent';
+        const fit={cover:'center/cover no-repeat fixed',contain:'center/contain no-repeat fixed',repeat:'top left repeat fixed',center:'center/auto no-repeat fixed'};
+        layer.style.background = "url('"+url+"') "+(fit[bg.fit]||fit.cover);
+        layer.style.opacity = ((bg.opacity||100)/100).toString();
+        document.body.style.background='transparent';
       }
-    } else {
-      layer.style.background = 'transparent';
     }
   }catch(e){}
 
-  // Apply card sizes
+  /* 2 — header görseli */
   try{
-    const w = JSON.parse(localStorage.getItem('hp_card_w')||'300');
-    const h = JSON.parse(localStorage.getItem('hp_card_h')||'180');
-    document.documentElement.style.setProperty('--card-min-w', w+'px');
-    document.documentElement.style.setProperty('--card-banner-h', h+'px');
+    const hdr = JSON.parse(localStorage.getItem('hp_header')||'{}');
+    const wrap = document.getElementById('site-header');
+    const img  = document.getElementById('site-header-img');
+    const url  = clGet('hp_header_img');
+    if(url && hdr.show!==false){
+      img.src=url; wrap.classList.add('on');
+      if(hdr.maxW) img.style.maxWidth=hdr.maxW+'px';
+    } else {
+      wrap.classList.remove('on');
+    }
   }catch(e){}
 
-  // Apply card images + text
+  /* 3 — kart boyutları */
+  try{
+    const w = JSON.parse(localStorage.getItem('hp_card_w')||'300');
+    const h = JSON.parse(localStorage.getItem('hp_card_h')||'300');
+    document.documentElement.style.setProperty('--card-min-w',w+'px');
+    document.documentElement.style.setProperty('--card-banner-h',h+'px');
+  }catch(e){}
+
+  /* 4 — kart görselleri + aktiflik + deaktif etiketi */
   try{
     const cards = JSON.parse(localStorage.getItem('hp_cards')||'{}');
     ['vmym','faul'].forEach(key=>{
-      const url = clGetLocal('hp_card_'+key);
-      if(url){
-        const img = document.getElementById('img-'+key);
-        if(img){ img.src=url; img.classList.add('on'); }
-      }
-      if(cards[key]){
-        const nameEl = document.getElementById('name-'+key);
-        if(nameEl && cards[key].name) nameEl.textContent = cards[key].name;
-        const cardEl = document.getElementById('card-'+key);
-        if(cardEl && cards[key].url) cardEl.setAttribute('href', cards[key].url);
-        if(cards[key].tags){
-          const tagsEl = document.getElementById('tags-'+key);
-          if(tagsEl){
-            const tags = cards[key].tags.split(',').map(t=>t.trim()).filter(Boolean);
-            if(tags.length){
-              tagsEl.innerHTML = tags.map(t=>'<div class="gc-tag">'+t+'</div>').join('');
-            }
-          }
-        }
+      const cfg = cards[key]||{};
+
+      /* banner görseli */
+      const bgUrl = clGet('hp_card_'+key);
+      if(bgUrl){ const i=document.getElementById('img-'+key); if(i){i.src=bgUrl;i.classList.add('on');} }
+
+      /* url */
+      if(cfg.url){ const c=document.getElementById('card-'+key); if(c) c.setAttribute('href',cfg.url); }
+
+      /* aktif/deaktif */
+      const card = document.getElementById('card-'+key);
+      const isActive = cfg.active!==false; // default aktif
+      if(card){ card.classList.toggle('inactive',!isActive); }
+
+      /* deaktif etiketi */
+      const inactOverlay = document.getElementById('inact-'+key);
+      if(inactOverlay){
+        const inactImg = document.getElementById('inact-img-'+key);
+        const inactTxt = document.getElementById('inact-txt-'+key);
+        const inactUrl = clGet('hp_inact_'+key);
+        const inactLabel = cfg.inactLabel||'YAKINDA';
+        if(inactUrl && inactImg){ inactImg.src=inactUrl; inactImg.classList.add('on'); if(inactTxt) inactTxt.style.display='none'; }
+        else { if(inactImg) inactImg.classList.remove('on'); if(inactTxt){ inactTxt.textContent=inactLabel; inactTxt.style.display=''; } }
       }
     });
   }catch(e){}
 }
 
-syncHomepageConfig().then(applyHomepageSettings);
+syncConfig().then(applySettings);
 </script>
 </body>
 </html>

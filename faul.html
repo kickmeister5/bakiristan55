@@ -62,58 +62,58 @@ html,body{
 /* ===== ENTRY SCREEN (oda kurma / katılma) ===== */
 #entry-screen{align-items:center;justify-content:center;padding:20px;}
 .entry-card{
-  background:var(--white); border-radius:24px; padding:40px 32px;
+  background:#111118; border-radius:24px; padding:40px 32px;
   max-width:420px; width:100%; text-align:center;
-  box-shadow:0 16px 50px rgba(0,0,0,0.35);
+  box-shadow:0 20px 60px rgba(0,0,0,0.7);
+  border:1px solid rgba(255,255,255,0.08);
 }
-.entry-logo{font-family:var(--font-title);font-size:56px;letter-spacing:4px;color:var(--blue);line-height:1;margin-bottom:4px;}
-.entry-logo span{color:var(--red);}
-.entry-sub{font-size:13px;color:#777;margin-bottom:28px;font-weight:500;}
-.entry-tabs{display:flex;background:#f0f2f8;border-radius:12px;padding:4px;margin-bottom:22px;}
-.entry-tab{flex:1;padding:10px;border-radius:9px;font-size:13px;font-weight:700;color:#888;cursor:pointer;transition:all 0.2s;text-align:center;}
-.entry-tab.active{background:var(--white);color:var(--blue);box-shadow:0 2px 8px rgba(0,0,0,0.08);}
-.entry-input{width:100%;background:#f0f2f8;border:2px solid transparent;border-radius:12px;padding:14px 16px;font-size:15px;font-family:var(--font-body);outline:none;margin-bottom:14px;text-align:center;letter-spacing:2px;font-weight:700;color:#222;transition:border-color 0.2s;}
-.entry-input:focus{border-color:var(--blue);}
-.entry-input::placeholder{color:#aaa;letter-spacing:0;font-weight:400;}
-.entry-btn{width:100%;background:var(--blue);color:var(--white);font-family:var(--font-title);font-size:20px;letter-spacing:2px;border:none;border-radius:12px;padding:15px;cursor:pointer;transition:all 0.2s;box-shadow:0 6px 20px rgba(26,110,245,0.3);}
-.entry-btn:hover{background:var(--blue-dark);}
-.entry-btn:disabled{opacity:0.5;cursor:not-allowed;}
-.entry-err{color:var(--red);font-size:12px;font-weight:600;margin-top:10px;min-height:16px;}
-.entry-or{font-size:11px;color:#bbb;margin:18px 0;letter-spacing:2px;font-weight:700;}
+.entry-logo{font-family:var(--font-title);font-size:56px;letter-spacing:4px;color:var(--yellow);line-height:1;margin-bottom:4px;text-shadow:0 0 30px rgba(245,197,24,0.3);}
+.entry-logo span{color:var(--white);}
+.entry-sub{font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:28px;font-weight:500;letter-spacing:1px;}
+.entry-tabs{display:flex;background:rgba(255,255,255,0.06);border-radius:12px;padding:4px;margin-bottom:22px;border:1px solid rgba(255,255,255,0.08);}
+.entry-tab{flex:1;padding:10px;border-radius:9px;font-size:13px;font-weight:700;color:rgba(255,255,255,0.4);cursor:pointer;transition:all 0.2s;text-align:center;}
+.entry-tab.active{background:rgba(255,255,255,0.1);color:var(--white);box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+.entry-input{width:100%;background:rgba(255,255,255,0.07);border:2px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 16px;font-size:15px;font-family:var(--font-body);outline:none;margin-bottom:14px;text-align:center;letter-spacing:2px;font-weight:700;color:#fff;transition:border-color 0.2s;}
+.entry-input:focus{border-color:var(--yellow);}
+.entry-input::placeholder{color:rgba(255,255,255,0.25);letter-spacing:0;font-weight:400;}
+.entry-btn{width:100%;background:var(--yellow);color:#000;font-family:var(--font-title);font-size:20px;letter-spacing:2px;border:none;border-radius:12px;padding:15px;cursor:pointer;transition:all 0.2s;box-shadow:0 6px 20px rgba(245,197,24,0.25);font-weight:700;}
+.entry-btn:hover{background:#ffd700;box-shadow:0 8px 28px rgba(245,197,24,0.4);}
+.entry-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.entry-err{color:#ff6b7a;font-size:12px;font-weight:600;margin-top:10px;min-height:16px;}
+.entry-or{font-size:11px;color:rgba(255,255,255,0.25);margin:18px 0;letter-spacing:2px;font-weight:700;}
 .join-code-wrap{position:relative;margin-bottom:14px;}
 .join-code-input{margin-bottom:0;padding-right:46px;}
-.join-code-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:18px;cursor:pointer;color:#999;width:34px;height:34px;border-radius:8px;transition:all 0.15s;}
-.join-code-eye:hover{background:#f0f2f8;color:#555;}
-.join-code-eye.showing{color:var(--blue);}
-.entry-roomcode-display{background:#f0f2f8;border-radius:12px;padding:16px;margin-bottom:16px;display:none;}
+.join-code-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:18px;cursor:pointer;color:rgba(255,255,255,0.35);width:34px;height:34px;border-radius:8px;transition:all 0.15s;}
+.join-code-eye:hover{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.8);}
+.join-code-eye.showing{color:var(--yellow);}
+.entry-roomcode-display{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:16px;margin-bottom:16px;display:none;}
 .entry-roomcode-display.show{display:block;}
-.entry-roomcode-label{font-size:11px;color:#999;letter-spacing:1px;margin-bottom:6px;}
-.entry-roomcode-val{font-family:var(--font-title);font-size:32px;letter-spacing:6px;color:var(--blue);}
-.entry-share-link{display:flex;gap:8px;margin-top:10px;}
-.entry-share-link input{flex:1;background:var(--white);border:1px solid #ddd;border-radius:8px;padding:8px 10px;font-size:11px;color:#666;outline:none;}
-.entry-copy-btn{background:var(--yellow);border:none;border-radius:8px;padding:8px 14px;font-size:11px;font-weight:700;cursor:pointer;color:#000;}
-.entry-spinner{width:36px;height:36px;border:3px solid #eee;border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;}
+.entry-roomcode-label{font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:1px;margin-bottom:6px;}
+.entry-roomcode-val{font-family:var(--font-title);font-size:32px;letter-spacing:6px;color:var(--yellow);}
+.entry-share-link{display:none;}
+.entry-copy-btn{display:none;}
+.entry-spinner{width:36px;height:36px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--yellow);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
 /* ===== AVATAR CAROUSEL (top of entry screen) ===== */
 .avatar-carousel{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px;}
 .ac-arrow{
   width:38px;height:38px;border-radius:50%;flex-shrink:0;
-  background:#f0f2f8;border:none;font-size:22px;color:var(--blue);
+  background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);font-size:22px;color:var(--white);
   cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;
   font-family:var(--font-body);font-weight:700;
 }
-.ac-arrow:hover{background:#e0e6f5;transform:scale(1.08);}
+.ac-arrow:hover{background:rgba(255,255,255,0.2);transform:scale(1.08);}
 .ac-arrow:active{transform:scale(0.95);}
-.ac-viewport{width:120px;height:120px;border-radius:24px;overflow:hidden;position:relative;flex-shrink:0;background:#f0f2f8;}
+.ac-viewport{width:120px;height:120px;border-radius:50%;overflow:hidden;position:relative;flex-shrink:0;background:rgba(255,255,255,0.08);}
 .ac-track{display:flex;height:100%;transition:transform 0.32s cubic-bezier(0.34,1.2,0.64,1);}
 .ac-slide{width:120px;height:120px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
 .ac-slide img{width:100%;height:100%;object-fit:cover;}
 .ac-slide .ac-emoji-fallback{font-size:56px;}
 .ac-viewport::after{
-  content:'';position:absolute;inset:0;border-radius:24px;
-  border:3px solid var(--blue);pointer-events:none;
-  box-shadow:0 0 0 4px rgba(26,110,245,0.12);
+  content:'';position:absolute;inset:0;border-radius:50%;
+  border:3px solid var(--yellow);pointer-events:none;
+  box-shadow:0 0 0 4px rgba(245,197,24,0.15);
 }
 
 /* ===== WAITING SCREEN (host bekleme ekranı görmesi için) ===== */
@@ -423,12 +423,8 @@ html,body{
       <div class="entry-roomcode-display" id="entry-roomcode-display">
         <div class="entry-roomcode-label">ODA KODUNUZ</div>
         <div class="entry-roomcode-val" id="entry-roomcode-val">——</div>
-        <div class="entry-share-link">
-          <input type="text" id="entry-share-input" readonly value="">
-          <button class="entry-copy-btn" onclick="copyShareLink()">Kopyala</button>
-        </div>
       </div>
-      <button class="entry-btn" id="btn-create-room" onclick="createRoom()">🎮 ODA OLUŞTUR</button>
+      <button class="entry-btn" id="btn-create-room" onclick="createRoom()">ODA OLUŞTUR</button>
       <div class="entry-err" id="create-err"></div>
     </div>
 
@@ -460,13 +456,11 @@ html,body{
 
   <div id="host-wait-banner">
     <div class="hw-label-row">
-      <div class="hw-label">ODA KODU &amp; LİNK</div>
+      <div class="hw-label">ODA KODU</div>
       <button class="hw-toggle-btn" id="hw-toggle-btn" onclick="toggleHostCodeVisibility()">👁 GÖSTER</button>
     </div>
     <div class="hw-link-row" id="hw-link-row" style="display:none;">
       <div class="hw-room-code" id="hw-room-code">——</div>
-      <input type="text" class="hw-link-input" id="hw-link-input" readonly value="">
-      <button class="hw-copy" onclick="copyShareLink()">Kopyala</button>
     </div>
   </div>
 
@@ -857,14 +851,11 @@ async function createRoom(){
     roomCode = code;
     isHost = true;
     const url = window.location.origin + window.location.pathname + '?oda=' + code;
-    document.getElementById('entry-roomcode-val').textContent = code;
-    document.getElementById('entry-share-input').value = url;
-    document.getElementById('entry-roomcode-display').classList.add('show');
     btn.textContent = '✅ Oda oluşturuldu';
-    setTimeout(()=> joinAsPlayerAndEnterLobby(), 500);
+    await joinAsPlayerAndEnterLobby();
   } catch(err){
     document.getElementById('create-err').textContent = 'Hata: ' + err.message;
-    btn.disabled = false; btn.textContent = '🎮 ODA OLUŞTUR';
+    btn.disabled = false; btn.textContent = 'ODA OLUŞTUR';
   }
 }
 
@@ -914,8 +905,6 @@ async function joinAsPlayerAndEnterLobby(){
 function enterLobby(){
   showScreen('lobby-screen');
   document.getElementById('hw-room-code').textContent = roomCode;
-  const url = window.location.origin + window.location.pathname + '?oda=' + roomCode;
-  document.getElementById('hw-link-input').value = url;
   if(isHost){
     document.getElementById('host-wait-banner').classList.add('show');
     document.getElementById('btn-lock').style.display = 'flex';
@@ -933,8 +922,8 @@ function shareRoom(){
   }
 }
 function copyShareLink(){
-  const input = document.getElementById('entry-share-input').value ? document.getElementById('entry-share-input') : document.getElementById('hw-link-input');
-  navigator.clipboard.writeText(input.value);
+  const url = window.location.origin + window.location.pathname + '?oda=' + roomCode;
+  navigator.clipboard.writeText(url);
   showToast('🔗 Link kopyalandı!');
 }
 

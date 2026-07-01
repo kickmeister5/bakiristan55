@@ -839,10 +839,36 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; h
   <!-- HOMEPAGE EDITOR -->
   <div class="panel" id="tab-homepage">
 
-    <!-- BG SECTION -->
+    <!-- 1. HEADER GÖRSELİ -->
+    <div class="disp-card hp-section">
+      <div class="disp-card-title">BAŞLIK GÖRSELİ</div>
+      <div class="disp-card-sub">Oyun listesinin üstünde gösterilecek tam genişlik görsel. Logo, banner vs.</div>
+
+      <div class="hi-upload-area" style="max-width:700px;margin-bottom:12px;" onclick="document.getElementById('hp-header-file').click()">
+        <div class="hi-preview" style="min-height:130px;">
+          <img id="hp-header-img-el" src="" alt="" style="max-height:200px;width:100%;object-fit:contain;display:none;">
+          <div class="hi-ph" id="hp-header-ph">
+            <div class="hi-plus">＋</div>
+            <div class="hi-ph-text">Başlık görseli yükle</div>
+            <div class="hi-ph-sub">PNG, JPG — tam genişlik gösterilir</div>
+          </div>
+        </div>
+      </div>
+      <input type="file" id="hp-header-file" accept="image/*" style="display:none" onchange="handleHpHeaderUpload(event)">
+
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
+        <label style="font-size:12px;color:var(--muted);">Maks. genişlik (px):</label>
+        <input type="number" id="hp-header-maxw" value="1400" min="400" max="3840" step="10"
+          style="width:90px;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--text);padding:5px 8px;font-size:13px;outline:none;">
+        <button class="btn-ghost danger" id="hp-header-del" onclick="clearHpHeader()" style="display:none;padding:5px 12px;font-size:11px;">🗑 Sil</button>
+      </div>
+      <button class="disp-save-btn" onclick="saveHpHeader()">💾 BAŞLIK KAYDET</button>
+    </div>
+
+    <!-- 2. ARKAPLAN -->
     <div class="disp-card hp-section">
       <div class="disp-card-title">ANA SAYFA ARKAPLANI</div>
-      <div class="disp-card-sub">index.html arka planını renk veya görsel olarak ayarlayın.</div>
+      <div class="disp-card-sub">Arka planı renk veya görsel olarak ayarlayın.</div>
 
       <div class="bg-mode-row" style="margin-bottom:14px;">
         <div class="bg-mode-btn active" id="hp-bgm-color" onclick="setHpBgMode('color')">🎨 RENK</div>
@@ -873,9 +899,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; h
         <div class="bg-img-area" onclick="document.getElementById('hp-bg-file').click()">
           <div class="bg-img-preview">
             <img id="hp-bg-img" src="" alt="">
-            <div class="bg-img-ph">
-              <div class="plus">＋</div><span>Arkaplan görseli yükle</span><small>PNG, JPG, WEBP</small>
-            </div>
+            <div class="bg-img-ph"><div class="plus">＋</div><span>Arkaplan görseli yükle</span><small>PNG, JPG, WEBP</small></div>
           </div>
         </div>
         <input type="file" id="hp-bg-file" accept="image/*" style="display:none" onchange="handleHpBgUpload(event)">
@@ -892,14 +916,14 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; h
       </div>
 
       <div style="margin-top:16px;">
-        <button class="disp-save-btn" onclick="saveHpBg()">💾 KAYDET</button>
+        <button class="disp-save-btn" onclick="saveHpBg()">💾 ARKAPLAN KAYDET</button>
       </div>
     </div>
 
-    <!-- CARD SIZE -->
+    <!-- 3. KART BOYUTLARI -->
     <div class="disp-card hp-section">
-      <div class="disp-card-title">OYUN KUTUSU BOYUTLARI</div>
-      <div class="disp-card-sub">Ana sayfadaki oyun kartlarının minimum genişlik ve yüksekliğini ayarlayın.</div>
+      <div class="disp-card-title">OYUN KARTI BOYUTLARI</div>
+      <div class="disp-card-sub">Kartların minimum genişliği ve yüksekliğini ayarlayın.</div>
       <div class="hp-size-row">
         <div class="hp-size-group">
           <div class="hp-size-label">MIN GENİŞLİK (px)</div>
@@ -917,32 +941,35 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; h
           </div>
         </div>
         <div class="hp-size-group">
-          <div class="hp-size-label">BANNER YÜKSEKLİĞİ (px)</div>
+          <div class="hp-size-label">KART YÜKSEKLİĞİ (px)</div>
           <div class="hp-size-presets">
-            <button class="zoom-preset" onclick="setHpCard('h',120)">120</button>
-            <button class="zoom-preset" onclick="setHpCard('h',160)">160</button>
             <button class="zoom-preset" onclick="setHpCard('h',200)">200</button>
-            <button class="zoom-preset" onclick="setHpCard('h',240)">240</button>
-            <button class="zoom-preset" onclick="setHpCard('h',280)">280</button>
+            <button class="zoom-preset" onclick="setHpCard('h',250)">250</button>
+            <button class="zoom-preset" onclick="setHpCard('h',300)">300</button>
+            <button class="zoom-preset" onclick="setHpCard('h',350)">350</button>
+            <button class="zoom-preset" onclick="setHpCard('h',400)">400</button>
           </div>
           <div class="zoom-custom-wrap">
             <span>Özel:</span>
-            <input type="number" id="hp-card-h" value="180" min="80" max="400" step="10" oninput="setHpCard('h',parseInt(this.value)||180)">
+            <input type="number" id="hp-card-h" value="300" min="100" max="600" step="10" oninput="setHpCard('h',parseInt(this.value)||300)">
             <span>px</span>
           </div>
         </div>
       </div>
       <div class="zoom-preview" style="margin-top:14px;">
-        <div><div class="zoom-preview-label">Seçili boyut</div><div class="zoom-preview-val" id="hp-card-size-val" style="font-size:16px;">300 × 180 px</div></div>
+        <div><div class="zoom-preview-label">Seçili boyut</div><div class="zoom-preview-val" id="hp-card-size-val" style="font-size:16px;">300 × 300 px</div></div>
         <button class="disp-save-btn" onclick="saveHpCards()" style="font-size:15px;padding:10px 24px;">💾 KAYDET</button>
       </div>
     </div>
 
-    <!-- GAME CARDS -->
+    <!-- 4. OYUN KARTLARI -->
     <div class="disp-card hp-section">
-      <div class="disp-card-title">OYUN KARTI GÖRSELLERİ</div>
-      <div class="disp-card-sub">Her oyun kartının banner görselini yükleyin. Yüklenmezse varsayılan emoji gösterilir.</div>
-      <div class="hp-cards-grid" id="hp-cards-grid"></div>
+      <div class="disp-card-title">OYUN KARTLARI</div>
+      <div class="disp-card-sub">Her oyun için banner görseli yükleyin, aktif/deaktif yapın. Deaktif olunca üzerine etiket görseli koyabilirsiniz.</div>
+      <div id="hp-cards-grid" style="display:flex;flex-direction:column;gap:20px;"></div>
+      <div style="margin-top:18px;">
+        <button class="disp-save-btn" onclick="saveHpCardData()">💾 TÜM KARTLARI KAYDET</button>
+      </div>
     </div>
 
     <div style="max-width:820px;width:100%;">
@@ -1285,7 +1312,7 @@ async function syncRemoteConfig() {
 const BIN_ID = '6a2a8f27f5f4af5e29de21ee';
 const BIN_KEY = '$2a$10$jmvujdFyJ.mML6da40FEleAhD1/oz/xVD612cQ6NAxRM4oQedpnBi';
 const BIN_API = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
-const ALL_KEYS = ['vmym_prices','vmym_zoom','vmym_ratio','vmym_lp','vmym_bg','vmym_header_size','vmym_cl_urls','hp_bg','hp_card_w','hp_card_h','hp_cards','faul_avatar_count','faul_bg'];
+const ALL_KEYS = ['vmym_prices','vmym_zoom','vmym_ratio','vmym_lp','vmym_bg','vmym_header_size','vmym_cl_urls','hp_bg','hp_card_w','hp_card_h','hp_cards','faul_avatar_count','faul_bg','hp_header'];
 
 async function remoteFetch(){
   try{
@@ -1709,98 +1736,111 @@ function addFaulAvatarSlot(){
 const HP_GAMES = [
   {key:'vmym', name:'VAR MISIN?', icon:'🎁', url:'vmym.html'},
   {key:'faul', name:'FAUL!',      icon:'🚨', url:'faul.html'},
-  {key:'game3',name:'OYUN 3',     icon:'🎰', url:''},
-  {key:'game4',name:'OYUN 4',     icon:'🎯', url:''},
 ];
 let hpBgMode='none', hpBgColor='#07070f', hpBgFit='cover';
-let hpCardW=300, hpCardH=180;
+let hpCardW=300, hpCardH=300;
 
 function initHomepageTab(){
-  // Load bg
+  // Header görsel
   try{
-    const d=JSON.parse(localStorage.getItem('hp_bg')||'{}');
-    hpBgMode=d.mode||'none';
-    hpBgColor=d.color||'#07070f';
-    hpBgFit=d.fit||'cover';
-    setHpBgMode(hpBgMode,true);
-    pickHpColor(hpBgColor,true);
-    setHpBgFit(hpBgFit,true);
-    if(d.mode==='image'){
-      const url=clGet('hp_bg_img');
-      if(url){ const img=document.getElementById('hp-bg-img'); if(img){img.src=url;img.classList.add('on'); document.getElementById('hp-bg-del').style.display='block';} }
+    const hdr=JSON.parse(localStorage.getItem('hp_header')||'{}');
+    const maxW=hdr.maxW||1400;
+    document.getElementById('hp-header-maxw').value=maxW;
+    const url=clGet('hp_header_img');
+    if(url){
+      const img=document.getElementById('hp-header-img-el');
+      if(img){img.src=url;img.style.display='block';}
+      document.getElementById('hp-header-ph').style.display='none';
+      document.getElementById('hp-header-del').style.display='block';
     }
   }catch(e){}
-  // Load card sizes
+  // BG
   try{
-    const d=JSON.parse(localStorage.getItem('hp_card_w')||'300');
-    hpCardW=d||300;
-    document.getElementById('hp-card-w').value=hpCardW;
+    const d=JSON.parse(localStorage.getItem('hp_bg')||'{}');
+    hpBgMode=d.mode||'none'; hpBgColor=d.color||'#07070f'; hpBgFit=d.fit||'cover';
+    setHpBgMode(hpBgMode,true); pickHpColor(hpBgColor,true); setHpBgFit(hpBgFit,true);
+    if(d.mode==='image'){
+      const url=clGet('hp_bg_img');
+      if(url){const img=document.getElementById('hp-bg-img');if(img){img.src=url;img.classList.add('on');document.getElementById('hp-bg-del').style.display='block';}}
+    }
   }catch(e){}
-  try{
-    const d=JSON.parse(localStorage.getItem('hp_card_h')||'180');
-    hpCardH=d||180;
-    document.getElementById('hp-card-h').value=hpCardH;
-  }catch(e){}
+  // Card sizes
+  try{hpCardW=JSON.parse(localStorage.getItem('hp_card_w')||'300');document.getElementById('hp-card-w').value=hpCardW;}catch(e){}
+  try{hpCardH=JSON.parse(localStorage.getItem('hp_card_h')||'300');document.getElementById('hp-card-h').value=hpCardH;}catch(e){}
   document.getElementById('hp-card-size-val').textContent=hpCardW+' × '+hpCardH+' px';
   buildHpCardsGrid();
+}
+
+/* HEADER IMAGE */
+async function handleHpHeaderUpload(e){
+  const file=e.target.files[0]; if(!file) return;
+  showToast('⏳ Yükleniyor...');
+  try{
+    const url=await uploadToCloudinary(file,'hp_header_img');
+    clSave('hp_header_img',url);
+    const img=document.getElementById('hp-header-img-el');
+    if(img){img.src=url;img.style.display='block';}
+    document.getElementById('hp-header-ph').style.display='none';
+    document.getElementById('hp-header-del').style.display='block';
+    showToast('✅ Başlık görseli kaydedildi');
+  }catch(err){showToast('⚠️ '+err.message);}
+}
+function clearHpHeader(){
+  if(!confirm('Başlık görseli silinecek?')) return;
+  clDel('hp_header_img');
+  const img=document.getElementById('hp-header-img-el');
+  if(img){img.src='';img.style.display='none';}
+  document.getElementById('hp-header-ph').style.display='';
+  document.getElementById('hp-header-del').style.display='none';
+  showToast('🗑 Silindi');
+}
+function saveHpHeader(){
+  const maxW=parseInt(document.getElementById('hp-header-maxw').value)||1400;
+  localStorage.setItem('hp_header',JSON.stringify({show:true,maxW}));
+  remotePush();
+  showToast('✅ Başlık ayarları kaydedildi');
 }
 
 /* BG MODE */
 function setHpBgMode(mode,silent){
   hpBgMode=mode;
   ['color','image','none'].forEach(m=>{
-    const btn=document.getElementById('hp-bgm-'+m);
-    if(btn) btn.classList.toggle('active',m===mode);
+    const btn=document.getElementById('hp-bgm-'+m); if(btn) btn.classList.toggle('active',m===mode);
+    const cs=document.getElementById('hp-bg-color-section');
+    const is=document.getElementById('hp-bg-image-section');
+    if(cs) cs.style.display=mode==='color'?'':'none';
+    if(is) is.style.display=mode==='image'?'':'none';
   });
-  const cs=document.getElementById('hp-bg-color-section');
-  const is=document.getElementById('hp-bg-image-section');
-  if(cs) cs.style.display=mode==='color'?'':'none';
-  if(is) is.style.display=mode==='image'?'':'none';
 }
 function pickHpColor(hex,silent){
   hpBgColor=hex;
-  const p=document.getElementById('hp-color-picker');
-  const h=document.getElementById('hp-color-hex');
-  const pr=document.getElementById('hp-color-preview');
+  const p=document.getElementById('hp-color-picker'); const h=document.getElementById('hp-color-hex'); const pr=document.getElementById('hp-color-preview');
   if(p)p.value=hex; if(h)h.value=hex; if(pr)pr.style.background=hex;
-  document.querySelectorAll('#hp-color-presets .color-swatch').forEach(s=>{
-    s.classList.toggle('active',s.style.background===hex||s.style.backgroundColor===hex);
-  });
+  document.querySelectorAll('#hp-color-presets .color-swatch').forEach(s=>s.classList.toggle('active',s.style.background===hex||s.style.backgroundColor===hex));
 }
 function setHpBgFit(fit,silent){
   hpBgFit=fit;
-  ['cover','contain','repeat','center'].forEach(f=>{
-    const el=document.getElementById('hp-fit-'+f);
-    if(el)el.classList.toggle('active',f===fit);
-  });
+  ['cover','contain','repeat','center'].forEach(f=>{const el=document.getElementById('hp-fit-'+f);if(el)el.classList.toggle('active',f===fit);});
 }
 async function handleHpBgUpload(e){
-  const file=e.target.files[0]; if(!file) return;
-  showToast('⏳ Yükleniyor...');
+  const file=e.target.files[0]; if(!file) return; showToast('⏳ Yükleniyor...');
   try{
-    const url=await uploadToCloudinary(file,'hp_bg_img');
-    clSave('hp_bg_img',url);
-    const img=document.getElementById('hp-bg-img');
-    if(img){img.src=url;img.classList.add('on');}
+    const url=await uploadToCloudinary(file,'hp_bg_img'); clSave('hp_bg_img',url);
+    const img=document.getElementById('hp-bg-img'); if(img){img.src=url;img.classList.add('on');}
     document.getElementById('hp-bg-del').style.display='block';
     document.getElementById('hp-bg-meta').textContent='Yüklendi';
     showToast('✅ Arkaplan görseli kaydedildi');
   }catch(err){showToast('⚠️ '+err.message);}
 }
 async function clearHpBg(){
-  if(!confirm('Arkaplan görseli silinecek?')) return;
-  clDel('hp_bg_img');
-  const img=document.getElementById('hp-bg-img');
-  if(img){img.src='';img.classList.remove('on');}
+  if(!confirm('Arkaplan görseli silinecek?')) return; clDel('hp_bg_img');
+  const img=document.getElementById('hp-bg-img'); if(img){img.src='';img.classList.remove('on');}
   document.getElementById('hp-bg-del').style.display='none';
-  document.getElementById('hp-bg-file').value='';
-  showToast('🗑 Silindi');
+  document.getElementById('hp-bg-file').value=''; showToast('🗑 Silindi');
 }
 function saveHpBg(){
-  const d={mode:hpBgMode,color:hpBgColor,fit:hpBgFit};
-  localStorage.setItem('hp_bg',JSON.stringify(d));
-  remotePush();
-  showToast('✅ Ana sayfa arkaplanı kaydedildi');
+  localStorage.setItem('hp_bg',JSON.stringify({mode:hpBgMode,color:hpBgColor,fit:hpBgFit}));
+  remotePush(); showToast('✅ Ana sayfa arkaplanı kaydedildi');
 }
 
 /* CARD SIZE */
@@ -1812,99 +1852,143 @@ function setHpCard(dim,val){
 function saveHpCards(){
   localStorage.setItem('hp_card_w',JSON.stringify(hpCardW));
   localStorage.setItem('hp_card_h',JSON.stringify(hpCardH));
-  remotePush();
-  showToast('✅ Kart boyutları kaydedildi');
+  remotePush(); showToast('✅ Kart boyutları kaydedildi');
 }
 
-/* GAME CARD IMAGES */
+/* GAME CARDS — banner + aktif/deaktif + deaktif etiketi */
 function buildHpCardsGrid(){
-  const g=document.getElementById('hp-cards-grid');
-  if(!g) return;
+  const g=document.getElementById('hp-cards-grid'); if(!g) return;
   g.innerHTML='';
+  let savedCards={};
+  try{savedCards=JSON.parse(localStorage.getItem('hp_cards')||'{}');}catch(e){}
+
   HP_GAMES.forEach((game,i)=>{
-    const url=clGet('hp_card_'+game.key);
+    const cfg=savedCards[game.key]||{};
+    const bannerUrl=clGet('hp_card_'+game.key);
+    const inactUrl=clGet('hp_inact_'+game.key);
+    const isActive=cfg.active!==false;
+    const inactLabel=cfg.inactLabel||'YAKINDA';
+    const savedUrl=cfg.url||game.url;
+
     const div=document.createElement('div');
-    div.className='hp-card-editor'+(url?' has-img':'');
-    div.id='hp-ce-'+game.key;
+    div.className='disp-card'; div.id='hp-ce-'+game.key;
+    div.style.cssText='padding:16px;border-radius:14px;';
     div.innerHTML=`
-      <div class="hp-card-preview" onclick="document.getElementById('hp-cf-${game.key}').click()">
-        <img id="hp-ci-${game.key}" src="${url||''}" alt="" class="${url?'on':''}">
-        <div class="ph"><div class="ph-icon">${game.icon}</div><div class="ph-txt">Banner yükle</div></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;color:var(--gold);">${i+1}. ${game.name}</div>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--muted);">
+          <span>AKTİF</span>
+          <input type="checkbox" id="hp-act-${game.key}" ${isActive?'checked':''} style="width:16px;height:16px;cursor:pointer;" onchange="updateHpActiveState('${game.key}')">
+        </label>
       </div>
-      <div class="hp-card-body">
-        <div class="hp-card-row">
-          <label>Oyun Adı</label>
-          <input class="hp-card-input" id="hp-cn-${game.key}" type="text" value="${game.name}" placeholder="Oyun adı">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+
+        <!-- Banner Görseli -->
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:8px;">BANNER GÖRSELİ</div>
+          <div class="hi-upload-area" style="margin-bottom:8px;" onclick="document.getElementById('hp-cf-${game.key}').click()">
+            <div class="hi-preview" style="min-height:90px;">
+              <img id="hp-ci-${game.key}" src="${bannerUrl||''}" alt="" style="${bannerUrl?'':'display:none;'}max-height:120px;width:100%;object-fit:cover;">
+              <div class="hi-ph" id="hp-cph-${game.key}" style="${bannerUrl?'display:none;':''}">
+                <div style="font-size:20px;">${game.icon}</div>
+                <div class="hi-ph-text" style="font-size:11px;">Banner yükle</div>
+              </div>
+            </div>
+          </div>
+          <input type="file" id="hp-cf-${game.key}" accept="image/*" style="display:none" onchange="handleHpCardImg(event,'${game.key}')">
+          ${bannerUrl?`<button class="btn-ghost danger" onclick="clearHpCardImg('${game.key}')" style="font-size:11px;padding:4px 10px;width:100%;">🗑 Banner Sil</button>`:''}
         </div>
-        <div class="hp-card-row">
-          <label>URL</label>
-          <input class="hp-card-input" id="hp-cu-${game.key}" type="text" value="${game.url}" placeholder="faul.html">
+
+        <!-- Deaktif Etiketi Görseli -->
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:8px;">DEAKTİF ETİKETİ GÖRSELİ</div>
+          <div class="hi-upload-area" style="margin-bottom:8px;" onclick="document.getElementById('hp-if-${game.key}').click()">
+            <div class="hi-preview" style="min-height:90px;background:rgba(0,0,0,0.3);">
+              <img id="hp-ii-${game.key}" src="${inactUrl||''}" alt="" style="${inactUrl?'':'display:none;'}max-height:120px;width:100%;object-fit:contain;">
+              <div class="hi-ph" id="hp-iph-${game.key}" style="${inactUrl?'display:none;':''}">
+                <div style="font-size:20px;">🏷</div>
+                <div class="hi-ph-text" style="font-size:11px;">Etiket görseli yükle</div>
+                <div class="hi-ph-sub" style="font-size:10px;">Görsel yoksa metin kullanılır</div>
+              </div>
+            </div>
+          </div>
+          <input type="file" id="hp-if-${game.key}" accept="image/*" style="display:none" onchange="handleHpInactImg(event,'${game.key}')">
+          ${inactUrl?`<button class="btn-ghost danger" onclick="clearHpInactImg('${game.key}')" style="font-size:11px;padding:4px 10px;width:100%;">🗑 Etiket Sil</button>`:''}
+          <div style="margin-top:8px;">
+            <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">Görsel yoksa gösterilecek metin:</div>
+            <input type="text" class="hp-card-input" id="hp-il-${game.key}" value="${inactLabel}" placeholder="YAKINDA" style="width:100%;">
+          </div>
         </div>
-        <div class="hp-card-row">
-          <label>Etiket</label>
-          <input class="hp-card-input" id="hp-ct-${game.key}" type="text" value="" placeholder="ör: 2 TAKIM, 60 SANİYE">
-        </div>
+
       </div>
-      <div class="hp-card-footer">
-        <div class="hp-card-num">${i+1}. OYUN</div>
-        <button class="hp-img-del" onclick="clearHpCardImg('${game.key}')">🗑 Görseli Sil</button>
+
+      <div style="margin-top:12px;display:flex;align-items:center;gap:8px;">
+        <label style="font-size:11px;color:var(--muted);white-space:nowrap;">URL:</label>
+        <input type="text" class="hp-card-input" id="hp-cu-${game.key}" value="${savedUrl}" placeholder="${game.url}" style="flex:1;">
       </div>
-      <input type="file" id="hp-cf-${game.key}" accept="image/*" style="display:none" onchange="handleHpCardImg(event,'${game.key}')">
     `;
     g.appendChild(div);
-    // Load saved name/url/tags
-    try{
-      const saved=JSON.parse(localStorage.getItem('hp_cards')||'{}');
-      if(saved[game.key]){
-        const n=document.getElementById('hp-cn-'+game.key);
-        const u=document.getElementById('hp-cu-'+game.key);
-        const t=document.getElementById('hp-ct-'+game.key);
-        if(n&&saved[game.key].name) n.value=saved[game.key].name;
-        if(u&&saved[game.key].url) u.value=saved[game.key].url;
-        if(t&&saved[game.key].tags) t.value=saved[game.key].tags;
-      }
-    }catch(e){}
   });
+}
 
-  // Save all card data button
-  const saveBtn=document.createElement('div');
-  saveBtn.style.cssText='grid-column:1/-1;display:flex;justify-content:center;margin-top:4px;';
-  saveBtn.innerHTML='<button class="disp-save-btn" onclick="saveHpCardData()">💾 TÜM KART BİLGİLERİNİ KAYDET</button>';
-  g.appendChild(saveBtn);
+function updateHpActiveState(key){
+  // Anlık preview güncelleme — kaydetme kaydet butonuyla yapılır
+  const chk=document.getElementById('hp-act-'+key);
+  const isActive=chk&&chk.checked;
+  const label=chk&&chk.closest('label')&&chk.closest('label').querySelector('span');
+  if(label) label.style.color=isActive?'var(--green)':'var(--red)';
 }
 
 async function handleHpCardImg(e,key){
-  const file=e.target.files[0]; if(!file) return;
-  showToast('⏳ Yükleniyor...');
+  const file=e.target.files[0]; if(!file) return; showToast('⏳ Yükleniyor...');
   try{
-    const url=await uploadToCloudinary(file,'hp_card_'+key);
-    clSave('hp_card_'+key,url);
+    const url=await uploadToCloudinary(file,'hp_card_'+key); clSave('hp_card_'+key,url);
     const img=document.getElementById('hp-ci-'+key);
-    if(img){img.src=url;img.classList.add('on');}
-    document.getElementById('hp-ce-'+key).classList.add('has-img');
-    showToast('✅ Görsel kaydedildi');
+    if(img){img.src=url;img.style.display='';}
+    const ph=document.getElementById('hp-cph-'+key); if(ph) ph.style.display='none';
+    showToast('✅ Banner kaydedildi');
   }catch(err){showToast('⚠️ '+err.message);}
 }
-
 function clearHpCardImg(key){
   clDel('hp_card_'+key);
-  const img=document.getElementById('hp-ci-'+key);
-  if(img){img.src='';img.classList.remove('on');}
-  document.getElementById('hp-ce-'+key).classList.remove('has-img');
-  showToast('🗑 Görsel silindi');
+  const img=document.getElementById('hp-ci-'+key); if(img){img.src='';img.style.display='none';}
+  const ph=document.getElementById('hp-cph-'+key); if(ph) ph.style.display='';
+  showToast('🗑 Banner silindi'); buildHpCardsGrid();
+}
+
+async function handleHpInactImg(e,key){
+  const file=e.target.files[0]; if(!file) return; showToast('⏳ Yükleniyor...');
+  try{
+    const url=await uploadToCloudinary(file,'hp_inact_'+key); clSave('hp_inact_'+key,url);
+    const img=document.getElementById('hp-ii-'+key);
+    if(img){img.src=url;img.style.display='';}
+    const ph=document.getElementById('hp-iph-'+key); if(ph) ph.style.display='none';
+    showToast('✅ Etiket görseli kaydedildi');
+  }catch(err){showToast('⚠️ '+err.message);}
+}
+function clearHpInactImg(key){
+  clDel('hp_inact_'+key);
+  const img=document.getElementById('hp-ii-'+key); if(img){img.src='';img.style.display='none';}
+  const ph=document.getElementById('hp-iph-'+key); if(ph) ph.style.display='';
+  showToast('🗑 Etiket görseli silindi'); buildHpCardsGrid();
 }
 
 function saveHpCardData(){
   const data={};
   HP_GAMES.forEach(game=>{
-    const n=document.getElementById('hp-cn-'+game.key);
+    const chk=document.getElementById('hp-act-'+game.key);
     const u=document.getElementById('hp-cu-'+game.key);
-    const t=document.getElementById('hp-ct-'+game.key);
-    data[game.key]={name:n?n.value:game.name, url:u?u.value:game.url, tags:t?t.value:''};
+    const il=document.getElementById('hp-il-'+game.key);
+    data[game.key]={
+      active: chk?chk.checked:true,
+      url: u?u.value:game.url,
+      inactLabel: il?il.value:'YAKINDA',
+    };
   });
   localStorage.setItem('hp_cards',JSON.stringify(data));
   remotePush();
-  showToast('✅ Kart bilgileri kaydedildi');
+  showToast('✅ Kart ayarları kaydedildi');
 }
 
 /* ---- BANKER IMAGE ---- */
