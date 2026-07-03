@@ -1094,24 +1094,41 @@ async function connectKickChat(){
     pollWs.onmessage = (e)=>{
       try {
         const msg = JSON.parse(e.data);
-        console.log('[Kick WS]', msg.event, msg.data);
+        // Sistem event'lerini geç
         if(msg.event==='pusher:pong' || msg.event==='pusher:ping') return;
         if(msg.event==='pusher_internal:subscription_succeeded'){
           setPollStatus('connected','Kick chat bağlandı — <span>batuhanfurkan5</span> ✓');
           return;
         }
         if(msg.event==='pusher:error' || msg.event==='pusher_internal:subscription_error'){
-          console.error('[Kick WS] subscription/connection error:', msg.data);
-          setPollStatus('error', 'Pusher hatası: ' + JSON.stringify(msg.data).slice(0,80));
+          setPollStatus('error', 'Pusher hatası: ' + JSON.stringify(msg.data).slice(0,60));
           return;
         }
-        if(msg.event==='App\\Events\\ChatMessageEvent' || msg.event==='App\\Events\\ChatMessageSentEvent'){
-          const d = JSON.parse(msg.data);
-          const sender = d.sender || d.user || (d.message && d.message.sender) || {};
-          const content = d.content || (d.message && d.message.message) || '';
-          pollProcessMessage(sender.username||'Anonim', content);
+        // Gelen tüm event'leri logla — hangi isim geldiğini görmek için
+        console.log('[Kick WS event]', JSON.stringify(msg.event), '| data preview:', String(msg.data||'').slice(0,120));
+
+        // Tüm bilinmeyen event'leri chat mesajı olarak parse etmeyi dene
+        if(msg.data){
+          let d;
+          try { d = typeof msg.data === 'string' ? JSON.parse(msg.data) : msg.data; } catch(pe){ return; }
+          // Farklı Kick veri yapıları için çoklu aday dene
+          const sender =
+            d.sender?.username ||
+            d.user?.username ||
+            d.message?.sender?.username ||
+            d.chatter?.username ||
+            null;
+          const content =
+            d.content ||
+            d.message?.content ||
+            d.message?.message ||
+            d.text ||
+            null;
+          if(sender && content){
+            pollProcessMessage(sender, content);
+          }
         }
-      } catch(err){ console.warn('[Kick WS] parse error', err, e.data); }
+      } catch(err){ console.warn('[Kick WS] parse error', err, String(e.data||'').slice(0,80)); }
     };
     pollWs.onerror = (ev)=>{ console.error('[Kick WS] onerror', ev); setPollStatus('error','Bağlantı hatası — yeniden deneniyor...'); };
     pollWs.onclose = (ev)=>{
