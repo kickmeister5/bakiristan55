@@ -32,6 +32,7 @@ html,body{
   font-family:var(--font-body);
   overflow-x:hidden;
 }
+#bg-color-base{position:fixed;inset:0;z-index:0;pointer-events:none;background:transparent;}
 #bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;transition:opacity 0.5s;}
 
 /* ===== SCREENS ===== */
@@ -45,10 +46,11 @@ html,body{
   backdrop-filter:blur(10px);
   border-bottom:1px solid var(--border);
   padding:12px 24px;
-  display:flex; align-items:center; justify-content:space-between;
+  display:flex; align-items:center; justify-content:flex-end;
   flex-shrink:0;
+  position:relative;
 }
-.topbar-logo{font-family:var(--font-title);font-size:clamp(28px,5vw,42px);letter-spacing:3px;color:var(--yellow);text-shadow:0 2px 8px rgba(0,0,0,0.4),-2px 2px 0 rgba(0,0,0,0.3);}
+.topbar-logo{font-family:var(--font-title);font-size:clamp(28px,5vw,42px);letter-spacing:3px;color:var(--yellow);text-shadow:0 2px 8px rgba(0,0,0,0.4),-2px 2px 0 rgba(0,0,0,0.3);position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);white-space:nowrap;pointer-events:none;}
 .topbar-logo span{color:var(--white);}
 .topbar-actions{display:flex;gap:8px;align-items:center;}
 .tb-btn{background:rgba(255,255,255,0.12);border:1px solid var(--border);border-radius:12px;color:var(--white);font-size:12px;padding:8px 16px;cursor:pointer;font-family:var(--font-body);font-weight:500;transition:all 0.2s;display:flex;align-items:center;gap:6px;}
@@ -116,18 +118,22 @@ html,body{
   box-shadow:0 0 0 4px rgba(245,197,24,0.15);
 }
 
-/* ===== WAITING SCREEN (host bekleme ekranı görmesi için) ===== */
-#host-wait-banner{display:none;background:rgba(245,197,24,0.15);border:1px solid rgba(245,197,24,0.4);border-radius:14px;padding:14px 20px;margin:16px auto 0;max-width:1100px;width:calc(100% - 40px);text-align:center;}
+/* ===== ODA KODU / HOST KONTROL ÇUBUĞU ===== */
+#host-wait-banner{display:none;background:rgba(245,197,24,0.12);border:1px solid rgba(245,197,24,0.35);border-radius:14px;padding:12px 18px;margin:16px auto 0;max-width:1100px;width:calc(100% - 40px);}
 #host-wait-banner.show{display:block;}
-.hw-label{font-size:11px;color:var(--yellow);letter-spacing:2px;font-weight:700;margin-bottom:4px;}
-.hw-label-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:4px;}
-.hw-toggle-btn{background:rgba(255,255,255,0.12);border:1px solid var(--border);border-radius:8px;color:var(--white);font-size:11px;font-weight:700;padding:5px 12px;cursor:pointer;transition:all 0.2s;letter-spacing:1px;}
-.hw-toggle-btn:hover{background:rgba(255,255,255,0.22);}
-.hw-toggle-btn.active{background:var(--yellow);color:#000;border-color:var(--yellow-dark);}
-.hw-link-row{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;}
-.hw-link-input{background:rgba(255,255,255,0.12);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--white);min-width:240px;text-align:center;}
-.hw-copy{background:var(--yellow);color:#000;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;}
-.hw-room-code{font-family:var(--font-title);font-size:22px;color:var(--yellow);letter-spacing:4px;}
+.hw-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.hw-code-group{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.hw-label{font-size:11px;color:var(--yellow);letter-spacing:2px;font-weight:700;white-space:nowrap;}
+.hw-room-code{font-family:var(--font-title);font-size:24px;color:var(--yellow);letter-spacing:5px;min-width:8ch;}
+.hw-icon-btn{background:rgba(255,255,255,0.12);border:1px solid var(--border);border-radius:9px;color:var(--white);font-size:15px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;flex-shrink:0;}
+.hw-icon-btn:hover{background:rgba(255,255,255,0.22);border-color:var(--border2);}
+.hw-icon-btn.active{background:var(--yellow);color:#000;border-color:var(--yellow-dark);}
+.hw-actions-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+@media(max-width:560px){
+  .hw-row{justify-content:center;}
+  .hw-code-group,.hw-actions-group{justify-content:center;width:100%;}
+}
+
 
 /* ===== LOBBY SCREEN ===== */
 #lobby-screen{padding:0;justify-content:flex-start;}
@@ -416,12 +422,13 @@ html,body{
 </style>
 </head>
 <body>
+<div id="bg-color-base"></div>
 <div id="bg-layer"></div>
 
 <!-- ===== ENTRY SCREEN: oda kur / katıl ===== -->
 <div id="entry-screen" class="screen active">
   <div class="entry-card">
-    <div class="entry-logo">FAUL<span>!</span></div>
+    <div class="entry-logo">TABU<span>!</span></div>
     <div class="entry-sub">TAKIM TABU OYUNU</div>
 
     <!-- AVATAR CAROUSEL -->
@@ -466,24 +473,25 @@ html,body{
 <div id="lobby-screen" class="screen">
 
   <div class="topbar">
-    <div class="topbar-logo">FAUL<span>!</span></div>
+    <div class="topbar-logo">TABU<span>!</span></div>
     <div class="topbar-actions">
       <div class="conn-dot" id="conn-dot"></div>
-      <button class="tb-btn" id="btn-share" onclick="shareRoom()">➔ Davet Et</button>
-      <button class="tb-btn" id="btn-settings" onclick="openSettings()" style="display:none;">⚙️ Ayarlar</button>
-      <button class="tb-btn primary" id="btn-lock" onclick="lockAndStart()" style="display:none;">🔒 Kilitle &amp; Başla</button>
       <button class="tb-btn danger" id="btn-end-game" onclick="endGame()" style="display:none;">🚪 Oyunu Bitir</button>
-      <a href="index.html" class="tb-btn">← Ana Sayfa</a>
     </div>
   </div>
 
   <div id="host-wait-banner">
-    <div class="hw-label-row">
-      <div class="hw-label">ODA KODU</div>
-      <button class="hw-toggle-btn" id="hw-toggle-btn" onclick="toggleHostCodeVisibility()">👁 GÖSTER</button>
-    </div>
-    <div class="hw-link-row" id="hw-link-row" style="display:none;">
-      <div class="hw-room-code" id="hw-room-code">——</div>
+    <div class="hw-row">
+      <div class="hw-code-group">
+        <span class="hw-label">ODA KODU</span>
+        <span class="hw-room-code" id="hw-room-code">••••••</span>
+        <button class="hw-icon-btn" id="hw-toggle-btn" onclick="toggleHostCodeVisibility()" title="Göster">👁️</button>
+        <button class="hw-icon-btn" onclick="copyRoomCode()" title="Kopyala">📋</button>
+      </div>
+      <div class="hw-actions-group">
+        <button class="tb-btn" id="btn-settings" onclick="openSettings()" style="display:none;">⚙️ Ayarlar</button>
+        <button class="tb-btn primary" id="btn-lock" onclick="lockAndStart()" style="display:none;">🔒 Oyunu Başlat</button>
+      </div>
     </div>
   </div>
 
@@ -948,15 +956,24 @@ async function applyFaulBackground(){
     const record = await fetchJsonbinRecord();
     const bg = record.faul_bg || {};
     const layer = document.getElementById('bg-layer');
+    const base = document.getElementById('bg-color-base');
+    const root = document.documentElement;
     if(!layer) return;
     if(bg.mode === 'color'){
+      // <html> kökünün kendi mavi arkaplanı canvas'ı boyuyor olabilir — hem html hem body şeffaflaştırılmalı
+      root.style.background = 'transparent';
+      document.body.style.background = 'transparent';
+      if(base) base.style.background = 'transparent';
       layer.style.background = bg.color || '#1252cc';
       layer.style.opacity = '1';
-      document.body.style.background = 'transparent';
     } else if(bg.mode === 'image'){
       const urls = record.vmym_cl_urls || {};
       const url = urls['faul_bg_img'];
       if(url){
+        root.style.background = 'transparent';
+        document.body.style.background = 'transparent';
+        // Görselin arkasında görünen zemin rengi (opaklık %100'ün altındayken mavi yerine bu renk görünür)
+        if(base) base.style.background = bg.imgBaseColor || '#07070f';
         const fitMap = {
           cover:   'center/cover no-repeat fixed',
           contain: 'center/contain no-repeat fixed',
@@ -965,13 +982,14 @@ async function applyFaulBackground(){
         };
         layer.style.background = `url('${url}') ${fitMap[bg.fit]||fitMap.cover}`;
         layer.style.opacity = ((bg.opacity||100)/100).toString();
-        document.body.style.background = 'transparent';
       }
     } else {
       // none / varsayılan — orijinal mavi degrade arka plan kalsın
+      root.style.background = '';
+      document.body.style.background = '';
+      if(base) base.style.background = 'transparent';
       layer.style.background = 'transparent';
       layer.style.opacity = '1';
-      document.body.style.background = '';
     }
   } catch(e){ console.warn('applyFaulBackground error', e); }
 }
@@ -1089,9 +1107,13 @@ async function joinAsPlayerAndEnterLobby(){
 }
 
 /* ===== LOBBY ===== */
+let hostCodeShown = false;
 function enterLobby(){
   showScreen('lobby-screen');
-  document.getElementById('hw-room-code').textContent = roomCode;
+  hostCodeShown = false;
+  const codeEl = document.getElementById('hw-room-code');
+  codeEl.dataset.code = roomCode;
+  codeEl.textContent = '•'.repeat(roomCode.length);
   if(isHost){
     document.getElementById('host-wait-banner').classList.add('show');
     document.getElementById('btn-lock').style.display = 'flex';
@@ -1100,28 +1122,19 @@ function enterLobby(){
   subscribeRoom();
 }
 
-function shareRoom(){
-  const url = window.location.origin + window.location.pathname + '?oda=' + roomCode;
-  if(navigator.share){
-    navigator.share({ title:'FAUL! Oyununa Katıl', text:'Oda kodu: '+roomCode, url });
-  } else {
-    navigator.clipboard.writeText(url);
-    showToast('🔗 Link kopyalandı!');
-  }
-}
-function copyShareLink(){
-  const url = window.location.origin + window.location.pathname + '?oda=' + roomCode;
-  navigator.clipboard.writeText(url);
-  showToast('🔗 Link kopyalandı!');
+function copyRoomCode(){
+  navigator.clipboard.writeText(roomCode);
+  showToast('📋 Oda kodu kopyalandı!');
 }
 
 function toggleHostCodeVisibility(){
-  const row = document.getElementById('hw-link-row');
+  const codeEl = document.getElementById('hw-room-code');
   const btn = document.getElementById('hw-toggle-btn');
-  const showing = row.style.display !== 'none';
-  row.style.display = showing ? 'none' : 'flex';
-  btn.textContent = showing ? '👁 GÖSTER' : '🙈 GİZLE';
-  btn.classList.toggle('active', !showing);
+  hostCodeShown = !hostCodeShown;
+  codeEl.textContent = hostCodeShown ? (codeEl.dataset.code||roomCode) : '•'.repeat((codeEl.dataset.code||roomCode).length);
+  btn.textContent = hostCodeShown ? '🙈' : '👁️';
+  btn.title = hostCodeShown ? 'Gizle' : 'Göster';
+  btn.classList.toggle('active', hostCodeShown);
 }
 
 /* ===== FIRESTORE SUBSCRIPTION ===== */
@@ -1153,14 +1166,17 @@ function onRoomUpdate(){
     if(lobbyContent) lobbyContent.classList.remove('game-mode');
     document.getElementById('middle-lobby-view').style.display = 'block';
     document.getElementById('middle-game-view').style.display = 'none';
-    document.getElementById('btn-share').style.display = 'flex';
+    if(isHost){
+      document.getElementById('host-wait-banner').classList.add('show');
+      document.getElementById('btn-lock').style.display = 'flex';
+      document.getElementById('btn-settings').style.display = 'flex';
+    }
     renderLobby();
   } else if(roomData.state === 'playing'){
     showScreen('lobby-screen');
     if(lobbyContent) lobbyContent.classList.add('game-mode');
     document.getElementById('middle-lobby-view').style.display = 'none';
     document.getElementById('middle-game-view').style.display = 'block';
-    document.getElementById('btn-share').style.display = 'none';
     document.getElementById('btn-lock').style.display = 'none';
     renderGame();
   }

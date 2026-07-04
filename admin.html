@@ -1077,6 +1077,14 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; h
             </div>
           </div>
 
+          <div style="margin-top:10px;">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Zemin Rengi <span style="opacity:0.7;">(opaklık %100'ün altındayken görselin arkasında bu renk görünür — mavi tonu önlemek için)</span>:</div>
+            <div class="color-custom-row">
+              <input type="color" id="faul-img-basecolor-picker" value="#07070f" oninput="pickFaulImgBaseColor(this.value)">
+              <input type="text" class="color-hex-input" id="faul-img-basecolor-hex" value="#07070f" maxlength="7" oninput="pickFaulImgBaseColorFromHex(this.value)" placeholder="#07070f">
+            </div>
+          </div>
+
           <div class="bg-opacity-row">
             <label>Opaklık:</label>
             <input type="range" id="faul-bg-opacity" min="10" max="100" value="100" oninput="setFaulBgOpacity(this.value)">
@@ -2323,6 +2331,7 @@ let currentFaulBgMode = 'none';
 let currentFaulBgColor = '#1252cc';
 let currentFaulBgFit = 'cover';
 let currentFaulBgOpacity = 100;
+let currentFaulImgBaseColor = '#07070f';
 
 function initFaulBgTab(){
   try {
@@ -2332,12 +2341,14 @@ function initFaulBgTab(){
       currentFaulBgColor = d.color || '#1252cc';
       currentFaulBgFit = d.fit || 'cover';
       currentFaulBgOpacity = d.opacity || 100;
+      currentFaulImgBaseColor = d.imgBaseColor || '#07070f';
     }
   } catch(e){}
   setFaulBgMode(currentFaulBgMode, true);
   pickFaulColor(currentFaulBgColor, true);
   setFaulBgFit(currentFaulBgFit, true);
   setFaulBgOpacity(currentFaulBgOpacity, true);
+  pickFaulImgBaseColor(currentFaulImgBaseColor, true);
   const bgImgUrl = clGet('faul_bg_img');
   if(bgImgUrl){
     const img = document.getElementById('faul-bg-img-el');
@@ -2384,6 +2395,16 @@ function setFaulBgOpacity(val, silent){
   document.getElementById('faul-bg-opacity-val').textContent = '%'+val;
 }
 
+function pickFaulImgBaseColor(hex, silent){
+  currentFaulImgBaseColor = hex;
+  const p=document.getElementById('faul-img-basecolor-picker'); if(p) p.value=hex;
+  const h=document.getElementById('faul-img-basecolor-hex'); if(h) h.value=hex;
+}
+
+function pickFaulImgBaseColorFromHex(val){
+  if(/^#[0-9a-fA-F]{6}$/.test(val)) pickFaulImgBaseColor(val);
+}
+
 async function handleFaulBgImgUpload(e){
   const file = e.target.files[0]; if(!file) return;
   showToast('⏳ Yükleniyor...');
@@ -2410,7 +2431,7 @@ async function clearFaulBgImg(){
 }
 
 function saveFaulBg(){
-  const d = { mode: currentFaulBgMode, color: currentFaulBgColor, fit: currentFaulBgFit, opacity: currentFaulBgOpacity };
+  const d = { mode: currentFaulBgMode, color: currentFaulBgColor, fit: currentFaulBgFit, opacity: currentFaulBgOpacity, imgBaseColor: currentFaulImgBaseColor };
   localStorage.setItem(SK_FAUL_BG, JSON.stringify(d));
   remotePush();
   showToast('✅ Faul arkaplanı kaydedildi');
