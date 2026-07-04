@@ -11,7 +11,8 @@
     var r = (function(){ try{ var d=JSON.parse(localStorage.getItem('vmym_ratio')); if(d&&d.w&&d.h) return d.w+'/'+d.h; }catch(e){} return '7/4'; })();
     var lp=(function(){ try{var d=JSON.parse(localStorage.getItem('vmym_lp'));if(d)return d;}catch(e){}return{width:260,height:900}; })();
     var hs=(function(){ try{var d=JSON.parse(localStorage.getItem('vmym_header_size'));if(d)return d;}catch(e){}return{maxWidth:1400,maxHeight:300}; })();
-    document.write('<style>html{zoom:'+(z/100)+'}.box{aspect-ratio:'+r+'!important}.sbp-img-wrap{aspect-ratio:'+r+'!important}.game-layout{grid-template-columns:'+lp.width+'px 1fr!important}.left-panel{max-height:'+lp.height+'px!important;height:'+lp.height+'px!important}.game-header-img-wrap{max-width:'+hs.maxWidth+'px!important}.game-header-img-wrap img{max-height:'+hs.maxHeight+'px!important}</style>');
+    var sbp=(function(){ try{var d=JSON.parse(localStorage.getItem('vmym_sbp'));if(d&&d.w)return d.w;}catch(e){}return 75; })();
+    document.write('<style>html{zoom:'+(z/100)+'}.box{aspect-ratio:'+r+'!important}.sbp-img-wrap{aspect-ratio:'+r+'!important}.game-layout{grid-template-columns:'+lp.width+'px 1fr!important}.left-panel{max-height:'+lp.height+'px!important;height:'+lp.height+'px!important}.game-header-img-wrap{max-width:'+hs.maxWidth+'px!important}.game-header-img-wrap img{max-height:'+hs.maxHeight+'px!important}.sbp-img-wrap{width:'+sbp+'%!important}.selected-box-panel{width:'+sbp+'%!important}</style>');
   })();
 </script>
 <style>
@@ -41,6 +42,88 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
               radial-gradient(ellipse 40% 60% at 80% 80%,rgba(100,80,200,0.04) 0%,transparent 60%); }
 
 #bg-layer { position:fixed; inset:0; z-index:0; pointer-events:none; transition:opacity 0.5s; }
+#fx-layer { position:fixed; inset:0; z-index:980; pointer-events:none; overflow:hidden; }
+#fx-layer.flash-hi { animation:screenFlashHi 0.58s ease; }
+#fx-layer.flash-lo { animation:screenFlashLo 0.58s ease; }
+@keyframes screenFlashHi{0%{background:rgba(32,192,96,0)}18%{background:rgba(32,192,96,0.20)}100%{background:rgba(32,192,96,0)}}
+@keyframes screenFlashLo{0%{background:rgba(224,48,48,0)}18%{background:rgba(224,48,48,0.22)}100%{background:rgba(224,48,48,0)}}
+.fx-spotlight { position:absolute; width:260px; height:260px; border-radius:50%; transform:translate(-50%,-50%) scale(0.35); background:radial-gradient(circle,rgba(240,192,64,0.34) 0%,rgba(240,192,64,0.10) 34%,transparent 68%); animation:spotBurst 1.35s ease-out forwards; mix-blend-mode:screen; }
+@keyframes spotBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(0.2)}18%{opacity:1}70%{opacity:0.75}100%{opacity:0;transform:translate(-50%,-50%) scale(2.05)}}
+.fx-money-pop { position:absolute; transform:translate(-50%,-50%) scale(0.55); font-family:var(--font-title); font-size:34px; letter-spacing:1px; color:var(--gold); text-shadow:0 0 18px rgba(0,0,0,0.9),0 0 26px rgba(240,192,64,0.55); animation:moneyPop 1.45s cubic-bezier(0.2,1,0.22,1) forwards; white-space:nowrap; }
+.fx-money-pop.hi { color:var(--green); text-shadow:0 0 18px rgba(0,0,0,0.9),0 0 30px rgba(32,192,96,0.6); }
+.fx-money-pop.lo { color:var(--red); text-shadow:0 0 18px rgba(0,0,0,0.9),0 0 30px rgba(224,48,48,0.55); }
+.fx-money-pop.md { color:#fff7dc; text-shadow:0 0 14px #000,0 0 30px rgba(240,192,64,0.85),0 0 6px rgba(255,255,255,0.9); }
+@keyframes moneyPop{0%{opacity:0;transform:translate(-50%,-20%) scale(0.55)}18%{opacity:0}36%{opacity:1;transform:translate(-50%,-50%) scale(1.22)}76%{opacity:1;transform:translate(-50%,-72%) scale(1.04)}100%{opacity:0;transform:translate(-50%,-125%) scale(0.95)}}
+.offer-time-dim { position:absolute; inset:0; background:rgba(0,0,0,0.52); backdrop-filter:blur(2px); animation:offerDimIn 2.15s ease forwards; }
+.offer-time-call { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(0.72); font-family:var(--font-title); font-size:clamp(52px,9vw,112px); letter-spacing:6px; color:var(--gold); text-align:center; white-space:nowrap; text-shadow:0 0 22px #000,0 0 46px rgba(240,192,64,0.78); animation:offerTimeCall 2.15s cubic-bezier(0.18,0.86,0.2,1) forwards; }
+.offer-time-call.from-box { left:var(--from-x); top:var(--from-y); animation:offerTimeFromBox 2.15s cubic-bezier(0.18,0.86,0.2,1) forwards; }
+@keyframes offerDimIn{0%{opacity:0}18%,78%{opacity:1}100%{opacity:0}}
+@keyframes offerTimeCall{0%{opacity:0;transform:translate(-50%,-50%) scale(0.58)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}70%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.16)}}
+@keyframes offerTimeFromBox{0%{opacity:0;left:var(--from-x);top:var(--from-y);transform:translate(-50%,-50%) scale(0.18)}28%{opacity:1;left:50%;top:50%;transform:translate(-50%,-50%) scale(1.08)}76%{opacity:1;left:50%;top:50%;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;left:50%;top:50%;transform:translate(-50%,-50%) scale(1.16)}}
+.fx-shard { position:absolute; width:18px; height:12px; border-radius:3px; background:linear-gradient(135deg,rgba(240,192,64,0.95),rgba(120,92,22,0.9)); box-shadow:0 0 14px rgba(240,192,64,0.35); animation:shardFly 1.25s cubic-bezier(0.12,0.72,0.18,1) forwards; will-change:transform,opacity; }
+.fx-shard.gold-burst { width:7px; height:7px; border-radius:50%; background:radial-gradient(circle,#fff7d8 0%,#f0c040 55%,rgba(240,192,64,0) 100%); box-shadow:0 0 10px 2px rgba(240,192,64,0.6); }
+@keyframes shardFly{0%{opacity:1;transform:translate(-50%,-50%) rotate(0deg) scale(0.45)}58%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--rot)) scale(0.9)}}
+
+/* ===== CINEMATIC BOX-OPEN SYSTEM ===== */
+#app.cam-shake, body.cam-shake { animation:camShake 0.32s cubic-bezier(0.36,0.07,0.19,0.97); }
+@keyframes camShake{
+  0%{transform:translate3d(0,0,0)}
+  14%{transform:translate3d(-7px,3px,0)}
+  28%{transform:translate3d(6px,-5px,0)}
+  42%{transform:translate3d(-5px,5px,0)}
+  57%{transform:translate3d(4px,-3px,0)}
+  71%{transform:translate3d(-3px,2px,0)}
+  85%{transform:translate3d(2px,-1px,0)}
+  100%{transform:translate3d(0,0,0)}
+}
+#fx-layer.flash-hi { animation:screenFlashHi 0.58s ease; }
+#fx-layer.flash-lo { animation:screenFlashLo 0.62s ease; }
+#fx-layer.flash-white { animation:screenFlashWhite 0.24s ease-out; }
+@keyframes screenFlashHi{0%{background:rgba(32,192,96,0)}18%{background:rgba(32,192,96,0.20)}100%{background:rgba(32,192,96,0)}}
+@keyframes screenFlashLo{0%{background:rgba(224,48,48,0)}14%{background:rgba(224,48,48,0.34)}100%{background:rgba(224,48,48,0)}}
+@keyframes screenFlashWhite{0%{background:rgba(255,255,255,0)}14%{background:rgba(255,255,255,0.92)}100%{background:rgba(255,255,255,0)}}
+.fx-corner-burst { position:fixed; inset:0; pointer-events:none; opacity:0; animation:cornerBurstAnim 1.1s ease-out forwards; mix-blend-mode:screen; }
+.fx-corner-burst.green { background:
+    radial-gradient(circle at 0% 0%, rgba(32,192,96,0.4), transparent 42%),
+    radial-gradient(circle at 100% 0%, rgba(32,192,96,0.4), transparent 42%),
+    radial-gradient(circle at 0% 100%, rgba(32,192,96,0.4), transparent 42%),
+    radial-gradient(circle at 100% 100%, rgba(32,192,96,0.4), transparent 42%); }
+@keyframes cornerBurstAnim{0%{opacity:0}22%{opacity:1}100%{opacity:0}}
+.fx-vignette { position:fixed; inset:0; pointer-events:none; opacity:0; background:radial-gradient(ellipse at center,transparent 38%,rgba(224,48,48,0.55) 100%); animation:vignetteAnim 0.9s ease-out forwards; }
+@keyframes vignetteAnim{0%{opacity:0}20%{opacity:1}100%{opacity:0}}
+.confetti-piece.mini { animation-timing-function:ease-in; }
+
+.box-stage-dim { position:absolute; inset:0; background:rgba(0,0,0,0.7); opacity:0; animation:stageDimIn 0.4s ease-out forwards; }
+.stage-box { position:absolute; left:var(--start-left); top:var(--start-top); width:var(--start-width); height:var(--start-height); border-radius:11px; overflow:hidden; background:var(--surface); border:1.5px solid var(--border2); box-shadow:0 20px 70px rgba(0,0,0,0.62),0 0 46px rgba(240,192,64,0.25); animation:stageBoxIn 0.42s cubic-bezier(0.16,1,0.3,1) forwards; transform-origin:center; perspective:1000px; will-change:transform; }
+.stage-box.ready { left:50%; top:50%; width:min(46vw,520px); height:min(26vw,292px); transform:translate(-50%,-50%) scale(1); animation:none; }
+.stage-box.breathing { overflow:visible; }
+.stage-box.breathing::before { content:''; position:absolute; inset:-16%; border-radius:22px; background:radial-gradient(circle,rgba(240,192,64,0.55) 0%,rgba(240,192,64,0) 70%); opacity:0.35; animation:goldBreathe 1.05s ease-in-out infinite; pointer-events:none; }
+@keyframes goldBreathe{0%,100%{opacity:0.3;transform:scale(1)}50%{opacity:0.85;transform:scale(1.09)}}
+.stage-box.motion-blur { animation:mbPulse 0.34s ease-out; }
+@keyframes mbPulse{0%{filter:blur(0)}32%{filter:blur(5px)}100%{filter:blur(0)}}
+.stage-box.opening { overflow:visible; }
+.stage-box.revealed { background:radial-gradient(circle at center,rgba(30,30,40,0.95),#030307 68%); border-color:rgba(240,192,64,0.38); }
+.stage-box.revealed > .box-img { opacity:0!important; }
+.stage-box.revealed > .box-icon,
+.stage-box.revealed > .box-number { opacity:0; }
+.stage-box .box-img { border-radius:inherit; }
+.stage-box .box-icon { font-size:34px; }
+.stage-box .box-number { font-size:42px; }
+.stage-box .box-amt { font-family:var(--font-title); font-size:clamp(30px,5vw,58px)!important; line-height:1; }
+.stage-flap { position:absolute; left:0; width:100%; height:50%; background-size:100% 200%; background-repeat:no-repeat; opacity:1; transition:transform 0.34s cubic-bezier(0.65,0,0.35,1), opacity 0.3s ease 0.08s; will-change:transform,opacity; }
+.stage-flap-top { top:0; background-position:top; transform-origin:top center; box-shadow:0 8px 22px rgba(0,0,0,0.55) inset; }
+.stage-flap-bottom { bottom:0; background-position:bottom; transform-origin:bottom center; }
+.stage-flap-top.go { transform:rotateX(-118deg) translateY(-4px); opacity:0; }
+.stage-flap-bottom.go { transform:rotateX(118deg) translateY(4px); opacity:0; }
+.stage-amt { position:absolute; inset:0; z-index:8; display:flex; align-items:center; justify-content:center; font-family:var(--font-title); font-size:clamp(42px,7vw,82px); line-height:1; letter-spacing:1px; color:#fff7dc; text-shadow:0 0 18px #000,0 0 36px rgba(240,192,64,0.82); opacity:0; transform:scale(0.6); }
+.stage-amt.on { opacity:1; transform:scale(1); transition:opacity 0.3s ease, transform 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+.stage-amt.hi { color:var(--green); text-shadow:0 0 18px #000,0 0 42px rgba(32,192,96,0.74); }
+.stage-amt.lo { color:var(--red); text-shadow:0 0 18px #000,0 0 42px rgba(224,48,48,0.72); }
+.stage-amt.hi::after { content:''; position:absolute; inset:-14%; border-radius:50%; border:2px solid rgba(32,192,96,0.55); opacity:0; transform:scale(0.6); animation:ringPulse 0.9s ease-out 0.05s forwards; pointer-events:none; }
+@keyframes ringPulse{0%{opacity:0.9;transform:scale(0.6)}100%{opacity:0;transform:scale(1.7)}}
+@keyframes stageDimIn{to{opacity:1}}
+@keyframes stageDimOut{to{opacity:0}}
+@keyframes stageBoxIn{0%{left:var(--start-left);top:var(--start-top);width:var(--start-width);height:var(--start-height);transform:scale(1)}100%{left:50%;top:50%;width:min(46vw,520px);height:min(26vw,292px);transform:translate(-50%,-50%) scale(1)}}
 
 #app { position:relative; z-index:1; }
 
@@ -130,21 +213,24 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 .pl-item.active-price.hi .pl-val { color: var(--green); }
 .pl-item.active-price.lo .pl-val { color: var(--red); }
 .pl-item.gone .pl-val { text-decoration: line-through; color: var(--muted); }
+.pl-item.just-gone { animation:priceVanish 0.72s ease both; }
+@keyframes priceVanish{0%{opacity:1;transform:scale(1);background:rgba(240,192,64,0.10)}36%{opacity:1;transform:scale(1.08);filter:brightness(1.9)}100%{opacity:0;transform:translateX(-16px) scale(0.94);height:0;padding-top:0;padding-bottom:0;margin:0;border:0}}
 
-/* SEÇİLEN KUTU GÖRSELİ — Kalan Tutarlar altında */
-.left-col { display:flex; flex-direction:column; min-height:0; gap:10px; }
-.selected-box-panel { display:none; flex-direction:column; align-items:center; gap:6px; background:rgba(8,8,18,0.55); border-radius:14px; padding:10px 8px; backdrop-filter:blur(6px); flex-shrink:0; }
+/* SEÇİLEN KUTU GÖRSELİ — Kalan Tutarlar altında, ortalanmış, kutu boyutunda */
+.left-col { display:flex; flex-direction:column; align-items:center; min-height:0; gap:6px; }
+.selected-box-panel { display:none; flex-direction:column; align-items:center; gap:4px; width:100%; }
 .selected-box-panel.on { display:flex; animation:sbpIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
-@keyframes sbpIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-.sbp-label { font-family:var(--font-title); font-size:11px; letter-spacing:2px; color:var(--muted); }
-.sbp-img-wrap { width:100%; aspect-ratio:7/4; border-radius:10px; overflow:hidden; border:2px solid var(--gold); box-shadow:0 0 20px rgba(240,192,64,0.18); background:var(--surface2); display:flex; align-items:center; justify-content:center; position:relative; animation:sbpGlow 2.5s ease-in-out infinite; }
-@keyframes sbpGlow{0%,100%{box-shadow:0 0 14px rgba(240,192,64,0.15);}50%{box-shadow:0 0 26px rgba(240,192,64,0.32);}}
+.selected-box-panel.on .sbp-img-wrap { animation:ownBoxGlow 2.2s ease-in-out infinite; }
+@keyframes sbpIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@keyframes ownBoxGlow{0%,100%{box-shadow:0 0 12px rgba(240,192,64,0.18)}50%{box-shadow:0 0 26px rgba(240,192,64,0.48),0 0 8px rgba(255,255,255,0.18) inset}}
+.sbp-label { font-family:var(--font-title); font-size:10px; letter-spacing:2px; color:var(--muted); }
+.sbp-img-wrap { width:100%; aspect-ratio:7/4; border-radius:8px; overflow:hidden; border:1.5px solid var(--gold); box-shadow:0 0 12px rgba(240,192,64,0.15); background:var(--surface2); display:flex; align-items:center; justify-content:center; position:relative; }
 .sbp-img-wrap img { width:100%; height:100%; object-fit:cover; display:none; }
 .sbp-img-wrap img.on { display:block; }
 .sbp-fallback { display:flex; flex-direction:column; align-items:center; gap:2px; }
-.sbp-icon { font-size:24px; }
-.sbp-num { font-family:var(--font-title); font-size:30px; color:var(--gold); line-height:1; }
-.sbp-tag { font-family:var(--font-title); font-size:11px; letter-spacing:1px; color:var(--gold); background:rgba(240,192,64,0.08); border:1px solid var(--border2); border-radius:14px; padding:3px 10px; }
+.sbp-icon { font-size:16px; }
+.sbp-num { font-family:var(--font-title); font-size:18px; color:var(--gold); line-height:1; }
+.sbp-tag { font-family:var(--font-title); font-size:9px; letter-spacing:1px; color:var(--gold); background:rgba(240,192,64,0.08); border:1px solid var(--border2); border-radius:14px; padding:2px 8px; }
 
 /* ====== CENTER ====== */
 .center-panel { display:flex; flex-direction:column; align-items:stretch; width:100%; min-height:0; overflow:hidden; }
@@ -159,29 +245,39 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 /* BOX GRID */
 .boxes-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; width:100%; flex:1; min-height:0; align-content:center; overflow:hidden; }
 
-.box { aspect-ratio:7/4; background:var(--surface); border:1.5px solid var(--border); border-radius:11px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; position:relative; overflow:hidden; user-select:none; gap:2px; }
+.box { aspect-ratio:7/4; background:var(--surface); border:1.5px solid var(--border); border-radius:11px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; position:relative; overflow:hidden; user-select:none; gap:2px; transform-style:preserve-3d; }
 .box:hover:not(.opened):not(.pbox) { border-color:var(--gold); background:var(--surface2); transform:translateY(-3px) scale(1.03); box-shadow:0 7px 20px rgba(240,192,64,0.12); }
 .box.pbox { opacity:0; pointer-events:none; transition:opacity 0.35s ease; }
-.box.opened { background:#0c0c12; border-color:rgba(255,255,255,0.06); cursor:default; opacity:0.55; transform:none!important; box-shadow:none!important; }
+.box.opened:not(.opening) { background:#0c0c12; border-color:rgba(255,255,255,0.06); cursor:default; opacity:0.55; transform:none!important; box-shadow:none!important; }
+.box.opening { z-index:8; overflow:visible; animation:boxBreakStage 1.18s cubic-bezier(0.16,0.8,0.18,1); box-shadow:0 18px 45px rgba(0,0,0,0.45),0 0 38px rgba(240,192,64,0.30); }
+.box.shattering { overflow:visible; }
+.box.opening .box-amt { opacity:0; }
+.box.reveal-hi { animation:boxHiPulse 0.8s ease; }
+.box.reveal-lo { animation:boxLoPulse 0.8s ease; }
+.box .box-amt.reveal-amt { animation:amtReveal 0.52s cubic-bezier(0.34,1.56,0.64,1); }
+.box-piece { position:absolute; z-index:1; width:50%; height:50%; background-color:var(--surface2); background-size:200% 200%; border:1px solid rgba(240,192,64,0.25); box-shadow:0 0 18px rgba(240,192,64,0.22); pointer-events:none; animation:boxPieceFly 1.65s cubic-bezier(0.12,0.72,0.18,1) forwards; }
+.box-piece::after { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,0.18),transparent 42%,rgba(0,0,0,0.28)); }
+@keyframes boxBreakStage{0%{transform:scale(1);filter:brightness(1)}14%{transform:scale(1.035);filter:brightness(1.25)}28%{transform:scale(0.985);filter:brightness(1)}42%{transform:scale(1.055);filter:brightness(1.6)}62%{transform:scale(1.1);filter:brightness(2.1)}78%{transform:scale(0.96);filter:brightness(0.9)}100%{transform:scale(1);filter:brightness(1)}}
+@keyframes boxPieceFly{0%{opacity:1;transform:translate(0,0) rotate(0deg) scale(1)}24%{opacity:1;transform:translate(calc(var(--dx) * .18),calc(var(--dy) * .18)) rotate(calc(var(--rot) * .18)) scale(1.03)}78%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--rot)) scale(0.82)}}
+@keyframes boxHiPulse{0%,100%{box-shadow:none}28%{box-shadow:0 0 34px rgba(32,192,96,0.55),0 0 8px rgba(32,192,96,0.4) inset}}
+@keyframes boxLoPulse{0%,100%{box-shadow:none}28%{box-shadow:0 0 34px rgba(224,48,48,0.50),0 0 8px rgba(224,48,48,0.35) inset}}
+@keyframes amtReveal{0%{opacity:0;transform:scale(0.55)}55%{opacity:0;transform:scale(0.7)}100%{opacity:1;transform:scale(1)}}
 .box-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:inherit; }
 .box-icon { font-size:clamp(14px,3vw,22px); position:relative; }
 .box-number { font-family:var(--font-title); font-size:clamp(16px,3.5vw,26px); color:var(--gold); line-height:1; position:relative; }
-.box-amt { font-size:clamp(8px,1.4vw,11px); color:var(--muted); position:relative; text-align:center; }
+.box-amt { font-size:clamp(8px,1.4vw,11px); color:var(--muted); position:relative; z-index:7; text-align:center; }
 .box-amt.hi { color:var(--green)!important; font-weight:700; }
 .box-amt.lo { color:var(--red)!important; }
-.box-amt.md { color:#c0a040!important; }
+.box-amt.md { color:#fff7dc!important; font-weight:700; text-shadow:0 0 8px #000,0 0 14px rgba(240,192,64,0.75); }
 
-/* ====== RIGHT — kalan kutu göstergesi (küçültülmüş, fixed) ====== */
-.remain-panel { background:var(--surface); border:1px solid var(--border2); border-radius:14px; padding:12px 14px; display:flex; flex-direction:column; align-items:center; gap:8px; position:fixed; right:18px; top:50%; transform:translateY(-50%) translateX(220px); opacity:0; transition:opacity 0.4s ease, transform 0.45s cubic-bezier(0.34,1.2,0.64,1); pointer-events:none; z-index:50; width:150px; box-shadow:0 8px 32px rgba(0,0,0,0.45); }
+/* ====== RIGHT — kalan kutu: sadece sayı ====== */
+.remain-panel { background:var(--surface); border:1px solid var(--border2); border-radius:14px; padding:14px 18px; display:flex; flex-direction:column; align-items:center; gap:4px; position:fixed; right:18px; top:50%; transform:translateY(-50%) translateX(160px); opacity:0; transition:opacity 0.4s ease, transform 0.45s cubic-bezier(0.34,1.2,0.64,1); pointer-events:none; z-index:50; width:110px; box-shadow:0 8px 32px rgba(0,0,0,0.45); }
 .remain-panel.on { opacity:1; transform:translateY(-50%) translateX(0); pointer-events:auto; }
-.rmp-label { font-family:var(--font-title); font-size:11px; letter-spacing:2px; color:var(--muted); text-align:center; line-height:1.3; }
-.rmp-grid { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; max-width:120px; }
-.rmp-box { width:24px; height:24px; border-radius:6px; background:var(--surface2); border:1.5px solid var(--border2); display:flex; align-items:center; justify-content:center; font-size:11px; transition:all 0.25s; }
-.rmp-box.done { background:rgba(32,192,96,0.15); border-color:rgba(32,192,96,0.4); opacity:0.5; }
-.rmp-box.pending { background:rgba(240,192,64,0.1); border-color:var(--border2); animation:rmpPulse 1.8s ease-in-out infinite; }
-@keyframes rmpPulse{0%,100%{box-shadow:0 0 0 rgba(240,192,64,0);}50%{box-shadow:0 0 8px rgba(240,192,64,0.35);}}
-.rmp-count { font-family:var(--font-title); font-size:22px; color:var(--gold); line-height:1; }
-.rmp-sub { font-size:10px; color:var(--muted); text-align:center; }
+.rmp-label { font-family:var(--font-title); font-size:10px; letter-spacing:1.5px; color:var(--muted); text-align:center; line-height:1.4; }
+.rmp-count { font-family:var(--font-title); font-size:56px; color:var(--gold); line-height:1; text-shadow:0 0 24px rgba(240,192,64,0.3); }
+.rmp-sub { font-size:9px; color:var(--muted); text-align:center; display:none; }
+.rmp-grid { display:none; }
+.rmp-box { display:none; }
 
 /* ===== SELECT POPUP ===== */
 .sel-overlay { position:fixed; inset:0; z-index:999; background:rgba(4,4,10,0.82); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; animation:overlayIn 0.35s ease; }
@@ -213,11 +309,13 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 
 /* ===== OFFER POPUP ===== */
 .offer-overlay { position:fixed; inset:0; z-index:990; background:rgba(4,4,10,0.88); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; padding:20px; }
-.offer-overlay.on { display:flex; animation:overlayIn 0.3s ease; }
+.offer-overlay.on { display:flex; animation:overlayIn 0.65s ease; }
+.offer-overlay.on::before { content:''; position:absolute; inset:-20%; background:repeating-radial-gradient(circle at center,rgba(240,192,64,0.11) 0 2px,transparent 2px 70px); animation:offerRadar 2.4s linear infinite; opacity:0.45; }
 .offer-overlay.hide { animation:overlayOut 0.35s ease forwards; pointer-events:none; }
 
-.offer-layout { display:flex; gap:16px; align-items:stretch; max-width:900px; width:100%; animation:offerPop 0.5s cubic-bezier(0.34,1.56,0.64,1); }
-@keyframes offerPop{from{opacity:0;transform:scale(0.82) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.offer-layout { display:flex; gap:16px; align-items:stretch; max-width:900px; width:100%; animation:offerPop 0.9s cubic-bezier(0.18,0.9,0.22,1); }
+@keyframes offerPop{from{opacity:0;transform:scale(0.72) translateY(32px);}60%{opacity:1}to{opacity:1;transform:scale(1) translateY(0);}}
+@keyframes offerRadar{from{transform:scale(0.92) rotate(0deg)}to{transform:scale(1.08) rotate(12deg)}}
 
 .offer-prices-panel { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:16px 12px; width:220px; flex-shrink:0; display:flex; flex-direction:column; max-height:80vh; overflow:hidden; }
 .offer-prices-title { font-family:var(--font-title); font-size:12px; letter-spacing:3px; color:var(--muted); text-align:center; margin-bottom:10px; flex-shrink:0; }
@@ -234,19 +332,24 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 .opl-item.lo .opl-val { color:var(--red); }
 
 .offer-popup { background:var(--surface); border:1px solid var(--border2); border-radius:20px; padding:20px 24px 20px; text-align:center; flex:1; position:relative; overflow:hidden; box-shadow:0 28px 80px rgba(0,0,0,0.5), 0 0 50px rgba(240,192,64,0.08); display:flex; flex-direction:column; justify-content:center; }
+.offer-popup::after { content:''; position:absolute; inset:0; background:linear-gradient(100deg,transparent 0%,rgba(240,192,64,0.10) 45%,rgba(255,255,255,0.08) 50%,transparent 60%); transform:translateX(-120%); animation:offerSweep 1.8s ease-in-out infinite; pointer-events:none; }
+@keyframes offerSweep{0%,28%{transform:translateX(-120%)}72%,100%{transform:translateX(120%)}}
 .offer-top-glow { position:absolute; top:-1px; left:50%; transform:translateX(-50%); width:70%; height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
 .offer-phone { font-size:40px; display:block; margin-bottom:10px; animation:phoneRing 0.6s ease infinite alternate; }
 @keyframes phoneRing{from{transform:rotate(-12deg);}to{transform:rotate(12deg);}}
 .offer-tag { display:none; }
 .offer-banker { display:none; }
-.offer-amt { font-family:var(--font-title); font-size:clamp(44px,8vw,70px); color:var(--gold); line-height:1; text-shadow:0 0 36px rgba(240,192,64,0.4); margin-bottom:6px; }
+.offer-amt { font-family:var(--font-title); font-size:clamp(44px,8vw,70px); color:var(--gold); line-height:1; text-shadow:0 0 36px rgba(240,192,64,0.4); margin-bottom:6px; position:relative; z-index:1; }
+.offer-amt.counting { animation:offerAmountBeat 0.18s ease infinite alternate; }
+@keyframes offerAmountBeat{from{transform:scale(1)}to{transform:scale(1.035);text-shadow:0 0 48px rgba(240,192,64,0.58)}}
 .offer-divider { width:48px; height:1px; background:linear-gradient(90deg,transparent,var(--border2),transparent); margin:0 auto 16px; }
 .offer-sub { font-size:12px; color:var(--muted); margin-bottom:24px; line-height:1.6; }
 
 .offer-btns { display:flex; gap:12px; }
 .btn-deal { flex:1; background:var(--green); color:#07070f; font-family:var(--font-title); font-size:clamp(16px,3vw,22px); letter-spacing:3px; border:none; border-radius:10px; padding:10px; cursor:pointer; transition:opacity 0.15s,transform 0.1s; box-shadow:0 4px 20px rgba(32,192,96,0.25); }
 .btn-nodeal { flex:1; background:var(--red); color:#fff; font-family:var(--font-title); font-size:clamp(16px,3vw,22px); letter-spacing:3px; border:none; border-radius:10px; padding:10px; cursor:pointer; transition:opacity 0.15s,transform 0.1s; box-shadow:0 4px 20px rgba(224,48,48,0.25); }
-.btn-deal:hover{opacity:0.88;} .btn-nodeal:hover{opacity:0.88;}
+.btn-deal:hover{opacity:0.94; box-shadow:0 0 30px rgba(32,192,96,0.48),0 4px 20px rgba(32,192,96,0.25);}
+.btn-nodeal:hover{opacity:0.94; box-shadow:0 0 30px rgba(224,48,48,0.48),0 4px 20px rgba(224,48,48,0.25);}
 .btn-deal:active,.btn-nodeal:active{transform:scale(0.97);}
 
 @media(max-width:640px){
@@ -265,6 +368,8 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 @keyframes cfFall{0%{transform:translateY(-20px) rotate(0);opacity:1;}100%{transform:translateY(110vh) rotate(720deg);opacity:0;}}
 
 .result-card { background:var(--surface); border:1px solid var(--border2); border-radius:22px; padding:40px 30px; text-align:center; max-width:460px; width:100%; position:relative; z-index:1; box-shadow:0 24px 70px rgba(0,0,0,0.7), 0 0 60px rgba(240,192,64,0.08); animation:rpop 0.5s cubic-bezier(0.34,1.56,0.64,1); overflow:hidden; }
+.result-card.good-finale { box-shadow:0 24px 70px rgba(0,0,0,0.7),0 0 90px rgba(32,192,96,0.18); }
+.result-card.bad-finale { box-shadow:0 24px 70px rgba(0,0,0,0.7),0 0 90px rgba(224,48,48,0.16); }
 @keyframes rpop{from{opacity:0;transform:scale(0.78) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
 .result-top-glow { position:absolute; top:-1px; left:50%; transform:translateX(-50%); width:65%; height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
 
@@ -380,6 +485,7 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 </head>
 <body>
 <div id="bg-layer"></div>
+<div id="fx-layer"></div>
 <div id="app">
 
 <!-- ===== GAME SCREEN ===== -->
@@ -596,7 +702,7 @@ async function syncConfigFromRemote(){
     });
     if(!res.ok) return;
     const record = (await res.json()).record || {};
-    ['vmym_prices','vmym_zoom','vmym_ratio','vmym_lp','vmym_bg','vmym_header_size','vmym_cl_urls'].forEach(k=>{
+    ['vmym_prices','vmym_zoom','vmym_ratio','vmym_lp','vmym_bg','vmym_header_size','vmym_cl_urls','vmym_sbp'].forEach(k=>{
       if(record[k]!==undefined){
         localStorage.setItem(k, typeof record[k]==='string'?record[k]:JSON.stringify(record[k]));
       }
@@ -612,10 +718,211 @@ let boxImages = new Array(20).fill(null);
 // Game state
 let prices=[], shuffleMap=[], playerBox=null, openedBoxes=new Set();
 let gameState='select', openCount=0, openTarget=OPEN_SCHEDULE[0], roundNumber=0, currentOffer=0;
+let lastOpenedIdx=null, offerAnimTimer=null;
 
+function roundOffer(n){ return Math.round(n/10)*10; }
 function fmt(n){ return '₺'+Math.round(n).toLocaleString('tr-TR'); }
 function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 function setStatus(h){ const el=document.getElementById('status-msg'); if(el) el.innerHTML=h; }
+
+/* ===== Cinematic box-open timing (ms) — total ~2.5s ===== */
+const BOX_ANIM = { FLY:380, HOLD:450, OPEN:300, REVEAL_DELAY:200, REVEAL:280, DISPLAY:950, CLOSE:260 };
+BOX_ANIM.OPEN_START = BOX_ANIM.FLY + BOX_ANIM.HOLD;
+BOX_ANIM.REVEAL_START = BOX_ANIM.OPEN_START + BOX_ANIM.REVEAL_DELAY;
+BOX_ANIM.CLOSE_START = BOX_ANIM.REVEAL_START + BOX_ANIM.REVEAL + BOX_ANIM.DISPLAY;
+BOX_ANIM.TOTAL = BOX_ANIM.CLOSE_START + BOX_ANIM.CLOSE;
+
+function getFxLayer(){ return document.getElementById('fx-layer'); }
+function flashScreen(cls){
+  const fx=getFxLayer(); if(!fx) return;
+  fx.classList.remove('flash-hi','flash-lo','flash-white');
+  void fx.offsetWidth;
+  fx.classList.add(cls==='hi'?'flash-hi':cls==='white'?'flash-white':'flash-lo');
+  setTimeout(()=>fx.classList.remove('flash-hi','flash-lo','flash-white'),650);
+}
+function burstAtElement(el, text, cls){
+  const fx=getFxLayer(); if(!fx||!el) return;
+  const r=el.getBoundingClientRect();
+  const x=r.left+r.width/2, y=r.top+r.height/2;
+  const spot=document.createElement('div');
+  spot.className='fx-spotlight';
+  spot.style.left=x+'px'; spot.style.top=y+'px';
+  fx.appendChild(spot);
+  const pop=document.createElement('div');
+  pop.className='fx-money-pop '+(cls||'');
+  pop.textContent=text;
+  pop.style.left=x+'px'; pop.style.top=y+'px';
+  fx.appendChild(pop);
+  setTimeout(()=>{ spot.remove(); pop.remove(); },1550);
+}
+function triggerCameraShake(){
+  const target=document.getElementById('app')||document.body;
+  target.classList.remove('cam-shake'); void target.offsetWidth;
+  target.classList.add('cam-shake');
+  setTimeout(()=>target.classList.remove('cam-shake'),340);
+}
+function spawnGoldBurst(cx, cy, count){
+  const fx=getFxLayer(); if(!fx) return;
+  count=count||24;
+  for(let i=0;i<count;i++){
+    const s=document.createElement('div');
+    s.className='fx-shard gold-burst';
+    const ang=Math.random()*Math.PI*2, dist=90+Math.random()*170;
+    s.style.setProperty('--dx',(Math.cos(ang)*dist)+'px');
+    s.style.setProperty('--dy',(Math.sin(ang)*dist)+'px');
+    s.style.setProperty('--rot',(Math.random()*720-360)+'deg');
+    s.style.left=cx+'px'; s.style.top=cy+'px';
+    s.style.animationDelay=(Math.random()*70)+'ms';
+    fx.appendChild(s);
+    setTimeout(()=>s.remove(),1450);
+  }
+}
+function spawnMiniConfetti(){
+  const fx=getFxLayer(); if(!fx) return;
+  const cols=['#f0c040','#20c060','#fff7d8','#7dffb0','#ffe08a'];
+  const holder=document.createElement('div');
+  holder.style.cssText='position:fixed;inset:0;pointer-events:none;overflow:hidden;';
+  for(let i=0;i<28;i++){
+    const c=document.createElement('div');
+    c.className='confetti-piece mini';
+    c.style.cssText=`left:${18+Math.random()*64}%;top:${-12-Math.random()*10}%;width:${4+Math.random()*6}px;height:${4+Math.random()*6}px;background:${cols[i%cols.length]};animation-duration:${1+Math.random()*0.8}s;animation-delay:${Math.random()*220}ms;border-radius:${Math.random()>.5?'50%':'2px'};opacity:0;`;
+    holder.appendChild(c);
+  }
+  fx.appendChild(holder);
+  setTimeout(()=>holder.remove(),2200);
+}
+function cornerBurst(cls){
+  const fx=getFxLayer(); if(!fx) return;
+  const el=document.createElement('div');
+  el.className='fx-corner-burst '+(cls||'green');
+  fx.appendChild(el);
+  setTimeout(()=>el.remove(),1150);
+}
+function vignettePulse(){
+  const fx=getFxLayer(); if(!fx) return;
+  const el=document.createElement('div');
+  el.className='fx-vignette';
+  fx.appendChild(el);
+  setTimeout(()=>el.remove(),950);
+}
+function closedVisualBg(stage){
+  const img=stage.querySelector('.box-img');
+  return (img && img.src) ? `url("${img.src}")` : 'linear-gradient(135deg,#241d10,#f0c040 48%,#110f14)';
+}
+function createOpeningFlaps(stage){
+  const bg=closedVisualBg(stage);
+  Array.from(stage.children).forEach(c=>{ c.style.transition='opacity .18s ease'; c.style.opacity='0'; });
+  const top=document.createElement('div');
+  top.className='stage-flap stage-flap-top';
+  top.style.backgroundImage=bg;
+  const bot=document.createElement('div');
+  bot.className='stage-flap stage-flap-bottom';
+  bot.style.backgroundImage=bg;
+  stage.appendChild(top); stage.appendChild(bot);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ top.classList.add('go'); bot.classList.add('go'); }));
+  setTimeout(()=>{ top.remove(); bot.remove(); }, BOX_ANIM.OPEN+120);
+}
+/* Full cinematic opening sequence: flash + shake + particles + blur + flaps */
+function playBoxOpenBurst(stage){
+  const r=stage.getBoundingClientRect();
+  const cx=r.left+r.width/2, cy=r.top+r.height/2;
+  flashScreen('white');
+  triggerCameraShake();
+  createOpeningFlaps(stage);
+  spawnGoldBurst(cx, cy, 26);
+  stage.classList.add('motion-blur');
+  setTimeout(()=>stage.classList.remove('motion-blur'), BOX_ANIM.OPEN+40);
+}
+function revealStageAmount(stage, text, cls){
+  if(!stage) return;
+  stage.classList.add('revealed');
+  let amtEl=stage.querySelector('.stage-amt');
+  if(!amtEl){
+    amtEl=document.createElement('div');
+    stage.appendChild(amtEl);
+  }
+  amtEl.className='stage-amt '+(cls||'md');
+  amtEl.textContent=text;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>amtEl.classList.add('on')));
+  if(cls==='hi'){
+    spawnMiniConfetti();
+    cornerBurst('green');
+  } else if(cls==='lo'){
+    flashScreen('lo');
+    vignettePulse();
+  }
+}
+function createStageBox(sourceEl){
+  const fx=getFxLayer(); if(!fx||!sourceEl) return null;
+  const r=sourceEl.getBoundingClientRect();
+  const dim=document.createElement('div');
+  dim.className='box-stage-dim';
+  const stage=document.createElement('div');
+  stage.className='stage-box';
+  stage.innerHTML=sourceEl.innerHTML;
+  stage.style.setProperty('--start-left',r.left+'px');
+  stage.style.setProperty('--start-top',r.top+'px');
+  stage.style.setProperty('--start-width',r.width+'px');
+  stage.style.setProperty('--start-height',r.height+'px');
+  fx.appendChild(dim);
+  fx.appendChild(stage);
+  return {dim,stage};
+}
+function closeStageBox(stageData){
+  if(!stageData) return;
+  stageData.dim.style.animation='stageDimOut '+(BOX_ANIM.CLOSE/1000)+'s ease forwards';
+  stageData.stage.style.transition='opacity '+(BOX_ANIM.CLOSE/1000)+'s ease, transform '+(BOX_ANIM.CLOSE/1000)+'s cubic-bezier(0.4,0,1,1)';
+  stageData.stage.style.opacity='0';
+  stageData.stage.style.transform='translate(-50%,-50%) scale(0.55)';
+  setTimeout(()=>{ stageData.stage.remove(); stageData.dim.remove(); }, BOX_ANIM.CLOSE+30);
+}
+function revealTextByChars(el, text, step){
+  if(!el) return;
+  el.textContent='';
+  el.classList.add('reveal-amt');
+  let i=0;
+  const timer=setInterval(()=>{
+    el.textContent=text.slice(0,i+1);
+    i++;
+    if(i>=text.length) clearInterval(timer);
+  }, step||90);
+}
+function showOfferTimeThenOffer(){
+  const fx=getFxLayer();
+  if(!fx){ showOffer(); return; }
+  const dim=document.createElement('div');
+  dim.className='offer-time-dim';
+  const call=document.createElement('div');
+  call.className='offer-time-call from-box';
+  call.textContent='TEKLİF ZAMANI!';
+  const fromEl=lastOpenedIdx!==null ? document.getElementById('box'+lastOpenedIdx) : null;
+  const r=fromEl ? fromEl.getBoundingClientRect() : {left:innerWidth/2,top:innerHeight/2,width:0,height:0};
+  call.style.setProperty('--from-x',(r.left+r.width/2)+'px');
+  call.style.setProperty('--from-y',(r.top+r.height/2)+'px');
+  call.textContent='TEKLİF ZAMANI!';
+  fx.appendChild(dim);
+  fx.appendChild(call);
+  setStatus('<span>TEKLİF ZAMANI!</span>');
+  setTimeout(()=>{ call.remove(); dim.remove(); },2200);
+  setTimeout(showOffer,1850);
+}
+function animateOfferAmount(target){
+  const el=document.getElementById('offer-amt'); if(!el) return;
+  if(offerAnimTimer) clearInterval(offerAnimTimer);
+  const duration=2300, start=performance.now();
+  el.classList.add('counting');
+  offerAnimTimer=setInterval(()=>{
+    const p=Math.min(1,(performance.now()-start)/duration);
+    const eased=1-Math.pow(1-p,3);
+    el.textContent=fmt(roundOffer(target*eased));
+    if(p>=1){
+      clearInterval(offerAnimTimer);
+      offerAnimTimer=null;
+      el.textContent=fmt(target);
+      el.classList.remove('counting');
+    }
+  },32);
+}
 
 function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]; } return a; }
 
@@ -757,7 +1064,7 @@ async function initGame(){
   const adminOrder = Array.from({length:20},(_,i)=>i);
   shuffleMap = shuffle(adminOrder);
   prices = shuffleMap.map(ai=>rawPrices[ai]);
-  playerBox=null; openedBoxes=new Set(); gameState='select';
+  playerBox=null; openedBoxes=new Set(); gameState='select'; lastOpenedIdx=null;
   openCount=0; roundNumber=0; openTarget=OPEN_SCHEDULE[0]; currentOffer=0;
 
   applyHeaderImg();
@@ -839,24 +1146,64 @@ function clickBox(idx){
   if(idx===playerBox){ setStatus('⚠️ Bu sizin kutunuz!'); return; }
 
   openedBoxes.add(idx);
+  lastOpenedIdx=idx;
   try{ localStorage.setItem("vmym_opened", JSON.stringify([...openedBoxes])); }catch(e){}
 
   const amt=prices[idx];
+  const amtText=fmt(amt);
   const maxP=Math.max(...prices), minP=Math.min(...prices);
   let cls='md';
   if(amt>=maxP*0.5) cls='hi';
   else if(amt<=minP*5) cls='lo';
 
   const el=document.getElementById('box'+idx);
+  const stageData=createStageBox(el);
+  if(stageData) el.style.visibility='hidden';
   el.classList.add('opened');
   const adminIdx=shuffleMap[idx];
   const src=boxImages[adminIdx];
+
+  // 1) Kutu merkeze zoom yapıp gelir (stageBoxIn, ~FLY ms) -> kapalı halde altın glow ile nefes alır (HOLD ms)
+  setTimeout(()=>{
+    if(stageData){
+      stageData.stage.classList.add('ready');
+      stageData.stage.classList.add('breathing');
+    }
+  }, BOX_ANIM.FLY);
+
+  // 2) Açılış anı: flash + shake + particle + motion blur + kapaklar açılır
+  setTimeout(()=>{
+    if(stageData){
+      stageData.stage.classList.remove('breathing');
+      stageData.stage.classList.add('opening');
+      playBoxOpenBurst(stageData.stage);
+    }
+  }, BOX_ANIM.OPEN_START);
+
+  // 3) Tutar fade+scale ile ortaya çıkar (+ hi/lo'ya özel efektler)
+  setTimeout(()=>{
+    if(stageData) revealStageAmount(stageData.stage, amtText, cls);
+  }, BOX_ANIM.REVEAL_START);
+
   if(src){
     el.innerHTML=`<img class="box-img" src="${src}" alt="" style="opacity:0.22"><div class="box-amt ${cls}" style="font-size:22px;font-weight:700;z-index:2;text-shadow:0 0 10px #000,0 0 6px #000,0 0 3px #000;">${fmt(amt)}</div>`;
   } else {
     const icon=amt>=500000?'💰':amt>=100000?'💵':amt>=10000?'💳':'💸';
     el.innerHTML=`<div class="box-icon">${icon}</div><div class="box-number">${idx+1}</div><div class="box-amt ${cls}">${fmt(amt)}</div>`;
   }
+
+  const preAmtEl=el.querySelector('.box-amt');
+  if(preAmtEl) preAmtEl.textContent='';
+
+  // 4) Tutar ~DISPLAY ms ekranda kalır, sonra kutu küçülerek kaybolur ve oyun akışına devam edilir
+  setTimeout(()=>{
+    if(cls==='hi') el.classList.add('reveal-hi');
+    else if(cls==='lo') el.classList.add('reveal-lo');
+    el.style.visibility='';
+    closeStageBox(stageData);
+    const amtEl=el.querySelector('.box-amt');
+    revealTextByChars(amtEl, amtText, 95);
+  }, BOX_ANIM.CLOSE_START);
 
   openCount++;
   buildPriceRow();
@@ -867,7 +1214,8 @@ function clickBox(idx){
   if(openCount>=openTarget){
     if(remaining<=0){ endGame(false); return; }
     gameState='offer';
-    setTimeout(showOffer,400);
+    const offerDelay=BOX_ANIM.TOTAL+700;
+    setTimeout(showOfferTimeThenOffer,offerDelay);
   } else {
     setStatus(`<span>${openTarget-openCount}</span> kutu daha açın.`);
   }
@@ -886,15 +1234,7 @@ function updateRemainPanel(){
   if(gameState!=='open'){ panel.classList.remove('on'); return; }
   const left = Math.max(0, openTarget - openCount);
   document.getElementById('rmp-count').textContent = left;
-  document.getElementById('rmp-sub').textContent = left===1 ? 'kutu açın' : 'kutu açın';
-  const grid = document.getElementById('rmp-grid');
-  grid.innerHTML = '';
-  for(let i=0;i<openTarget;i++){
-    const b = document.createElement('div');
-    b.className = 'rmp-box ' + (i<openCount ? 'done' : 'pending');
-    b.textContent = i<openCount ? '✓' : '🎁';
-    grid.appendChild(b);
-  }
+  panel.classList.add('on');
 }
 
 function buildPriceRow(){
@@ -920,6 +1260,7 @@ function buildPriceList(){
       if(p>=maxP*0.5) cls+=' hi';
       else if(p<=minP*5) cls+=' lo';
     } else { cls+=' gone'; }
+    if(isGone && origIdx===lastOpenedIdx) cls+=' just-gone';
     const row=document.createElement('div');
     row.className=cls; row.id='pl-'+origIdx;
     row.innerHTML=`<div class="pl-val">${fmt(p)}</div>`;
@@ -932,7 +1273,7 @@ function calcOffer(){
   prices.forEach((p,i)=>{ if(!openedBoxes.has(i)&&i!==playerBox) rem.push(p); });
   rem.push(prices[playerBox]);
   const avg=rem.reduce((a,b)=>a+b,0)/rem.length;
-  return Math.round(avg*(0.20+(openedBoxes.size/19)*0.60));
+  return roundOffer(avg*(0.20+(openedBoxes.size/19)*0.60));
 }
 
 function buildOfferPriceList(){
@@ -962,25 +1303,28 @@ function buildOfferPriceList(){
 function showOffer(){
   currentOffer=calcOffer();
   const remaining=20-openedBoxes.size-1;
-  document.getElementById('offer-amt').textContent=fmt(currentOffer);
+  document.getElementById('offer-amt').textContent=fmt(0);
   document.getElementById('offer-sub').textContent=`${remaining} kutu kaldı. Teklifi kabul ediyor musunuz?`;
   buildOfferPriceList();
   applyBankerImg();
   const ov=document.getElementById('offer-overlay');
   ov.classList.remove('hide');
   ov.classList.add('on');
+  setTimeout(()=>animateOfferAmount(currentOffer),220);
   setStatus('📞 Banker arıyor...');
   const ob=document.getElementById('open-badge');if(ob)ob.classList.remove('on');
 }
 
 function acceptDeal(){
   const ov=document.getElementById('offer-overlay');
+  if(offerAnimTimer){ clearInterval(offerAnimTimer); offerAnimTimer=null; }
   ov.classList.add('hide');
   setTimeout(()=>{ ov.classList.remove('on','hide'); endGame(true); }, 350);
 }
 
 function rejectDeal(){
   const ov=document.getElementById('offer-overlay');
+  if(offerAnimTimer){ clearInterval(offerAnimTimer); offerAnimTimer=null; }
   ov.classList.add('hide');
   roundNumber++; openCount=0;
   const remaining=20-openedBoxes.size-1;
@@ -1000,8 +1344,13 @@ function endGame(deal){
   const ov=document.getElementById('result-overlay');
   ov.classList.remove('hide');
   ov.classList.add('on');
+  const resultCard=document.querySelector('.result-card');
+  if(resultCard) resultCard.classList.remove('good-finale','bad-finale');
+  const ownBox=document.getElementById('selected-box-panel');
+  if(ownBox) burstAtElement(ownBox, fmt(playerAmt), playerAmt>=(currentOffer||0)?'hi':'lo');
 
   if(deal){
+    if(resultCard) resultCard.classList.add(currentOffer>=playerAmt?'good-finale':'bad-finale');
     document.getElementById('res-emoji').textContent='🤝';
     document.getElementById('res-tag').textContent='ANLAŞMA YAPILDI';
     const d=document.getElementById('res-dec'); d.textContent='VAR!'; d.className='res-dec y';
@@ -1014,6 +1363,7 @@ function endGame(deal){
       <div class="cr"><span class="cl">Yorum</span><span class="cv" style="font-size:11px">${diff>0?'Kutunuz daha değerliydi 😢':'Harika karar! 🎊'}</span></div>`;
     spawnConfetti();
   } else {
+    if(resultCard) resultCard.classList.add(playerAmt>=(currentOffer||0)?'good-finale':'bad-finale');
     document.getElementById('res-emoji').textContent='📦';
     document.getElementById('res-tag').textContent='KUTUNUZ AÇILDI';
     const d=document.getElementById('res-dec'); d.textContent='YOK!'; d.className='res-dec n';
@@ -1038,6 +1388,8 @@ function spawnConfetti(){
 
 function restartGame(){
   document.getElementById('confetti-bg').innerHTML='';
+  const rc=document.querySelector('.result-card');
+  if(rc) rc.classList.remove('good-finale','bad-finale');
   const ov=document.getElementById('result-overlay');
   ov.classList.add('hide');
   setTimeout(()=>{ ov.classList.remove('on','hide'); initGame(); }, 400);
@@ -1054,6 +1406,8 @@ let pollTotalVotes = 0;
 let pollWs = null;
 let pollSimInterval = null;
 let pollPingInterval = null;
+let pollNoEventTimer = null;
+let pollEventCount = 0;
 const POLL_FAKE_USERS = ['Ahmet_07','ZeynepYT','Mert123','Selin_K','BurakFan','ceren_x','furkan88','tolga_g','elif_99','deno_bro','xkral_x','ayse_tv','serkan_z','emre_live','berk_07','kaanx','merve_98','barish_k','deniz_07','sude_g'];
 const POLL_FAKE_MSGS = ['$NUM açıyorum','$NUM e giriyorum','$NUM!','bence $NUM','$NUM var mı','$NUM :D','$NUM yazıyorum','$NUM olsun kesin','ya $NUM AÇIN','$NUM'];
 
@@ -1078,6 +1432,49 @@ function setPollStatus(type, text){
   if(fabDot) fabDot.className = 'poll-fab-dot' + (type==='connected'?' live':'');
 }
 
+function parseMaybeJson(v){
+  if(typeof v !== 'string') return v;
+  const s = v.trim();
+  if(!s || (s[0] !== '{' && s[0] !== '[')) return v;
+  try { return JSON.parse(s); } catch(e){ return v; }
+}
+
+function firstText(...vals){
+  for(const v of vals){
+    if(typeof v === 'string' && v.trim()) return v;
+  }
+  return null;
+}
+
+function extractKickChatMessage(raw){
+  const d = parseMaybeJson(raw);
+  if(!d || typeof d !== 'object') return null;
+  const data = parseMaybeJson(d.data);
+  const root = data && typeof data === 'object' ? data : d;
+  const msg = parseMaybeJson(root.message);
+  const message = msg && typeof msg === 'object' ? msg : root;
+  const sender = message.sender || message.user || message.chatter || root.sender || root.user || root.chatter || {};
+  const senderIdentity = sender.identity || {};
+  const username = firstText(
+    sender.username,
+    sender.name,
+    sender.slug,
+    senderIdentity.username,
+    message.username,
+    root.username,
+    'Kick'
+  );
+  const content = firstText(
+    message.content,
+    message.message,
+    message.text,
+    root.content,
+    root.text,
+    typeof msg === 'string' ? msg : null
+  );
+  return username && content ? {username, content} : null;
+}
+
 async function connectKickChat(){
   setPollStatus('', 'Kick chat\'e bağlanılıyor...');
   if(pollPingInterval){ clearInterval(pollPingInterval); pollPingInterval=null; }
@@ -1094,7 +1491,6 @@ async function connectKickChat(){
     pollWs.onmessage = (e)=>{
       try {
         const msg = JSON.parse(e.data);
-        // Sistem event'lerini geç
         if(msg.event==='pusher:pong' || msg.event==='pusher:ping') return;
         if(msg.event==='pusher_internal:subscription_succeeded'){
           setPollStatus('connected','Kick chat bağlandı — <span>batuhanfurkan5</span> ✓');
@@ -1104,31 +1500,37 @@ async function connectKickChat(){
           setPollStatus('error', 'Pusher hatası: ' + JSON.stringify(msg.data).slice(0,60));
           return;
         }
-        // Gelen tüm event'leri logla — hangi isim geldiğini görmek için
-        console.log('[Kick WS event]', JSON.stringify(msg.event), '| data preview:', String(msg.data||'').slice(0,120));
-
-        // Tüm bilinmeyen event'leri chat mesajı olarak parse etmeyi dene
-        if(msg.data){
-          let d;
-          try { d = typeof msg.data === 'string' ? JSON.parse(msg.data) : msg.data; } catch(pe){ return; }
-          // Farklı Kick veri yapıları için çoklu aday dene
-          const sender =
-            d.sender?.username ||
-            d.user?.username ||
-            d.message?.sender?.username ||
-            d.chatter?.username ||
-            null;
-          const content =
-            d.content ||
-            d.message?.content ||
-            d.message?.message ||
-            d.text ||
-            null;
-          if(sender && content){
-            pollProcessMessage(sender, content);
-          }
+        // Tüm event'leri logla (hangi event adı geliyor görmek için)
+        console.log('[Kick WS]', msg.event);
+        if(!msg.data) return;
+        const chatMsg = extractKickChatMessage(msg);
+        if(chatMsg){
+          pollProcessMessage(chatMsg.username, chatMsg.content);
+          return;
         }
-      } catch(err){ console.warn('[Kick WS] parse error', err, String(e.data||'').slice(0,80)); }
+        let d;
+        try { d = typeof msg.data === 'string' ? JSON.parse(msg.data) : msg.data; } catch(pe){ return; }
+
+        // Kick'in bilinen veri yapıları (ChatMessageSentEvent formatı)
+        // Format 1: { user: {username}, message: {message} }
+        // Format 2: { sender: {username}, content }
+        // Format 3: { chatter: {username}, content }
+        const username =
+          (d.sender && d.sender.username) ||
+          (d.user && d.user.username) ||
+          (d.chatter && d.chatter.username) ||
+          (d.message && d.message.sender && d.message.sender.username) ||
+          null;
+        const content =
+          d.content ||
+          (d.message && (d.message.content || d.message.message)) ||
+          d.text ||
+          null;
+
+        if(username && content){
+          pollProcessMessage(username, content);
+        }
+      } catch(err){ console.warn('[Kick WS] parse error', err); }
     };
     pollWs.onerror = (ev)=>{ console.error('[Kick WS] onerror', ev); setPollStatus('error','Bağlantı hatası — yeniden deneniyor...'); };
     pollWs.onclose = (ev)=>{
@@ -1191,18 +1593,17 @@ function updatePollGrid(){
 }
 
 function pollProcessMessage(user, text){
-  if(!pollActive) return;
   pollTotalMessages++;
   document.getElementById('poll-msg-total').textContent = pollTotalMessages;
   const nums = text.match(/\b([1-9]|1[0-9]|20)\b/g);
   let voted = null;
-  if(nums){
+  if(pollActive && nums){
     for(const n of nums){
       const num = parseInt(n);
       if(num>=1&&num<=20&&!openedBoxes.has(num-1)){ voted=num; break; }
     }
   }
-  if(voted){ pollVotes[voted]++; pollTotalVotes++; document.getElementById('poll-vote-total').textContent=pollTotalVotes; updatePollGrid(); }
+  if(pollActive && voted){ pollVotes[voted]++; pollTotalVotes++; document.getElementById('poll-vote-total').textContent=pollTotalVotes; updatePollGrid(); }
   addPollChatMsg(user, text, voted);
 }
 

@@ -714,9 +714,34 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; h
         <a href="vmym.html" class="btn-ghost" style="text-align:center;text-decoration:none;display:block;padding:13px 28px;align-self:center;">🎮 Oyuna Geç</a>
       </div>
     </div>
+
+    <!-- SENİN KUTUN BOYUTU -->
+    <div class="disp-card" style="margin-top:16px;">
+      <div class="disp-card-title">SENİN KUTUN BOYUTU</div>
+      <div class="disp-card-sub">Sol panelin altındaki "Senin Kutun" görselinin genişliği. Sol panel genişliğinin yüzdesi olarak ayarlanır.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+        <button class="zoom-preset" onclick="setSbpWidth(50)">%50</button>
+        <button class="zoom-preset" onclick="setSbpWidth(65)">%65</button>
+        <button class="zoom-preset" onclick="setSbpWidth(75)">%75</button>
+        <button class="zoom-preset" onclick="setSbpWidth(85)">%85</button>
+        <button class="zoom-preset" onclick="setSbpWidth(100)">%100</button>
+      </div>
+      <div class="zoom-custom-wrap">
+        <span>Özel %:</span>
+        <input type="number" id="sbp-width-input" value="75" min="30" max="100" step="5"
+          oninput="setSbpWidth(parseInt(this.value)||75)">
+        <span>%</span>
+      </div>
+      <div class="zoom-preview" style="margin-top:12px;">
+        <div>
+          <div class="zoom-preview-label">Seçili genişlik</div>
+          <div class="zoom-preview-val" id="sbp-preview-val" style="font-size:18px;">%75</div>
+        </div>
+        <button class="disp-save-btn" onclick="saveSbpWidth()" style="font-size:15px;padding:10px 24px;">💾 KAYDET</button>
+      </div>
+    </div>
   </div>
 
-  <!-- BACKGROUND SETTINGS -->
   <div class="panel" id="tab-background">
     <div class="bg-panel">
       <div class="disp-card">
@@ -1337,7 +1362,7 @@ async function syncRemoteConfig() {
 const BIN_ID = '6a2a8f27f5f4af5e29de21ee';
 const BIN_KEY = '$2a$10$jmvujdFyJ.mML6da40FEleAhD1/oz/xVD612cQ6NAxRM4oQedpnBi';
 const BIN_API = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
-const ALL_KEYS = ['vmym_prices','vmym_zoom','vmym_ratio','vmym_lp','vmym_bg','vmym_header_size','vmym_cl_urls','hp_bg','hp_card_w','hp_card_h','hp_cards','faul_avatar_count','faul_bg','hp_header','faul_words'];
+const ALL_KEYS = ['vmym_prices','vmym_zoom','vmym_ratio','vmym_lp','vmym_bg','vmym_header_size','vmym_cl_urls','hp_bg','hp_card_w','hp_card_h','hp_cards','faul_avatar_count','faul_bg','hp_header','faul_words','vmym_sbp'];
 
 async function remoteFetch(){
   try{
@@ -1592,6 +1617,24 @@ function renderLpSize(){
   document.getElementById('lp-preview-val').textContent = currentLpWidth + ' × ' + currentLpHeight + ' px';
   const rec = document.getElementById('lp-img-rec');
   if(rec) rec.textContent = currentLpWidth + ' × ' + currentLpHeight + ' px';
+}
+
+/* SBP (Senin Kutun) genişlik */
+let currentSbpWidth = 75;
+function initSbpWidth(){
+  try{ const d=JSON.parse(localStorage.getItem('vmym_sbp')); if(d&&d.w) currentSbpWidth=d.w; }catch(e){}
+  document.getElementById('sbp-width-input').value=currentSbpWidth;
+  document.getElementById('sbp-preview-val').textContent='%'+currentSbpWidth;
+}
+function setSbpWidth(val){
+  currentSbpWidth=Math.min(100,Math.max(30,val));
+  document.getElementById('sbp-width-input').value=currentSbpWidth;
+  document.getElementById('sbp-preview-val').textContent='%'+currentSbpWidth;
+}
+function saveSbpWidth(){
+  localStorage.setItem('vmym_sbp',JSON.stringify({w:currentSbpWidth}));
+  remotePush();
+  showToast('✅ Kutu boyutu kaydedildi');
 }
 
 async function handleLpImgUpload(e){
@@ -1868,6 +1911,7 @@ const HP_GAMES = [
   {key:'vmym',  name:'VAR MISIN?', icon:'🎁', url:'vmym.html'},
   {key:'faul',  name:'FAUL!',      icon:'🚨', url:'faul.html'},
   {key:'game3', name:'OYUN 3',     icon:'🎯', url:''},
+  {key:'game4', name:'OYUN 4',     icon:'🎲', url:''},
 ];
 let hpBgMode='none', hpBgColor='#07070f', hpBgFit='cover';
 let hpCardW=300, hpCardH=300;
@@ -2412,6 +2456,7 @@ function enterGame(gameId){
     initDisplayTab();
     initBoxSize();
     initLpSize();
+    initSbpWidth();
     initBgTab();
     initBankerTab();
     initHeaderSize();

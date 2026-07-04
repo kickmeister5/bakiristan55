@@ -1568,6 +1568,18 @@ async function reallyStartTurn(){
   await updateDoc(roomRef(roomCode), { turn, log: [] });
 }
 
+/* Oyun bittiğinde takımlardaki tüm aktif oyuncuları bekleyenler listesine taşır (kimse lobiden atılmaz) */
+function moveTeamsToWaiting(teams, existingWaiting){
+  const merged = [...(existingWaiting||[])];
+  const seen = new Set(merged.map(p=>p&&p.id));
+  ['red','blue'].forEach(team=>{
+    (teams[team]||[]).forEach(p=>{
+      if(p && !seen.has(p.id)){ merged.push(p); seen.add(p.id); }
+    });
+  });
+  return merged;
+}
+
 async function markWord(type){
   if(!roomData.turn || !roomData.turn.active) return;
   const {updateDoc} = fb();
@@ -1583,9 +1595,11 @@ async function markWord(type){
     // Skor limiti kontrolü
     const limit = gameSettings.scoreLimit;
     if(limit > 0 && scores[activeTeam] >= limit){
+      const finishedTeams = {red:[null,null,null,null,null],blue:[null,null,null,null,null]};
+      const newWaiting = moveTeamsToWaiting(roomData.teams||{red:[],blue:[]}, roomData.waiting||[]);
       await updateDoc(roomRef(roomCode), { turn:null, scores, log, state:'lobby',
-        teams:{red:[null,null,null,null,null],blue:[null,null,null,null,null]},
-        waiting:[], activeTeam:'red', round:1, narratorIdx:{red:0,blue:0}, ready:false });
+        teams: finishedTeams,
+        waiting:newWaiting, activeTeam:'red', round:1, narratorIdx:{red:0,blue:0}, ready:false });
       const winner = activeTeam==='red'?'KIRMIZI':'MAVİ';
       setTimeout(()=>alert('🏆 '+winner+' takımı '+limit+' puana ulaştı ve kazandı!\n'+scores.red+' — '+scores.blue),300);
       return;
@@ -1667,7 +1681,8 @@ async function timeExpired(){
     await updateDoc(roomRef(roomCode), {
       turn:null, state:'lobby',
       teams:{red:[null,null,null,null,null],blue:[null,null,null,null,null]},
-      waiting:[], scores:{red:0,blue:0}, activeTeam:'red', round:1, narratorIdx:{red:0,blue:0}, ready:false, log:[]
+      waiting: moveTeamsToWaiting(roomData.teams||{red:[],blue:[]}, roomData.waiting||[]),
+      scores:{red:0,blue:0}, activeTeam:'red', round:1, narratorIdx:{red:0,blue:0}, ready:false, log:[]
     });
     return;
   }
@@ -1684,7 +1699,7 @@ async function endGame(){
   await updateDoc(roomRef(roomCode), {
     state: 'lobby',
     teams: { red:[null,null,null,null,null], blue:[null,null,null,null,null] },
-    waiting: [],
+    waiting: moveTeamsToWaiting(roomData.teams||{red:[],blue:[]}, roomData.waiting||[]),
     scores: { red:0, blue:0 },
     activeTeam: 'red',
     round: 1,

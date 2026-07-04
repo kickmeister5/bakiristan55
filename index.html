@@ -12,7 +12,7 @@
   --border:rgba(240,192,64,0.15);--border2:rgba(240,192,64,0.3);
   --text:#f0ead8;--muted:#6a6680;
   --font-title:'Bebas Neue',sans-serif;--font-body:'Outfit',sans-serif;
-  --card-min-w:300px;--card-banner-h:300px;
+  --card-min-w:150px;--card-banner-h:150px;
 }
 html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--font-body);overflow-x:hidden;}
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
@@ -30,9 +30,15 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
 /* GAMES GRID */
 .games-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(var(--card-min-w,300px),1fr));
-  gap:20px;width:100%;max-width:900px;
+  grid-template-columns:repeat(4,1fr);
+  gap:20px;width:100%;max-width:1280px;
   padding:40px 20px 0;
+}
+@media (max-width:980px){
+  .games-grid{grid-template-columns:repeat(2,1fr);max-width:700px;}
+}
+@media (max-width:520px){
+  .games-grid{grid-template-columns:1fr;max-width:420px;}
 }
 
 /* GAME CARD — sadece banner */
@@ -53,7 +59,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
 }
 .gc-banner img.gc-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;}
 .gc-banner img.gc-bg.on{display:block;}
-.gc-banner-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:80px;filter:drop-shadow(0 4px 24px rgba(0,0,0,0.6));animation:floatIcon 3s ease-in-out infinite;}
+.gc-banner-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px;filter:drop-shadow(0 4px 24px rgba(0,0,0,0.6));animation:floatIcon 3s ease-in-out infinite;}
 @keyframes floatIcon{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
 .gc-banner img.gc-bg.on ~ .gc-banner-icon{display:none;}
 
@@ -66,7 +72,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
 .game-card.inactive .gc-inactive-overlay{display:flex;}
 .gc-inactive-img{max-width:70%;max-height:70%;object-fit:contain;display:none;}
 .gc-inactive-img.on{display:block;}
-.gc-inactive-default{font-family:var(--font-title);font-size:clamp(28px,5vw,46px);letter-spacing:4px;color:rgba(255,255,255,0.7);}
+.gc-inactive-default{font-family:var(--font-title);font-size:clamp(16px,3vw,26px);letter-spacing:3px;color:rgba(255,255,255,0.7);}
 </style>
 </head>
 <body>
@@ -112,6 +118,18 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
         <div class="gc-inactive-overlay" id="inact-game3">
           <img class="gc-inactive-img" id="inact-img-game3" src="" alt="">
           <div class="gc-inactive-default" id="inact-txt-game3">YAKINDA</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- OYUN 4 -->
+    <a href="#" class="game-card inactive" id="card-game4">
+      <div class="gc-banner">
+        <img class="gc-bg" id="img-game4" src="" alt="">
+        <div class="gc-banner-icon">🎲</div>
+        <div class="gc-inactive-overlay" id="inact-game4">
+          <img class="gc-inactive-img" id="inact-img-game4" src="" alt="">
+          <div class="gc-inactive-default" id="inact-txt-game4">YAKINDA</div>
         </div>
       </div>
     </a>
@@ -174,8 +192,8 @@ function applySettings(){
 
   /* 3 — kart boyutları */
   try{
-    const w = JSON.parse(localStorage.getItem('hp_card_w')||'300');
-    const h = JSON.parse(localStorage.getItem('hp_card_h')||'300');
+    const w = JSON.parse(localStorage.getItem('hp_card_w')||'150');
+    const h = JSON.parse(localStorage.getItem('hp_card_h')||'150');
     document.documentElement.style.setProperty('--card-min-w',w+'px');
     document.documentElement.style.setProperty('--card-banner-h',h+'px');
   }catch(e){}
@@ -183,7 +201,7 @@ function applySettings(){
   /* 4 — kart görselleri + aktiflik + deaktif etiketi */
   try{
     const cards = JSON.parse(localStorage.getItem('hp_cards')||'{}');
-    ['vmym','faul','game3'].forEach(key=>{
+    ['vmym','faul','game3','game4'].forEach(key=>{
       const cfg = cards[key]||{};
 
       /* banner görseli */
