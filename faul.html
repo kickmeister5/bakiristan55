@@ -472,10 +472,12 @@ html,body{
 <!-- ===== LOBBY ===== -->
 <div id="lobby-screen" class="screen">
 
-  <div class="topbar">
+  <div class="topbar" style="
+    height: 60px;
+">
     <div class="topbar-logo">TABU<span>!</span></div>
     <div class="topbar-actions">
-      <div class="conn-dot" id="conn-dot"></div>
+      <div class="conn-dot live" id="conn-dot"></div>
       <button class="tb-btn danger" id="btn-end-game" onclick="endGame()" style="display:none;">🚪 Oyunu Bitir</button>
     </div>
   </div>
