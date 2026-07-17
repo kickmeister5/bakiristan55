@@ -54,9 +54,9 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 .fx-money-pop.lo { color:var(--red); text-shadow:0 0 18px rgba(0,0,0,0.9),0 0 30px rgba(224,48,48,0.55); }
 .fx-money-pop.md { color:#fff7dc; text-shadow:0 0 14px #000,0 0 30px rgba(240,192,64,0.85),0 0 6px rgba(255,255,255,0.9); }
 @keyframes moneyPop{0%{opacity:0;transform:translate(-50%,-20%) scale(0.55)}18%{opacity:0}36%{opacity:1;transform:translate(-50%,-50%) scale(1.22)}76%{opacity:1;transform:translate(-50%,-72%) scale(1.04)}100%{opacity:0;transform:translate(-50%,-125%) scale(0.95)}}
-.offer-time-dim { position:absolute; inset:0; background:rgba(0,0,0,0.52); backdrop-filter:blur(2px); animation:offerDimIn 2.15s ease forwards; }
-.offer-time-call { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(0.72); font-family:var(--font-title); font-size:clamp(52px,9vw,112px); letter-spacing:6px; color:var(--gold); text-align:center; white-space:nowrap; text-shadow:0 0 22px #000,0 0 46px rgba(240,192,64,0.78); animation:offerTimeCall 2.15s cubic-bezier(0.18,0.86,0.2,1) forwards; }
-.offer-time-call.from-box { left:var(--from-x); top:var(--from-y); animation:offerTimeFromBox 2.15s cubic-bezier(0.18,0.86,0.2,1) forwards; }
+.offer-time-dim { position:absolute; inset:0; background:rgba(0,0,0,0.52); backdrop-filter:blur(2px); animation:offerDimIn 3.4s ease forwards; }
+.offer-time-call { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(0.72); font-family:var(--font-title); font-size:clamp(52px,9vw,112px); letter-spacing:6px; color:var(--gold); text-align:center; white-space:nowrap; text-shadow:0 0 22px #000,0 0 46px rgba(240,192,64,0.78); animation:offerTimeCall 3.4s cubic-bezier(0.16,0.9,0.18,1) forwards; }
+.offer-time-call.from-box { left:var(--from-x); top:var(--from-y); animation:offerTimeFromBox 3.4s cubic-bezier(0.16,0.9,0.18,1) forwards; }
 @keyframes offerDimIn{0%{opacity:0}18%,78%{opacity:1}100%{opacity:0}}
 @keyframes offerTimeCall{0%{opacity:0;transform:translate(-50%,-50%) scale(0.58)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}70%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.16)}}
 @keyframes offerTimeFromBox{0%{opacity:0;left:var(--from-x);top:var(--from-y);transform:translate(-50%,-50%) scale(0.18)}28%{opacity:1;left:50%;top:50%;transform:translate(-50%,-50%) scale(1.08)}76%{opacity:1;left:50%;top:50%;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;left:50%;top:50%;transform:translate(-50%,-50%) scale(1.16)}}
@@ -97,10 +97,10 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 .stage-box { position:absolute; left:var(--start-left); top:var(--start-top); width:var(--start-width); height:var(--start-height); border-radius:11px; overflow:hidden; background:var(--surface); border:1.5px solid var(--border2); box-shadow:0 20px 70px rgba(0,0,0,0.62),0 0 46px rgba(240,192,64,0.25); animation:stageBoxIn 0.42s cubic-bezier(0.16,1,0.3,1) forwards; transform-origin:center; perspective:1000px; will-change:transform; }
 .stage-box.ready { left:50%; top:50%; width:min(46vw,520px); height:min(26vw,292px); transform:translate(-50%,-50%) scale(1); animation:none; }
 .stage-box.breathing { overflow:visible; }
-.stage-box.breathing::before { content:''; position:absolute; inset:-16%; border-radius:22px; background:radial-gradient(circle,rgba(240,192,64,0.55) 0%,rgba(240,192,64,0) 70%); opacity:0.35; animation:goldBreathe 1.05s ease-in-out infinite; pointer-events:none; }
+.stage-box.breathing::before { content:''; position:absolute; inset:-16%; border-radius:22px; background:radial-gradient(circle,rgba(240,192,64,0.55) 0%,rgba(240,192,64,0) 70%); opacity:0.35; animation:goldBreathe 0.9s ease-in-out infinite; pointer-events:none; }
 @keyframes goldBreathe{0%,100%{opacity:0.3;transform:scale(1)}50%{opacity:0.85;transform:scale(1.09)}}
-.stage-box.motion-blur { animation:mbPulse 0.34s ease-out; }
-@keyframes mbPulse{0%{filter:blur(0)}32%{filter:blur(5px)}100%{filter:blur(0)}}
+.stage-box.motion-blur { animation:mbPulse 0.56s ease-out; }
+@keyframes mbPulse{0%{filter:blur(0)}30%{filter:blur(6px)}100%{filter:blur(0)}}
 .stage-box.opening { overflow:visible; }
 .stage-box.revealed { background:radial-gradient(circle at center,rgba(30,30,40,0.95),#030307 68%); border-color:rgba(240,192,64,0.38); }
 .stage-box.revealed > .box-img { opacity:0!important; }
@@ -110,11 +110,20 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 .stage-box .box-icon { font-size:34px; }
 .stage-box .box-number { font-size:42px; }
 .stage-box .box-amt { font-family:var(--font-title); font-size:clamp(30px,5vw,58px)!important; line-height:1; }
-.stage-flap { position:absolute; left:0; width:100%; height:50%; background-size:100% 200%; background-repeat:no-repeat; opacity:1; transition:transform 0.34s cubic-bezier(0.65,0,0.35,1), opacity 0.3s ease 0.08s; will-change:transform,opacity; }
+.stage-flap { position:absolute; left:0; width:100%; height:50%; background-size:100% 200%; background-repeat:no-repeat; opacity:1; transition:transform 0.56s cubic-bezier(0.65,0,0.35,1), opacity 0.42s ease 0.12s; will-change:transform,opacity; }
 .stage-flap-top { top:0; background-position:top; transform-origin:top center; box-shadow:0 8px 22px rgba(0,0,0,0.55) inset; }
 .stage-flap-bottom { bottom:0; background-position:bottom; transform-origin:bottom center; }
 .stage-flap-top.go { transform:rotateX(-118deg) translateY(-4px); opacity:0; }
 .stage-flap-bottom.go { transform:rotateX(118deg) translateY(4px); opacity:0; }
+/* Parçalanma efekti: kapaklar açılırken uçuşan kırık parçalar */
+.stage-piece { position:absolute; z-index:6; width:50%; height:50%; background-size:200% 200%; background-repeat:no-repeat; border-radius:3px; box-shadow:0 0 20px rgba(0,0,0,0.45); pointer-events:none; opacity:1; will-change:transform,opacity; animation:stagePieceFly 1.35s cubic-bezier(0.14,0.75,0.2,1) forwards; }
+.stage-piece::after { content:''; position:absolute; inset:0; border-radius:inherit; background:linear-gradient(135deg,rgba(255,255,255,0.22),transparent 42%,rgba(0,0,0,0.32)); }
+@keyframes stagePieceFly{
+  0%{opacity:1;transform:translate(0,0) rotate(0deg) scale(1)}
+  20%{opacity:1;transform:translate(calc(var(--dx)*0.16),calc(var(--dy)*0.16)) rotate(calc(var(--rot)*0.16)) scale(1.05)}
+  70%{opacity:1}
+  100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--rot)) scale(0.65)}
+}
 .stage-amt { position:absolute; inset:0; z-index:8; display:flex; align-items:center; justify-content:center; font-family:var(--font-title); font-size:clamp(42px,7vw,82px); line-height:1; letter-spacing:1px; color:#fff7dc; text-shadow:0 0 18px #000,0 0 36px rgba(240,192,64,0.82); opacity:0; transform:scale(0.6); }
 .stage-amt.on { opacity:1; transform:scale(1); transition:opacity 0.3s ease, transform 0.4s cubic-bezier(0.34,1.56,0.64,1); }
 .stage-amt.hi { color:var(--green); text-shadow:0 0 18px #000,0 0 42px rgba(32,192,96,0.74); }
@@ -695,6 +704,14 @@ function clGet(key){
   try{ return (JSON.parse(localStorage.getItem('vmym_cl_urls'))||{})[key]||null; }catch(e){ return null; }
 }
 
+/* Cloudinary görsellerini otomatik sıkıştırılmış/uygun formatta ve gerçek kullanım boyutunda servis eder */
+function clOpt(url, width){
+  if(!url) return url;
+  if(url.indexOf('res.cloudinary.com')===-1 || url.indexOf('/upload/')===-1) return url;
+  const t = 'f_auto,q_auto'+(width?',w_'+width:'');
+  return url.replace('/upload/', '/upload/'+t+'/');
+}
+
 async function syncConfigFromRemote(){
   try{
     const res = await fetch('https://api.jsonbin.io/v3/b/6a2a8f27f5f4af5e29de21ee/latest', {
@@ -725,8 +742,8 @@ function fmt(n){ return '₺'+Math.round(n).toLocaleString('tr-TR'); }
 function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 function setStatus(h){ const el=document.getElementById('status-msg'); if(el) el.innerHTML=h; }
 
-/* ===== Cinematic box-open timing (ms) — total ~2.5s ===== */
-const BOX_ANIM = { FLY:380, HOLD:450, OPEN:300, REVEAL_DELAY:200, REVEAL:280, DISPLAY:950, CLOSE:260 };
+/* ===== Cinematic box-open timing (ms) — slower, more dramatic ===== */
+const BOX_ANIM = { FLY:640, HOLD:720, OPEN:560, REVEAL_DELAY:340, REVEAL:440, DISPLAY:1350, CLOSE:440 };
 BOX_ANIM.OPEN_START = BOX_ANIM.FLY + BOX_ANIM.HOLD;
 BOX_ANIM.REVEAL_START = BOX_ANIM.OPEN_START + BOX_ANIM.REVEAL_DELAY;
 BOX_ANIM.CLOSE_START = BOX_ANIM.REVEAL_START + BOX_ANIM.REVEAL + BOX_ANIM.DISPLAY;
@@ -809,6 +826,29 @@ function closedVisualBg(stage){
   const img=stage.querySelector('.box-img');
   return (img && img.src) ? `url("${img.src}")` : 'linear-gradient(135deg,#241d10,#f0c040 48%,#110f14)';
 }
+function createShatterPieces(stage){
+  const bg=closedVisualBg(stage);
+  const pieces=[
+    {l:0,t:0,  bp:'0% 0%',   dx:-115,dy:-78, rot:-70},
+    {l:50,t:0, bp:'100% 0%', dx:120, dy:-72, rot:65},
+    {l:0,t:50, bp:'0% 100%', dx:-108,dy:82,  rot:55},
+    {l:50,t:50,bp:'100% 100%',dx:126,dy:88,  rot:-60}
+  ];
+  pieces.forEach((p,i)=>{
+    const piece=document.createElement('div');
+    piece.className='stage-piece';
+    piece.style.left=p.l+'%';
+    piece.style.top=p.t+'%';
+    piece.style.backgroundImage=bg;
+    piece.style.backgroundPosition=p.bp;
+    piece.style.setProperty('--dx', p.dx+'px');
+    piece.style.setProperty('--dy', p.dy+'px');
+    piece.style.setProperty('--rot', p.rot+'deg');
+    piece.style.animationDelay=(i*40)+'ms';
+    stage.appendChild(piece);
+    setTimeout(()=>piece.remove(),1450);
+  });
+}
 function createOpeningFlaps(stage){
   const bg=closedVisualBg(stage);
   Array.from(stage.children).forEach(c=>{ c.style.transition='opacity .18s ease'; c.style.opacity='0'; });
@@ -829,6 +869,7 @@ function playBoxOpenBurst(stage){
   flashScreen('white');
   triggerCameraShake();
   createOpeningFlaps(stage);
+  createShatterPieces(stage);
   spawnGoldBurst(cx, cy, 26);
   stage.classList.add('motion-blur');
   setTimeout(()=>stage.classList.remove('motion-blur'), BOX_ANIM.OPEN+40);
@@ -903,17 +944,17 @@ function showOfferTimeThenOffer(){
   fx.appendChild(dim);
   fx.appendChild(call);
   setStatus('<span>TEKLİF ZAMANI!</span>');
-  setTimeout(()=>{ call.remove(); dim.remove(); },2200);
-  setTimeout(showOffer,1850);
+  setTimeout(()=>{ call.remove(); dim.remove(); },3450);
+  setTimeout(showOffer,2900);
 }
 function animateOfferAmount(target){
   const el=document.getElementById('offer-amt'); if(!el) return;
   if(offerAnimTimer) clearInterval(offerAnimTimer);
-  const duration=2300, start=performance.now();
+  const duration=5200, start=performance.now();
   el.classList.add('counting');
   offerAnimTimer=setInterval(()=>{
     const p=Math.min(1,(performance.now()-start)/duration);
-    const eased=1-Math.pow(1-p,3);
+    const eased = p<0.5 ? 4*p*p*p : 1-Math.pow(-2*p+2,3)/2;
     el.textContent=fmt(roundOffer(target*eased));
     if(p>=1){
       clearInterval(offerAnimTimer);
@@ -929,7 +970,7 @@ function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=
 /* ===== HEADER IMAGE ===== */
 async function applyHeaderImg(){
   try {
-    const url = clGet('header_img');
+    const url = clOpt(clGet('header_img'), 1400);
     const wrap = document.getElementById('game-header-img-wrap');
     const txt  = document.getElementById('game-header-text');
     const img  = document.getElementById('game-header-img');
@@ -962,7 +1003,7 @@ async function applyBackground(){
       layer.style.opacity = '1';
       document.body.style.background = 'transparent';
     } else if(d.mode === 'image'){
-      const url = clGet('bg_img');
+      const url = clOpt(clGet('bg_img'), 1600);
       if(!url) return;
       const fitMap = {
         cover:   'center/cover no-repeat fixed',
@@ -980,7 +1021,7 @@ async function applyBackground(){
 /* ===== LEFT PANEL IMAGE (header only) ===== */
 async function applyLpImage(){
   try {
-    const url = clGet('lp_img');
+    const url = clOpt(clGet('lp_img'), 500);
     const titleEl = document.querySelector('.lp-title');
     const existingImg = document.getElementById('lp-header-img');
     if(existingImg) existingImg.remove();
@@ -1003,7 +1044,7 @@ async function applyLpImage(){
 function applySelPopupImage(){
   const selImg = document.getElementById('sel-popup-img');
   const selIcon = document.getElementById('sel-icon-emoji');
-  const selImgUrl = clGet('sel_img');
+  const selImgUrl = clOpt(clGet('sel_img'), 500);
   if(selImgUrl && selImg){
     selImg.src=selImgUrl; selImg.classList.add('on');
     if(selIcon) selIcon.style.display='none';
@@ -1016,7 +1057,7 @@ function applySelPopupImage(){
 /* ===== BANKER IMAGE (offer popup) ===== */
 async function applyBankerImg(){
   try {
-    const url = clGet('banker_img');
+    const url = clOpt(clGet('banker_img'), 500);
     const phoneEl = document.querySelector('.offer-phone');
     const old = document.getElementById('banker-img-popup');
     if(old) old.remove();
@@ -1059,7 +1100,7 @@ function closeSelectPopup(){
 /* ===== INIT GAME ===== */
 async function initGame(){
   rawPrices = loadPrices();
-  boxImages = Array.from({length:20},(_,i)=>clGet('box_'+i));
+  boxImages = Array.from({length:20},(_,i)=>clOpt(clGet('box_'+i), 400));
 
   const adminOrder = Array.from({length:20},(_,i)=>i);
   shuffleMap = shuffle(adminOrder);
@@ -1697,7 +1738,21 @@ function startSimulation(){
 }
 
 // START
-syncConfigFromRemote().then(()=>initGame());
+/* Oyunu, önceki ziyaretten kalma önbellekle ANINDA başlat — asla görselsiz/boş açılmasın.
+   Taze veri arka planda gelince, oyuncu henüz kutu seçmediyse görselleri sessizce günceller;
+   ilerlemesi varsa (kutu seçtiyse) oyun durumuna dokunulmaz, sadece kozmetik görseller (header/bg/lp) tazelenir. */
+function refreshVisualsFromRemote(){
+  applyHeaderImg();
+  applyBackground();
+  applyLpImage();
+  if(gameState==='select' && !playerBox && openedBoxes.size===0){
+    boxImages = Array.from({length:20},(_,i)=>clOpt(clGet('box_'+i), 400));
+    buildGame();
+    animateBoxesIn();
+  }
+}
+initGame();
+syncConfigFromRemote().then(refreshVisualsFromRemote);
 </script>
 </body>
 </html>

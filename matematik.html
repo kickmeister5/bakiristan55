@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HESAP! — Hızlı Matematik Yarışması</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07070c;--surface:#12121d;--surface2:#1a1a2c;
+  --border:rgba(124,92,255,0.16);--border2:rgba(124,92,255,0.32);
+  --white:#f3f1fb;--muted:#726f8c;
+  --violet:#7c5cff;--violet-dark:#5a3fd6;--cyan:#22d3ee;
+  --green:#22c55e;--green-dark:#16a34a;--red:#ef4444;--red-dark:#c62f2f;
+  --font-title:'Bebas Neue',sans-serif;--font-body:'Outfit',sans-serif;
+}
+html,body{
+  min-height:100vh;
+  background:var(--bg);
+  background-image:repeating-linear-gradient(45deg,rgba(255,255,255,0.015) 0px,rgba(255,255,255,0.015) 2px,transparent 2px,transparent 12px);
+  color:var(--white);font-family:var(--font-body);overflow-x:hidden;
+}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
+  background:radial-gradient(ellipse 55% 40% at 15% 10%,rgba(124,92,255,0.08) 0%,transparent 60%),
+             radial-gradient(ellipse 45% 55% at 85% 85%,rgba(34,211,238,0.06) 0%,transparent 60%);}
+#bg-layer{position:fixed;inset:0;z-index:-1;pointer-events:none;}
+
+.screen{display:none;flex-direction:column;align-items:center;min-height:100vh;padding:0;position:relative;z-index:1;}
+.screen.active{display:flex;animation:fadeIn 0.3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* ===== ENTRY SCREEN ===== */
+#entry-screen{justify-content:center;padding:20px;}
+.entry-card{
+  width:100%;max-width:420px;background:rgba(18,18,29,0.85);backdrop-filter:blur(14px);
+  border:1px solid var(--border);border-radius:22px;padding:32px 28px;
+  box-shadow:0 30px 80px rgba(0,0,0,0.55);
+}
+.entry-logo{font-family:var(--font-title);font-size:clamp(38px,9vw,58px);letter-spacing:4px;text-align:center;color:var(--violet);text-shadow:0 2px 10px rgba(124,92,255,0.5),-2px 2px 0 rgba(0,0,0,0.35);}
+.entry-logo span{color:var(--cyan);}
+.entry-sub{text-align:center;font-size:13px;color:var(--muted);letter-spacing:1px;margin-top:2px;margin-bottom:24px;}
+.entry-tabs{display:flex;gap:8px;margin-bottom:22px;background:rgba(255,255,255,0.05);border-radius:12px;padding:4px;}
+.et-tab{flex:1;background:transparent;border:none;color:var(--muted);font-family:var(--font-title);font-size:15px;letter-spacing:1.5px;padding:10px;border-radius:9px;cursor:pointer;transition:all 0.2s;}
+.et-tab.active{background:var(--violet);color:#fff;box-shadow:0 4px 14px rgba(124,92,255,0.4);}
+.entry-field{margin-bottom:18px;}
+.entry-field label{display:block;font-size:11px;color:var(--muted);letter-spacing:1.5px;margin-bottom:7px;font-weight:600;}
+.entry-field input{width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:11px;padding:13px 14px;color:var(--white);font-size:15px;font-family:var(--font-body);outline:none;transition:border-color 0.2s;}
+.entry-field input:focus{border-color:var(--violet);}
+/* ===== AVATAR CAROUSEL (tek avatar görünür, oklarla kaydırılır) ===== */
+.avatar-carousel{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px;}
+.ac-arrow{width:38px;height:38px;border-radius:50%;flex-shrink:0;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);font-size:22px;color:var(--white);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;font-family:var(--font-body);font-weight:700;}
+.ac-arrow:hover{background:rgba(255,255,255,0.2);transform:scale(1.08);}
+.ac-arrow:active{transform:scale(0.95);}
+.ac-viewport{width:104px;height:104px;border-radius:50%;overflow:hidden;position:relative;flex-shrink:0;background:rgba(255,255,255,0.08);}
+.ac-track{display:flex;height:100%;transition:transform 0.32s cubic-bezier(0.34,1.2,0.64,1);}
+.ac-slide{width:104px;height:104px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:46px;}
+.ac-viewport::after{content:'';position:absolute;inset:0;border-radius:50%;border:3px solid var(--violet);pointer-events:none;box-shadow:0 0 0 4px rgba(124,92,255,0.18);}
+
+/* ===== CANLI OYUNCU TABLOSU (oyun ekranında yan panel) =====
+   Oyun ekranı (soru/cevap) sayfanın GERÇEK ortasında büyük durur; skor tablosu
+   kenara konumlanan küçük bir panel olarak eklenir, ortayı ikiye bölmez. */
+.game-layout{position:relative;width:100%;}
+.game-main{width:100%;max-width:600px;margin:0 auto;display:flex;flex-direction:column;align-items:center;}
+.live-board{position:absolute;top:0;right:0;width:200px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:15px;padding:12px;}
+.lb-title{font-family:var(--font-title);font-size:12px;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px;text-align:center;}
+.lb-row{display:flex;align-items:center;gap:7px;padding:6px 7px;border-radius:9px;margin-bottom:5px;transition:background 0.3s;}
+.lb-row.you{background:rgba(124,92,255,0.16);}
+.lb-rank{font-family:var(--font-title);font-size:12px;color:var(--muted);width:14px;flex-shrink:0;}
+.lb-avatar{font-size:14px;flex-shrink:0;}
+.lb-name{flex:1;font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.lb-score{font-family:var(--font-title);font-size:14px;color:var(--cyan);flex-shrink:0;transition:transform 0.25s;}
+.lb-row.pulse .lb-score{animation:lbPulse 0.8s ease;}
+.lb-delta{font-size:9px;font-weight:800;color:var(--green);position:relative;animation:lbDeltaFloat 2.6s ease forwards;flex-shrink:0;}
+@keyframes lbPulse{0%{transform:scale(1);color:var(--cyan);}35%{transform:scale(1.35);color:var(--green);}100%{transform:scale(1);color:var(--cyan);}}
+@keyframes lbDeltaFloat{0%{opacity:0;transform:translateY(4px);}12%{opacity:1;transform:translateY(0);}80%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-8px);}}
+@media(max-width:920px){
+  .live-board{position:static;width:100%;margin:24px auto 0;max-width:420px;}
+}
+.entry-btn{width:100%;background:linear-gradient(135deg,var(--violet),var(--violet-dark));border:none;border-radius:13px;padding:15px;color:#fff;font-family:var(--font-title);font-size:18px;letter-spacing:2px;cursor:pointer;transition:all 0.2s;box-shadow:0 10px 28px rgba(124,92,255,0.35);}
+.entry-btn:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(124,92,255,0.45);}
+.entry-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+.entry-err{color:var(--red);font-size:12px;text-align:center;margin-top:10px;min-height:16px;}
+
+/* ===== TOPBAR ===== */
+.topbar{
+  width:100%;background:rgba(0,0,0,0.28);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);padding:12px 24px;
+  display:flex;align-items:center;justify-content:flex-end;flex-shrink:0;position:relative;
+}
+.topbar-logo{font-family:var(--font-title);font-size:clamp(26px,5vw,38px);letter-spacing:3px;color:var(--violet);text-shadow:0 2px 8px rgba(0,0,0,0.4);position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);white-space:nowrap;pointer-events:none;}
+.topbar-logo span{color:var(--cyan);}
+.topbar-actions{display:flex;gap:8px;align-items:center;}
+.tb-btn{background:rgba(255,255,255,0.08);border:1px solid var(--border);border-radius:9px;color:var(--white);font-family:var(--font-body);font-size:12px;font-weight:700;padding:8px 14px;cursor:pointer;transition:all 0.2s;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
+.tb-btn:hover{background:rgba(255,255,255,0.16);}
+.tb-btn.primary{background:var(--violet);border-color:var(--violet-dark);}
+.tb-btn.primary:hover{background:var(--violet-dark);}
+.tb-btn.danger{background:rgba(239,68,68,0.16);border-color:rgba(239,68,68,0.4);color:#ff9d9d;}
+.tb-btn.danger:hover{background:rgba(239,68,68,0.28);}
+.conn-dot{width:9px;height:9px;border-radius:50%;background:#555;flex-shrink:0;}
+.conn-dot.live{background:var(--green);box-shadow:0 0 8px rgba(34,197,94,0.7);}
+
+/* ===== ODA KODU / HOST ÇUBUĞU ===== */
+#host-wait-banner{display:none;background:rgba(124,92,255,0.12);border:1px solid rgba(124,92,255,0.35);border-radius:14px;padding:12px 18px;margin:16px auto 0;max-width:1000px;width:calc(100% - 40px);}
+#host-wait-banner.show{display:block;}
+.hw-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.hw-code-group{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.hw-label{font-size:11px;color:var(--violet);letter-spacing:2px;font-weight:700;white-space:nowrap;}
+.hw-room-code{font-family:var(--font-title);font-size:24px;color:var(--violet);letter-spacing:5px;min-width:8ch;}
+.hw-icon-btn{background:rgba(255,255,255,0.12);border:1px solid var(--border);border-radius:9px;color:var(--white);font-size:15px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;flex-shrink:0;}
+.hw-icon-btn:hover{background:rgba(255,255,255,0.22);border-color:var(--border2);}
+.hw-icon-btn.active{background:var(--violet);color:#fff;border-color:var(--violet-dark);}
+.hw-actions-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+@media(max-width:560px){.hw-row{justify-content:center;}.hw-code-group,.hw-actions-group{justify-content:center;width:100%;}}
+
+/* ===== MAIN WRAP ===== */
+.main-wrap{width:100%;max-width:1040px;padding:28px 20px 60px;flex:1;display:flex;flex-direction:column;align-items:center;}
+
+/* ---- LOBBY VIEW ---- */
+.section-title{font-family:var(--font-title);font-size:20px;letter-spacing:2px;color:var(--muted);margin-bottom:16px;width:100%;}
+.section-title span{color:var(--violet);}
+.players-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;width:100%;margin-bottom:20px;}
+.player-chip{background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:13px;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;}
+.player-chip.you{border-color:var(--violet);background:rgba(124,92,255,0.14);}
+.player-chip.host-chip{box-shadow:0 0 0 1px var(--cyan) inset;}
+.pc-avatar{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;}
+.pc-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.pc-tag{font-size:9px;color:var(--cyan);letter-spacing:1px;font-weight:700;}
+.lobby-hint{color:var(--muted);font-size:13px;text-align:center;margin-top:6px;}
+
+/* ---- GAME VIEW ---- */
+#view-game{width:100%;display:flex;flex-direction:column;align-items:center;}
+.q-progress{font-family:var(--font-title);font-size:16px;letter-spacing:2px;color:var(--muted);margin-bottom:18px;}
+.q-progress span{color:var(--violet);}
+.q-timer-wrap{width:100%;max-width:420px;display:flex;align-items:center;gap:12px;margin-bottom:28px;}
+.q-timer-bar{flex:1;height:10px;background:rgba(255,255,255,0.08);border-radius:6px;overflow:hidden;}
+.q-timer-fill{height:100%;width:100%;background:linear-gradient(90deg,var(--cyan),var(--violet));border-radius:6px;transition:width 0.2s linear,background 0.3s;}
+.q-timer-fill.low{background:linear-gradient(90deg,var(--red),#ff8a4c);}
+.q-timer-num{font-family:var(--font-title);font-size:22px;color:var(--white);min-width:2ch;text-align:center;}
+.q-expr{font-family:var(--font-title);font-size:clamp(40px,9vw,72px);letter-spacing:2px;color:var(--white);text-shadow:0 0 30px rgba(124,92,255,0.4);margin-bottom:30px;text-align:center;}
+.q-answer-row{display:flex;gap:10px;width:100%;max-width:360px;}
+.q-answer-input{flex:1;background:rgba(255,255,255,0.07);border:1.5px solid var(--border2);border-radius:13px;padding:14px 16px;color:var(--white);font-size:22px;font-family:var(--font-title);letter-spacing:1px;text-align:center;outline:none;}
+.q-answer-input:focus{border-color:var(--violet);}
+.q-submit-btn{background:var(--violet);border:none;border-radius:13px;padding:0 24px;color:#fff;font-family:var(--font-title);font-size:16px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;}
+.q-submit-btn:hover{background:var(--violet-dark);}
+.q-submit-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.q-locked{margin-top:18px;color:var(--green);font-size:14px;font-weight:600;text-align:center;}
+.q-answered-list{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:26px;max-width:600px;}
+.qa-pill{background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:12px;display:flex;align-items:center;gap:6px;}
+.qa-pill.done{border-color:var(--green);color:var(--green);}
+
+/* ---- RESULTS VIEW ---- */
+#view-results{width:100%;display:flex;flex-direction:column;align-items:center;}
+.res-title{font-family:var(--font-title);font-size:clamp(32px,7vw,48px);letter-spacing:3px;color:var(--violet);text-shadow:0 0 30px rgba(124,92,255,0.5);margin-bottom:24px;}
+.res-list{width:100%;max-width:520px;display:flex;flex-direction:column;gap:10px;}
+.res-row{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:13px;padding:12px 16px;}
+.res-row.top1{border-color:#facc15;background:rgba(250,204,21,0.1);}
+.res-row.top2{border-color:#c0c0c0;background:rgba(192,192,192,0.08);}
+.res-row.top3{border-color:#cd7f32;background:rgba(205,127,50,0.08);}
+.res-rank{font-family:var(--font-title);font-size:20px;color:var(--muted);width:28px;text-align:center;flex-shrink:0;}
+.res-avatar{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.res-name{flex:1;font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.res-score{font-family:var(--font-title);font-size:18px;color:var(--cyan);letter-spacing:1px;flex-shrink:0;}
+
+/* ===== TOAST ===== */
+.ftost{position:fixed;bottom:26px;left:50%;transform:translate(-50%,20px);background:rgba(20,20,32,0.95);border:1px solid var(--border2);color:var(--white);padding:12px 22px;border-radius:12px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all 0.3s;z-index:999;box-shadow:0 12px 30px rgba(0,0,0,0.5);}
+.ftost.on{opacity:1;transform:translate(-50%,0);}
+
+@media(max-width:600px){
+  .q-answer-row{flex-direction:column;}
+  .players-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));}
+}
+</style>
+</head>
+<body>
+<div id="bg-layer"></div>
+<div class="ftost" id="ftost"></div>
+
+<!-- ===== ENTRY SCREEN ===== -->
+<div class="screen active" id="entry-screen">
+  <div class="entry-card">
+    <div class="entry-logo">HESAP<span>!</span></div>
+    <div class="entry-sub">HIZLI MATEMATİK YARIŞMASI</div>
+
+    <div class="entry-tabs">
+      <button class="et-tab active" id="tab-create" onclick="switchEntryTab('create')">ODA KUR</button>
+      <button class="et-tab" id="tab-join" onclick="switchEntryTab('join')">KATIL</button>
+    </div>
+
+    <div class="entry-field">
+      <label>İsminiz</label>
+      <input type="text" id="name-input" maxlength="16" placeholder="Adınızı girin">
+    </div>
+
+    <div class="entry-field" id="join-code-field" style="display:none;">
+      <label>Oda Kodu</label>
+      <input type="text" id="join-code-input" maxlength="5" placeholder="ÖRN: AB3D9" style="text-transform:uppercase;letter-spacing:3px;">
+    </div>
+
+    <div class="entry-field">
+      <label>Avatar Seç</label>
+      <div class="avatar-carousel">
+        <button class="ac-arrow" type="button" onclick="carouselPrev()">‹</button>
+        <div class="ac-viewport">
+          <div class="ac-track" id="ac-track"></div>
+        </div>
+        <button class="ac-arrow" type="button" onclick="carouselNext()">›</button>
+      </div>
+    </div>
+
+    <button class="entry-btn" id="entry-submit-btn" onclick="handleEntrySubmit()">🚀 ODA KUR</button>
+    <div class="entry-err" id="entry-err"></div>
+  </div>
+</div>
+
+<!-- ===== LOBBY / OYUN EKRANI ===== -->
+<div class="screen" id="lobby-screen">
+  <div class="topbar" style="height:60px;">
+    <div class="topbar-logo">HESAP<span>!</span></div>
+    <div class="topbar-actions">
+      <div class="conn-dot" id="conn-dot"></div>
+      <button class="tb-btn danger" id="btn-end-game" onclick="endGame()" style="display:none;">🚪 Oyunu Bitir</button>
+    </div>
+  </div>
+
+  <div id="host-wait-banner">
+    <div class="hw-row">
+      <div class="hw-code-group">
+        <span class="hw-label">ODA KODU</span>
+        <span class="hw-room-code" id="hw-room-code">••••••</span>
+        <button class="hw-icon-btn" id="hw-toggle-btn" onclick="toggleHostCodeVisibility()" title="Göster">👁️</button>
+        <button class="hw-icon-btn" onclick="copyRoomCode()" title="Kopyala">📋</button>
+      </div>
+      <div class="hw-actions-group">
+        <button class="tb-btn primary" id="btn-start" onclick="startGame()" style="display:none;">🚀 Oyunu Başlat</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-wrap">
+
+    <!-- LOBBY VIEW -->
+    <div id="view-lobby">
+      <div class="section-title">KATILIMCILAR (<span id="player-count">0</span>)</div>
+      <div class="players-grid" id="players-grid"></div>
+      <div class="lobby-hint" id="lobby-hint">Host oyunu başlatana kadar bekleyin...</div>
+    </div>
+
+    <!-- OYUN VIEW -->
+    <div id="view-game" style="display:none;width:100%;">
+      <div class="game-layout">
+        <div class="game-main">
+          <div class="q-progress">SORU <span id="q-index">1</span> / <span id="q-total">10</span></div>
+          <div class="q-timer-wrap">
+            <div class="q-timer-bar"><div class="q-timer-fill" id="q-timer-fill"></div></div>
+            <div class="q-timer-num" id="q-timer-num">10</div>
+          </div>
+          <div class="q-expr" id="q-expr">? + ? = ?</div>
+          <div class="q-answer-row" id="q-answer-row">
+            <input type="number" id="q-answer-input" class="q-answer-input" placeholder="Cevap" inputmode="numeric" onkeydown="if(event.key==='Enter')submitAnswer();">
+            <button class="q-submit-btn" id="q-submit-btn" onclick="submitAnswer()">Cevapla</button>
+          </div>
+          <div class="q-locked" id="q-locked" style="display:none;">✅ Cevabınız gönderildi, diğer oyuncular bekleniyor...</div>
+          <div class="q-answered-list" id="q-answered-list"></div>
+        </div>
+        <div class="live-board">
+          <div class="lb-title">🏆 CANLI PUAN TABLOSU</div>
+          <div id="lb-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SONUÇ VIEW -->
+    <div id="view-results" style="display:none;">
+      <div class="res-title">🏆 SONUÇLAR</div>
+      <div class="res-list" id="res-list"></div>
+      <button class="tb-btn primary" id="btn-replay" onclick="replayGame()" style="display:none;margin-top:24px;">🔁 Yeniden Oyna</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, deleteField, serverTimestamp, arrayUnion
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyACr1JjQ3w3Ph0Pt5iPXsD_DnGRTP5eLOI",
+  authDomain: "faul-oyunu.firebaseapp.com",
+  projectId: "faul-oyunu",
+  storageBucket: "faul-oyunu.firebasestorage.app",
+  messagingSenderId: "241126841209",
+  appId: "1:241126841209:web:0548349d5e45dc4518ada8",
+  measurementId: "G-KJM1RL4CR7"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+
+window.__fb = { doc, setDoc, getDoc, updateDoc, onSnapshot, deleteField, serverTimestamp, arrayUnion, db };
+window.__fbReady = true;
+window.dispatchEvent(new Event('fb-ready'));
+</script>
+<script>
+/* ============================================================
+   HESAP! — Hızlı Matematik Yarışması
+   Firebase Firestore ile gerçek zamanlı senkronizasyon
+   (Lobi/oda-kodu mimarisi FAUL! ile aynı mantık)
+   ============================================================ */
+
+const QUESTION_COUNT = 10;
+const TIME_PER_QUESTION = 5; // saniye
+const AVATAR_LIST = ['🧮','🔢','➕','➖','✖️','➗','🧠','🤓','🎯','🚀','⚡','🔥','💡','🏆','🎲','📐','🦾','👾','🐙','🦉'];
+
+let myPlayerId = null;
+let myName = '';
+let myAvatar = '';
+let roomCode = null;
+let isHost = false;
+let roomData = null;
+let unsubscribe = null;
+let hostCodeShown = false;
+let hostWatchdog = null;
+let lastRenderedIndex = -1;
+let clientTimerLoop = null;
+let entryTab = 'create';
+let lastKnownScores = {};
+
+/* ===== UTILS ===== */
+function showToast(msg, dur=2200){
+  const t=document.getElementById('ftost');
+  t.textContent=msg; t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'), dur);
+}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function genId(){ return 'p_' + Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+function genRoomCode(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s=''; for(let i=0;i<5;i++) s+=chars[Math.floor(Math.random()*chars.length)];
+  return s;
+}
+function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+/* ===== SORU ÜRETİMİ ===== */
+function generateQuestions(){
+  const qs=[];
+  for(let i=0;i<QUESTION_COUNT;i++){
+    const ops=['+','-','×','÷'];
+    const op=ops[rand(0,3)];
+    let a,b,answer;
+    if(op==='+'){ a=rand(2,60); b=rand(2,60); answer=a+b; }
+    else if(op==='-'){ a=rand(5,80); b=rand(1,a); answer=a-b; }
+    else if(op==='×'){ a=rand(2,12); b=rand(2,12); answer=a*b; }
+    else { b=rand(2,12); answer=rand(2,12); a=b*answer; }
+    qs.push({a,b,op,answer});
+  }
+  return qs;
+}
+function fmtScore(n){
+  const r = Math.round((n||0)*10)/10;
+  return (Number.isInteger(r) ? r : r.toFixed(1)).toString();
+}
+function exprText(q){ return `${q.a} ${q.op} ${q.b} = ?`; }
+
+/* ===== PUANLAMA ALGORİTMASI =====
+   - Soru başına TAVAN PUAN: 10.
+   - Doğru cevap: süreye göre ÜSTEL (exponential) şekilde hızla azalır — 1 saniyelik gecikme bile
+     puanı belirgin şekilde kırar (0.55 üzeri her saniye kalan puanın ~%55'i kalır). Tam 10 almak
+     neredeyse anlık cevap gerektirir, bu yüzden çok zordur.
+   - Yanlış cevap: 0 değil — doğru cevaba YAKINLIĞA göre kısmi puan verir (her zaman doğru
+     cevabın alabileceği en düşük puanın altında kalır), bu da yine hıza göre ölçeklenir.
+   - Hiç cevap verilmezse: 0 puan. */
+const MAX_SCORE = 10;
+const DECAY_BASE = 0.55;          // saniye başına kalan puan oranı — küçüldükçe daha sert düşer
+const MIN_CORRECT_SCORE = 0.3;    // doğru cevap için garanti taban puan
+const MAX_WRONG_SCORE = 0.9;      // en yakın yanlış cevabın alabileceği tavan (en düşük doğru puanın altında)
+
+function computeScore(value, answer, correct, ms){
+  const elapsedSec = Math.max(0, Math.min(ms, TIME_PER_QUESTION*1000)) / 1000;
+  const decay = Math.pow(DECAY_BASE, elapsedSec); // 1 (anlık) -> ~0 (süre sonu), üstel düşüş
+  if(correct){
+    return Math.max(MIN_CORRECT_SCORE, Math.round(MAX_SCORE*decay*10)/10);
+  }
+  const diff = Math.abs(value-answer);
+  const closeness = 1/(1+diff); // fark arttıkça hızla düşen yakınlık oranı
+  return Math.round(MAX_WRONG_SCORE*closeness*decay*10)/10;
+}
+
+/* ===== ENTRY SCREEN ===== */
+function buildCarousel(){
+  const track = document.getElementById('ac-track');
+  track.innerHTML = '';
+  AVATAR_LIST.forEach(av=>{
+    const slide = document.createElement('div');
+    slide.className = 'ac-slide';
+    slide.textContent = av;
+    track.appendChild(slide);
+  });
+  carouselIndex = 0;
+  updateCarouselPosition();
+}
+function updateCarouselPosition(){
+  const track = document.getElementById('ac-track');
+  track.style.transform = `translateX(${-carouselIndex*104}px)`;
+}
+function carouselPrev(){
+  if(AVATAR_LIST.length===0) return;
+  carouselIndex = (carouselIndex - 1 + AVATAR_LIST.length) % AVATAR_LIST.length;
+  updateCarouselPosition();
+}
+function carouselNext(){
+  if(AVATAR_LIST.length===0) return;
+  carouselIndex = (carouselIndex + 1) % AVATAR_LIST.length;
+  updateCarouselPosition();
+}
+function getSelectedAvatar(){
+  return AVATAR_LIST[carouselIndex] || '🙂';
+}
+function switchEntryTab(tab){
+  entryTab = tab;
+  document.getElementById('tab-create').classList.toggle('active', tab==='create');
+  document.getElementById('tab-join').classList.toggle('active', tab==='join');
+  document.getElementById('join-code-field').style.display = tab==='join' ? 'block' : 'none';
+  document.getElementById('entry-submit-btn').textContent = tab==='create' ? '🚀 ODA KUR' : '🎮 ODAYA KATIL';
+}
+async function handleEntrySubmit(){
+  const errEl = document.getElementById('entry-err');
+  errEl.textContent='';
+  const name = document.getElementById('name-input').value.trim();
+  if(!name){ errEl.textContent='Lütfen bir isim girin.'; return; }
+  myName = name.slice(0,16);
+  myAvatar = getSelectedAvatar();
+  myPlayerId = genId();
+
+  const btn=document.getElementById('entry-submit-btn');
+  btn.disabled=true;
+
+  try{
+    await waitForFirebase();
+    if(entryTab==='create'){
+      roomCode = genRoomCode();
+      await createRoomDoc(roomCode);
+      isHost = true;
+    } else {
+      const code = document.getElementById('join-code-input').value.trim().toUpperCase();
+      if(!code || code.length<4){ errEl.textContent='Geçerli bir oda kodu girin.'; btn.disabled=false; return; }
+      const {getDoc} = fb();
+      const snap = await getDoc(roomRef(code));
+      if(!snap.exists()){ errEl.textContent='Bu kodla bir oda bulunamadı.'; btn.disabled=false; return; }
+      roomCode = code;
+      isHost = false;
+      await joinRoomDoc(code);
+    }
+    enterLobby();
+  } catch(e){
+    console.error(e);
+    errEl.textContent='Bir hata oluştu, tekrar deneyin.';
+    btn.disabled=false;
+  }
+}
+
+/* ===== FIREBASE WAIT ===== */
+function fb(){ return window.__fb; }
+function waitForFirebase(){
+  return new Promise(resolve=>{
+    if(window.__fbReady) return resolve();
+    window.addEventListener('fb-ready', ()=>resolve(), {once:true});
+  });
+}
+
+/* ===== ROOM DOC HELPERS ===== */
+function roomRef(code){
+  const {doc,db} = fb();
+  return doc(db, 'hesap_rooms', code);
+}
+
+async function createRoomDoc(code){
+  const {setDoc} = fb();
+  const initial = {
+    createdAt: Date.now(),
+    state: 'lobby', // lobby | playing | finished
+    hostId: myPlayerId,
+    players: { [myPlayerId]: { name: myName, avatar: myAvatar, joinedAt: Date.now() } },
+    playerOrder: [myPlayerId],
+    currentIndex: 0,
+    questions: [],
+    questionStartedAt: null,
+    answers: {}
+  };
+  await setDoc(roomRef(code), initial);
+}
+
+async function joinRoomDoc(code){
+  const {updateDoc, arrayUnion} = fb();
+  await updateDoc(roomRef(code), {
+    ['players.'+myPlayerId]: { name: myName, avatar: myAvatar, joinedAt: Date.now() },
+    playerOrder: arrayUnion(myPlayerId)
+  });
+}
+
+/* ===== LOBBY ===== */
+function enterLobby(){
+  showScreen('lobby-screen');
+  hostCodeShown = false;
+  const codeEl = document.getElementById('hw-room-code');
+  codeEl.dataset.code = roomCode;
+  codeEl.textContent = '•'.repeat(roomCode.length);
+  if(isHost){
+    document.getElementById('host-wait-banner').classList.add('show');
+    document.getElementById('btn-start').style.display = 'flex';
+  }
+  subscribeRoom();
+}
+
+function copyRoomCode(){
+  navigator.clipboard.writeText(roomCode);
+  showToast('📋 Oda kodu kopyalandı!');
+}
+function toggleHostCodeVisibility(){
+  const codeEl = document.getElementById('hw-room-code');
+  const btn = document.getElementById('hw-toggle-btn');
+  hostCodeShown = !hostCodeShown;
+  codeEl.textContent = hostCodeShown ? (codeEl.dataset.code||roomCode) : '•'.repeat((codeEl.dataset.code||roomCode).length);
+  btn.textContent = hostCodeShown ? '🙈' : '👁️';
+  btn.title = hostCodeShown ? 'Gizle' : 'Göster';
+  btn.classList.toggle('active', hostCodeShown);
+}
+
+/* ===== FIRESTORE SUBSCRIPTION ===== */
+function subscribeRoom(){
+  if(unsubscribe) unsubscribe();
+  const {onSnapshot} = fb();
+  unsubscribe = onSnapshot(roomRef(roomCode), (snap)=>{
+    if(!snap.exists()){ showToast('⚠️ Oda kapatıldı'); return; }
+    roomData = snap.data();
+    document.getElementById('conn-dot').className = 'conn-dot live';
+    onRoomUpdate();
+  }, ()=>{
+    document.getElementById('conn-dot').className = 'conn-dot';
+  });
+}
+
+function onRoomUpdate(){
+  if(!roomData) return;
+
+  document.getElementById('btn-end-game').style.display = isHost && roomData.state!=='lobby' ? 'flex' : 'none';
+
+  if(roomData.state === 'lobby'){
+    stopHostWatchdog();
+    document.getElementById('view-lobby').style.display='block';
+    document.getElementById('view-game').style.display='none';
+    document.getElementById('view-results').style.display='none';
+    if(isHost){
+      document.getElementById('host-wait-banner').classList.add('show');
+      document.getElementById('btn-start').style.display='flex';
+    }
+    renderLobby();
+    lastRenderedIndex = -1;
+    lastKnownScores = {};
+    scoreDeltaInfo = {};
+  } else if(roomData.state === 'playing'){
+    document.getElementById('host-wait-banner').classList.remove('show');
+    document.getElementById('view-lobby').style.display='none';
+    document.getElementById('view-game').style.display='flex';
+    document.getElementById('view-results').style.display='none';
+    renderGame();
+    if(isHost) startHostWatchdog();
+  } else if(roomData.state === 'finished'){
+    stopHostWatchdog();
+    document.getElementById('host-wait-banner').classList.remove('show');
+    document.getElementById('view-lobby').style.display='none';
+    document.getElementById('view-game').style.display='none';
+    document.getElementById('view-results').style.display='flex';
+    renderResults();
+  }
+}
+
+/* ===== LOBBY GÖRÜNÜMÜ ===== */
+function renderLobby(){
+  const order = roomData.playerOrder || [];
+  const players = roomData.players || {};
+  document.getElementById('player-count').textContent = order.length;
+  const grid = document.getElementById('players-grid');
+  grid.innerHTML = order.map(pid=>{
+    const p = players[pid]; if(!p) return '';
+    const isYou = pid===myPlayerId;
+    const isHostP = pid===roomData.hostId;
+    return `<div class="player-chip ${isYou?'you':''} ${isHostP?'host-chip':''}">
+      <div class="pc-avatar">${p.avatar||'🙂'}</div>
+      <div class="pc-name">${p.name}${isYou?' (siz)':''}</div>
+      ${isHostP?'<div class="pc-tag">HOST</div>':''}
+    </div>`;
+  }).join('');
+  document.getElementById('lobby-hint').textContent = isHost
+    ? 'Herkes katıldıysa "Oyunu Başlat" butonuna basabilirsiniz.'
+    : 'Host oyunu başlatana kadar bekleyin...';
+}
+
+/* ===== OYUNU BAŞLAT (host) ===== */
+async function startGame(){
+  if(!isHost) return;
+  const {updateDoc} = fb();
+  const questions = generateQuestions();
+  await updateDoc(roomRef(roomCode), {
+    state:'playing',
+    questions,
+    currentIndex:0,
+    questionStartedAt: Date.now(),
+    answers:{}
+  });
+}
+
+/* ===== HOST WATCHDOG: süre dolunca veya herkes cevaplayınca sıradaki soruya geç ===== */
+let hostAdvancing = false;
+function startHostWatchdog(){
+  if(hostWatchdog) return;
+  hostWatchdog = setInterval(async ()=>{
+    if(!roomData || roomData.state!=='playing' || !isHost || hostAdvancing) return;
+    const idx = roomData.currentIndex;
+    const startedAt = roomData.questionStartedAt || Date.now();
+    const elapsed = (Date.now()-startedAt)/1000;
+    // Herkes erken cevaplasa bile soru her zaman tam TIME_PER_QUESTION süresi boyunca
+    // ekranda kalır — bu sayede kazanılan puan (+X) sağdaki tabloda görünür kalabilir.
+    if(elapsed >= TIME_PER_QUESTION){
+      hostAdvancing = true;
+      try{
+        const {updateDoc} = fb();
+        if(idx+1 < QUESTION_COUNT){
+          await updateDoc(roomRef(roomCode), { currentIndex: idx+1, questionStartedAt: Date.now() });
+        } else {
+          await updateDoc(roomRef(roomCode), { state:'finished' });
+        }
+      } finally {
+        // Firestore echo'sunun roomData'ya yansıması için kısa bir pay bırak —
+        // bu süre boyunca bekçi tekrar tetiklenip aynı geçişi ikinci kez yapamaz.
+        setTimeout(()=>{ hostAdvancing = false; }, 500);
+      }
+    }
+  }, 300);
+}
+function stopHostWatchdog(){
+  if(hostWatchdog){ clearInterval(hostWatchdog); hostWatchdog=null; }
+  hostAdvancing = false;
+}
+
+/* ===== OYUN GÖRÜNÜMÜ ===== */
+function renderGame(){
+  const idx = roomData.currentIndex;
+  const q = roomData.questions[idx];
+  if(!q) return;
+
+  document.getElementById('q-index').textContent = idx+1;
+  document.getElementById('q-total').textContent = QUESTION_COUNT;
+  document.getElementById('q-expr').textContent = exprText(q);
+
+  // Yeni soruya geçildiyse giriş kutusunu ve kilidi sıfırla
+  if(idx !== lastRenderedIndex){
+    lastRenderedIndex = idx;
+    document.getElementById('q-answer-input').value='';
+    document.getElementById('q-answer-input').disabled=false;
+    document.getElementById('q-submit-btn').disabled=false;
+    document.getElementById('q-answer-row').style.display='flex';
+    document.getElementById('q-locked').style.display='none';
+  }
+
+  // Ben bu soruyu zaten cevapladıysam kilitli göster
+  const myAnswer = roomData.answers && roomData.answers[myPlayerId] && roomData.answers[myPlayerId][idx];
+  if(myAnswer!==undefined){
+    document.getElementById('q-answer-row').style.display='none';
+    document.getElementById('q-locked').style.display='block';
+  }
+
+  renderAnsweredList(idx);
+  renderLiveLeaderboard();
+  startClientTimer();
+}
+
+/* ===== CANLI PUAN TABLOSU (oyun sırasında yan panel) ===== */
+const DELTA_VISIBLE_MS = 3000; // +puan rozetinin ekranda kalacağı süre
+let scoreDeltaInfo = {}; // pid -> {delta, expiresAt}
+
+function renderLiveLeaderboard(){
+  const order = roomData.playerOrder || [];
+  const players = roomData.players || {};
+  const answers = roomData.answers || {};
+  const questions = roomData.questions || [];
+
+  const rows = order.map(pid=>{
+    const p = players[pid] || {name:'?',avatar:'🙂'};
+    let total = 0;
+    for(let i=0;i<questions.length;i++){
+      const a = answers[pid] && answers[pid][i];
+      if(a) total += (a.score||0);
+    }
+    return { pid, name:p.name, avatar:p.avatar, total };
+  }).sort((a,b)=> b.total-a.total);
+
+  const now = Date.now();
+  rows.forEach(r=>{
+    const prev = lastKnownScores[r.pid];
+    if(prev!==undefined && r.total>prev){
+      // Yeni bir puan artışı — sabit bir süre boyunca (diğer oyuncuların
+      // tetiklediği yeni render'lardan etkilenmeden) görünür kalacak şekilde kaydet
+      scoreDeltaInfo[r.pid] = { delta: Math.round((r.total-prev)*10)/10, expiresAt: now + DELTA_VISIBLE_MS };
+    }
+    lastKnownScores[r.pid] = r.total;
+  });
+
+  const list = document.getElementById('lb-list');
+  list.innerHTML = rows.map((r,i)=>{
+    const isYou = r.pid===myPlayerId;
+    const info = scoreDeltaInfo[r.pid];
+    const showDelta = info && info.expiresAt > now;
+    return `<div class="lb-row ${isYou?'you':''} ${showDelta?'pulse':''}">
+      <div class="lb-rank">${i+1}</div>
+      <div class="lb-avatar">${r.avatar}</div>
+      <div class="lb-name">${r.name}${isYou?' (siz)':''}</div>
+      ${showDelta?`<div class="lb-delta">+${fmtScore(info.delta)}</div>`:''}
+      <div class="lb-score">${fmtScore(r.total)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderAnsweredList(idx){
+  const order = roomData.playerOrder || [];
+  const players = roomData.players || {};
+  const answers = roomData.answers || {};
+  const list = document.getElementById('q-answered-list');
+  list.innerHTML = order.map(pid=>{
+    const p = players[pid]; if(!p) return '';
+    const done = answers[pid] && answers[pid][idx]!==undefined;
+    return `<div class="qa-pill ${done?'done':''}">${done?'✅':'⏳'} ${p.avatar||''} ${p.name}</div>`;
+  }).join('');
+}
+
+function startClientTimer(){
+  if(clientTimerLoop) clearInterval(clientTimerLoop);
+  clientTimerLoop = setInterval(()=>{
+    if(!roomData || roomData.state!=='playing'){ clearInterval(clientTimerLoop); return; }
+    const startedAt = roomData.questionStartedAt || Date.now();
+    const remaining = Math.max(0, TIME_PER_QUESTION - (Date.now()-startedAt)/1000);
+    const pct = Math.max(0, Math.min(100, (remaining/TIME_PER_QUESTION)*100));
+    const fill = document.getElementById('q-timer-fill');
+    fill.style.width = pct+'%';
+    fill.classList.toggle('low', remaining<=3);
+    document.getElementById('q-timer-num').textContent = Math.ceil(remaining);
+    if(remaining<=0){
+      document.getElementById('q-answer-input').disabled=true;
+      document.getElementById('q-submit-btn').disabled=true;
+    }
+  }, 150);
+}
+
+async function submitAnswer(){
+  const input = document.getElementById('q-answer-input');
+  const raw = input.value.trim();
+  if(raw==='' || isNaN(raw)) { showToast('⚠️ Lütfen sayısal bir değer girin'); return; }
+  const idx = roomData.currentIndex;
+  const q = roomData.questions[idx];
+  const value = Number(raw);
+  const correct = value === q.answer;
+  const ms = Date.now() - (roomData.questionStartedAt||Date.now());
+  const score = computeScore(value, q.answer, correct, ms);
+
+  input.disabled = true;
+  document.getElementById('q-submit-btn').disabled = true;
+
+  const {updateDoc} = fb();
+  let writeFailed = false;
+  try{
+    await updateDoc(roomRef(roomCode), {
+      ['answers.'+myPlayerId+'.'+idx]: { value, correct, ms, score }
+    });
+  }catch(e){ console.error(e); writeFailed = true; }
+
+  // Bu await sürerken soru zaten ilerlemiş olabilir (yavaş bağlantı / diğer
+  // oyuncular hızlı cevapladı). Böyle bir durumda artık ekranda YENİ bir soru
+  // var demektir — o zaten kendi doğru (cevaplanmamış) haliyle render edilmiştir,
+  // eski sorunun "kilitli" durumunu ona bindirmemeliyiz.
+  if(!roomData || roomData.currentIndex !== idx) return;
+
+  if(writeFailed){
+    // Yazma başarısız oldu ve hâlâ aynı sorudaysak — tekrar denemesi için serbest bırak
+    input.disabled = false;
+    document.getElementById('q-submit-btn').disabled = false;
+    showToast('⚠️ Cevap gönderilemedi, tekrar deneyin');
+    return;
+  }
+
+  document.getElementById('q-answer-row').style.display='none';
+  document.getElementById('q-locked').style.display='block';
+}
+
+/* ===== SONUÇLAR ===== */
+function calculateResults(){
+  const order = roomData.playerOrder || [];
+  const players = roomData.players || {};
+  const answers = roomData.answers || {};
+  const questions = roomData.questions || [];
+  return order.map(pid=>{
+    const p = players[pid] || {name:'?',avatar:'🙂'};
+    let correctCount=0, totalScore=0;
+    for(let i=0;i<questions.length;i++){
+      const a = answers[pid] && answers[pid][i];
+      if(a){
+        totalScore += (a.score||0);
+        if(a.correct) correctCount++;
+      }
+    }
+    return { pid, name:p.name, avatar:p.avatar, correctCount, totalScore };
+  }).sort((a,b)=> b.totalScore-a.totalScore);
+}
+
+function renderResults(){
+  const results = calculateResults();
+  const list = document.getElementById('res-list');
+  const medals = ['🥇','🥈','🥉'];
+  list.innerHTML = results.map((r,i)=>{
+    const topClass = i===0?'top1':i===1?'top2':i===2?'top3':'';
+    return `<div class="res-row ${topClass}">
+      <div class="res-rank">${medals[i]||(i+1)}</div>
+      <div class="res-avatar">${r.avatar}</div>
+      <div class="res-name">${r.name}${r.pid===myPlayerId?' (siz)':''}<div style="font-size:10px;color:var(--muted);font-weight:400;">${r.correctCount}/${QUESTION_COUNT} doğru</div></div>
+      <div class="res-score">${fmtScore(r.totalScore)} <span style="font-size:10px;color:var(--muted);">puan</span></div>
+    </div>`;
+  }).join('');
+  document.getElementById('btn-replay').style.display = isHost ? 'flex' : 'none';
+}
+
+/* ===== OYUNU BİTİR (host, erken sonlandırma) ===== */
+async function endGame(){
+  if(!isHost) return;
+  if(!confirm('Oyunu şimdi bitirmek istiyor musunuz?')) return;
+  const {updateDoc} = fb();
+  await updateDoc(roomRef(roomCode), { state:'finished' });
+}
+
+/* ===== YENİDEN OYNA (host) — herkes lobide kalır, kimse atılmaz ===== */
+async function replayGame(){
+  if(!isHost) return;
+  const {updateDoc} = fb();
+  await updateDoc(roomRef(roomCode), {
+    state:'lobby',
+    currentIndex:0,
+    questions:[],
+    questionStartedAt:null,
+    answers:{}
+  });
+}
+
+/* ===== INIT ===== */
+(function init(){
+  buildCarousel();
+})();
+</script>
+</body>
+</html>

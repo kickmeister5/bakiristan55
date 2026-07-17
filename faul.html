@@ -139,10 +139,10 @@ html,body{
 #lobby-screen{padding:0;justify-content:flex-start;}
 .lobby-content{
   display:grid;
-  grid-template-columns:1fr 280px 1fr;
+  grid-template-columns:1fr 340px 1fr;
   gap:20px;
   width:100%;
-  max-width:1100px;
+  max-width:1160px;
   padding:24px 20px;
   flex:1;
   align-items:start;
@@ -246,15 +246,15 @@ html,body{
   background:rgba(255,255,255,0.08);
   border:1px solid var(--border);
   border-radius:10px;
-  padding:10px 14px;
-  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;
+  display:flex;align-items:center;gap:8px;
   min-height:48px;
   transition:all 0.2s;
 }
 .waiting-slot.has-player{background:rgba(255,255,255,0.12);border-color:var(--yellow);box-shadow:0 0 0 1px rgba(245,197,24,0.3);}
 .waiting-slot.empty-slot{opacity:0.4;}
-.ws-avatar{width:45px;height:45px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;overflow:hidden;}
-.ws-name{flex:1;font-size:13px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ws-avatar{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden;}
+.ws-name{flex:1;font-size:13px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
 .ws-name.you{color:var(--yellow);}
 .ws-empty{flex:1;font-size:10px;color:var(--muted);letter-spacing:1px;}
 .ws-team-btns{display:flex;gap:4px;}
@@ -921,41 +921,55 @@ function toggleJoinCodeVisibility(){
   eye.textContent = showing ? '👁' : '🙈';
 }
 
-/* ===== AVATAR CAROUSEL ===== */
+/* ===== AVATAR CAROUSEL / JSONBIN CONFIG (localStorage önbellekli) ===== */
+const FAUL_CFG_CACHE_KEY = 'faul_cfg_cache';
 let __jsonbinRecordCache = null;
 
-async function fetchJsonbinRecord(){
-  if(__jsonbinRecordCache) return __jsonbinRecordCache;
+/* Cloudinary görsellerini otomatik sıkıştırılmış/uygun formatta ve gerçek kullanım boyutunda servis eder */
+function clOpt(url, width){
+  if(!url) return url;
+  if(url.indexOf('res.cloudinary.com')===-1 || url.indexOf('/upload/')===-1) return url;
+  const t = 'f_auto,q_auto'+(width?',w_'+width:'');
+  return url.replace('/upload/', '/upload/'+t+'/');
+}
+
+function getCachedRecord(){
+  try{ return JSON.parse(localStorage.getItem(FAUL_CFG_CACHE_KEY)||'{}'); }catch(e){ return {}; }
+}
+
+async function fetchJsonbinRecord(forceNetwork){
+  if(__jsonbinRecordCache && !forceNetwork) return __jsonbinRecordCache;
   try{
     const res = await fetch('https://api.jsonbin.io/v3/b/6a2a8f27f5f4af5e29de21ee/latest', {
       headers:{'X-Master-Key':'$2a$10$jmvujdFyJ.mML6da40FEleAhD1/oz/xVD612cQ6NAxRM4oQedpnBi'}
     });
     if(res.ok){
       __jsonbinRecordCache = (await res.json()).record || {};
+      try{ localStorage.setItem(FAUL_CFG_CACHE_KEY, JSON.stringify(__jsonbinRecordCache)); }catch(e){}
       return __jsonbinRecordCache;
     }
   } catch(e){}
-  return {};
+  return getCachedRecord();
 }
 
-async function loadAvatarList(){
+function loadAvatarList(record){
+  record = record || {};
   try{
-    const record = await fetchJsonbinRecord();
     const urls = record.vmym_cl_urls || {};
     const count = parseInt(record.faul_avatar_count) || 8;
     const found = [];
     for(let i=0;i<count;i++){
       const url = urls['faul_avatar_'+i];
-      if(url) found.push({type:'img', url});
+      if(url) found.push({type:'img', url:clOpt(url,160)});
     }
     if(found.length>0){ AVATAR_LIST = found; return; }
   } catch(e){}
   AVATAR_LIST = FALLBACK_AVATARS.map(e=>({type:'emoji', value:e}));
 }
 
-async function applyFaulBackground(){
+function applyFaulBackground(record){
+  record = record || {};
   try{
-    const record = await fetchJsonbinRecord();
     const bg = record.faul_bg || {};
     const layer = document.getElementById('bg-layer');
     const base = document.getElementById('bg-color-base');
@@ -970,7 +984,7 @@ async function applyFaulBackground(){
       layer.style.opacity = '1';
     } else if(bg.mode === 'image'){
       const urls = record.vmym_cl_urls || {};
-      const url = urls['faul_bg_img'];
+      const url = clOpt(urls['faul_bg_img'], 1600);
       if(url){
         root.style.background = 'transparent';
         document.body.style.background = 'transparent';
@@ -1278,7 +1292,7 @@ function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,
 function avatarHtml(av){
   if(!av) return '🙂';
   if(typeof av==='string' && av.startsWith('http')){
-    return `<img src="${av}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    return `<img src="${clOpt(av,120)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
   }
   return av;
 }
@@ -1728,9 +1742,18 @@ async function endGame(){
 
 /* ===== INIT ===== */
 (async function init(){
-  await applyFaulBackground();
-  await loadAvatarList();
+  // 1) Önbellekteki (önceki ziyarettten kalma) ayarları ANINDA uygula — ekran asla boş/varsayılan açılmasın
+  const cached = getCachedRecord();
+  applyFaulBackground(cached);
+  loadAvatarList(cached);
   buildCarousel();
+
+  // 2) Taze veriyi arka planda çek, değişen bir şey varsa sessizce güncelle (sayfayı bloklamaz)
+  fetchJsonbinRecord(true).then(record=>{
+    applyFaulBackground(record);
+    loadAvatarList(record);
+    buildCarousel();
+  });
 
   await waitForFirebase();
   const urlCode = getUrlRoomCode();

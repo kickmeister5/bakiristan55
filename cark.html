@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎡 Şans Çarkı</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #ffc837 100%);
+    background-size: 400% 400%;
+    animation: bgShift 15s ease infinite;
+    overflow-x: hidden;
+  }
+  @keyframes bgShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  header {
+    text-align: center;
+    padding: 18px 10px 8px;
+  }
+  header h1 {
+    font-size: 2.6rem;
+    color: #fff;
+    text-shadow: 3px 3px 0 #e91e63, 6px 6px 12px rgba(0,0,0,.35);
+    letter-spacing: 2px;
+  }
+  header a {
+    color: #fff; font-weight: bold; text-decoration: none;
+    background: rgba(0,0,0,.3); padding: 6px 16px; border-radius: 20px;
+    display: inline-block; margin-top: 8px; transition: .2s;
+  }
+  header a:hover { background: rgba(0,0,0,.55); transform: scale(1.05); }
+
+  .layout {
+    display: flex;
+    gap: 24px;
+    padding: 20px 30px 40px;
+    align-items: flex-start;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* ---------- ÇARK + VİDEO ALANI ---------- */
+  .stage {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+  }
+  .wheel-wrap {
+    position: relative;
+    width: min(620px, 80vw);
+    aspect-ratio: 1;
+  }
+  canvas#wheel {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    box-shadow: 0 0 0 12px #fff, 0 0 0 18px #ff9800, 0 15px 50px rgba(0,0,0,.45);
+    transition: transform 6s cubic-bezier(.12,.65,.09,1);
+  }
+  .pointer {
+    position: absolute;
+    top: -14px; left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 22px solid transparent;
+    border-right: 22px solid transparent;
+    border-top: 40px solid #e91e63;
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,.4));
+    z-index: 5;
+  }
+  .hub {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    width: 90px; height: 90px;
+    background: radial-gradient(circle at 30% 30%, #fff, #ffc837 60%, #ff9800);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,.4);
+    cursor: pointer;
+    z-index: 4;
+    user-select: none;
+    transition: transform .15s;
+  }
+  .hub:hover { transform: translate(-50%,-50%) scale(1.1); }
+
+  /* Video: çarkın hemen yanında, çarkı çeviriyormuş gibi */
+  .spinner-video {
+    position: relative;
+    width: 240px;
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .spinner-video video {
+    width: 100%;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.4);
+    background: #000;
+    display: none;
+  }
+  .spinner-video .placeholder {
+    width: 100%; height: 300px;
+    border: 3px dashed rgba(255,255,255,.8);
+    border-radius: 16px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: #fff; text-align: center; padding: 10px;
+    background: rgba(255,255,255,.12);
+    cursor: pointer;
+    transition: .2s;
+  }
+  .spinner-video .placeholder:hover { background: rgba(255,255,255,.25); }
+  .spinner-video .placeholder span { font-size: 3rem; }
+  .spinner-video input[type=file] { display: none; }
+  .spinner-video .arm-hint { color:#fff; font-size:.8rem; opacity:.85; text-align:center; }
+
+  /* ---------- SAĞ PANEL ---------- */
+  .panel {
+    width: 320px;
+    background: rgba(255,255,255,.95);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 10px 35px rgba(0,0,0,.35);
+  }
+  .panel h2 { color: #e91e63; margin-bottom: 12px; font-size: 1.3rem; }
+  .add-row { display: flex; gap: 8px; margin-bottom: 14px; }
+  .add-row input {
+    flex: 1; padding: 10px 12px;
+    border: 2px solid #ce93d8; border-radius: 10px;
+    font-size: 1rem; outline: none;
+  }
+  .add-row input:focus { border-color: #e91e63; }
+  .add-row button {
+    background: linear-gradient(135deg,#e91e63,#ff9800);
+    color: #fff; border: none; border-radius: 10px;
+    padding: 0 16px; font-size: 1.3rem; cursor: pointer; transition: .15s;
+  }
+  .add-row button:hover { transform: scale(1.08); }
+  ul#itemList { list-style: none; max-height: 300px; overflow-y: auto; }
+  ul#itemList li {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 10px; margin-bottom: 6px;
+    border-radius: 10px; color: #fff; font-weight: 600;
+    text-shadow: 1px 1px 2px rgba(0,0,0,.35);
+  }
+  ul#itemList li button {
+    background: rgba(0,0,0,.25); border: none; color: #fff;
+    border-radius: 6px; cursor: pointer; padding: 3px 9px; font-size: .95rem;
+  }
+  ul#itemList li button:hover { background: rgba(0,0,0,.5); }
+  .panel .actions { display: flex; gap: 8px; margin-top: 12px; }
+  .panel .actions button {
+    flex: 1; padding: 12px; border: none; border-radius: 12px;
+    font-size: 1rem; font-weight: bold; cursor: pointer; transition: .15s;
+  }
+  .panel .actions button:hover { transform: translateY(-2px); }
+  #spinBtn { background: linear-gradient(135deg,#00c853,#64dd17); color: #fff; font-size: 1.15rem; }
+  #clearBtn { background: #eceff1; color: #555; }
+
+  /* ---------- SONUÇ POPUP ---------- */
+  .result-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.6);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 50;
+  }
+  .result-card {
+    background: linear-gradient(135deg,#fff,#fff8e1);
+    border-radius: 24px; padding: 40px 60px; text-align: center;
+    animation: pop .4s cubic-bezier(.18,1.6,.5,1);
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  }
+  @keyframes pop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .result-card h3 { font-size: 1.4rem; color: #777; }
+  .result-card .winner { font-size: 2.6rem; color: #e91e63; margin: 12px 0 20px; font-weight: 800; }
+  .result-card button {
+    background: linear-gradient(135deg,#e91e63,#ff9800); color: #fff;
+    border: none; border-radius: 12px; padding: 12px 30px;
+    font-size: 1.05rem; font-weight: bold; cursor: pointer;
+  }
+
+  .confetti { position: fixed; top: -10px; border-radius: 3px; z-index: 60; pointer-events: none; }
+
+  @media (max-width: 1100px) {
+    .layout { flex-direction: column; align-items: center; }
+    .panel { width: min(620px, 90vw); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎡 ŞANS ÇARKI 🎡</h1>
+  <a href="index.html">⬅ Oyun Salonuna Dön</a>
+</header>
+
+<div class="layout">
+
+  <div class="stage">
+    <!-- ÇARK -->
+    <div class="wheel-wrap">
+      <div class="pointer"></div>
+      <canvas id="wheel" width="900" height="900"></canvas>
+      <div class="hub" id="hubBtn" title="Çevir!">🎯</div>
+    </div>
+
+    <!-- ÇARKI ÇEVİREN VİDEO -->
+    <div class="spinner-video">
+      <label class="placeholder" id="videoPlaceholder" for="videoInput">
+        <span>🎬</span>
+        <b>Video Yükle</b>
+        <small>Buraya tıklayıp çarkı çevirecek videonu seç</small>
+      </label>
+      <input type="file" id="videoInput" accept="video/*">
+      <video id="spinVideo" loop muted playsinline></video>
+      <div class="arm-hint">Çark dönerken video oynar,<br>sanki çarkı o çeviriyor! 💪</div>
+    </div>
+  </div>
+
+  <!-- SAĞ PANEL: ÇARK İÇERİĞİ -->
+  <aside class="panel">
+    <h2>🎨 Çark İçeriği</h2>
+    <div class="add-row">
+      <input type="text" id="newItem" placeholder="Yeni seçenek yaz..." maxlength="30">
+      <button id="addBtn" title="Ekle">＋</button>
+    </div>
+    <ul id="itemList"></ul>
+    <div class="actions">
+      <button id="spinBtn">🎡 ÇEVİR!</button>
+      <button id="clearBtn">🗑 Temizle</button>
+    </div>
+  </aside>
+
+</div>
+
+<!-- SONUÇ -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-card">
+    <h3>🎉 Kazanan 🎉</h3>
+    <div class="winner" id="winnerText"></div>
+    <button onclick="closeResult()">Tamam</button>
+  </div>
+</div>
+
+<script>
+const COLORS = ['#e91e63','#ff9800','#4caf50','#2196f3','#9c27b0','#ffc107','#00bcd4','#f44336','#8bc34a','#ff5722','#3f51b5','#cddc39'];
+const STORAGE_KEY = 'sansCarkiItems';
+
+let items = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') ||
+  ['100 Puan','Pas','Hediye 🎁','Tekrar Çevir','Sürpriz ⭐','50 Puan'];
+let rotation = 0;      // toplam dönüş (derece)
+let spinning = false;
+
+const canvas = document.getElementById('wheel');
+const ctx = canvas.getContext('2d');
+const listEl = document.getElementById('itemList');
+const video = document.getElementById('spinVideo');
+
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); }
+
+function drawWheel() {
+  const cx = canvas.width / 2, cy = canvas.height / 2, r = canvas.width / 2 - 8;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const n = Math.max(items.length, 1);
+  const slice = (2 * Math.PI) / n;
+  for (let i = 0; i < n; i++) {
+    const start = i * slice - Math.PI / 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, start + slice);
+    ctx.closePath();
+    ctx.fillStyle = COLORS[i % COLORS.length];
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    // Yazı
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(start + slice / 2);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 34px Segoe UI, sans-serif';
+    ctx.shadowColor = 'rgba(0,0,0,.45)';
+    ctx.shadowBlur = 6;
+    ctx.fillText(items[i] || '', r - 30, 12);
+    ctx.restore();
+  }
+}
+
+function renderList() {
+  listEl.innerHTML = '';
+  items.forEach((it, i) => {
+    const li = document.createElement('li');
+    li.style.background = COLORS[i % COLORS.length];
+    li.innerHTML = `<span>${it}</span>`;
+    const del = document.createElement('button');
+    del.textContent = '✕';
+    del.onclick = () => { items.splice(i, 1); save(); refresh(); };
+    li.appendChild(del);
+    listEl.appendChild(li);
+  });
+}
+
+function refresh() { drawWheel(); renderList(); }
+
+document.getElementById('addBtn').onclick = addItem;
+document.getElementById('newItem').addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
+function addItem() {
+  const inp = document.getElementById('newItem');
+  const v = inp.value.trim();
+  if (!v) return;
+  if (items.length >= 16) { alert('En fazla 16 seçenek ekleyebilirsin!'); return; }
+  items.push(v); inp.value = ''; save(); refresh();
+}
+
+document.getElementById('clearBtn').onclick = () => {
+  if (confirm('Tüm seçenekler silinsin mi?')) { items = []; save(); refresh(); }
+};
+
+// --- ÇEVİRME ---
+function spin() {
+  if (spinning || items.length < 2) {
+    if (items.length < 2) alert('Çevirmek için en az 2 seçenek ekle!');
+    return;
+  }
+  spinning = true;
+  if (video.src) { video.currentTime = 0; video.play(); }
+  const extra = 360 * (5 + Math.floor(Math.random() * 3)); // 5-7 tam tur
+  const target = Math.random() * 360;
+  rotation += extra + target;
+  canvas.style.transform = `rotate(${rotation}deg)`;
+  setTimeout(() => {
+    spinning = false;
+    if (video.src) video.pause();
+    announce();
+  }, 6100);
+}
+
+function announce() {
+  const n = items.length;
+  const sliceDeg = 360 / n;
+  // İşaretçi üstte (−90° yönü); çark 'rotation' kadar döndü
+  const normalized = ((rotation % 360) + 360) % 360;
+  const idx = Math.floor(((360 - normalized) % 360) / sliceDeg);
+  document.getElementById('winnerText').textContent = items[idx];
+  document.getElementById('resultOverlay').style.display = 'flex';
+  confettiBurst();
+}
+
+function closeResult() { document.getElementById('resultOverlay').style.display = 'none'; }
+
+document.getElementById('spinBtn').onclick = spin;
+document.getElementById('hubBtn').onclick = spin;
+
+// --- VİDEO YÜKLEME ---
+document.getElementById('videoInput').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  video.src = URL.createObjectURL(f);
+  video.style.display = 'block';
+  document.getElementById('videoPlaceholder').style.display = 'none';
+});
+
+// --- KONFETİ ---
+function confettiBurst() {
+  for (let i = 0; i < 60; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    const size = 6 + Math.random() * 8;
+    c.style.width = size + 'px';
+    c.style.height = size * 1.4 + 'px';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.background = COLORS[Math.floor(Math.random() * COLORS.length)];
+    const dur = 2 + Math.random() * 2;
+    c.animate([
+      { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+      { transform: `translateY(105vh) rotate(${360 + Math.random() * 720}deg)`, opacity: .8 }
+    ], { duration: dur * 1000, easing: 'ease-in' });
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), dur * 1000);
+  }
+}
+
+refresh();
+</script>
+</body>
+</html>

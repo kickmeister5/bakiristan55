@@ -123,10 +123,10 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
     </a>
 
     <!-- OYUN 4 -->
-    <a href="#" class="game-card inactive" id="card-game4">
+    <a href="matematik.html" class="game-card" id="card-game4">
       <div class="gc-banner">
         <img class="gc-bg" id="img-game4" src="" alt="">
-        <div class="gc-banner-icon">🎲</div>
+        <div class="gc-banner-icon">🧮</div>
         <div class="gc-inactive-overlay" id="inact-game4">
           <img class="gc-inactive-img" id="inact-img-game4" src="" alt="">
           <div class="gc-inactive-default" id="inact-txt-game4">YAKINDA</div>
@@ -144,6 +144,14 @@ const BIN_KEY = '$2a$10$jmvujdFyJ.mML6da40FEleAhD1/oz/xVD612cQ6NAxRM4oQedpnBi';
 
 function clGet(key){
   try{ return (JSON.parse(localStorage.getItem('vmym_cl_urls'))||{})[key]||null; }catch(e){ return null; }
+}
+
+/* Cloudinary görsellerini otomatik olarak sıkıştırılmış/uygun formatta (webp/avif) ve sayfada gerçekten kullanılan boyutta servis eder — indirme boyutunu ciddi oranda küçültür */
+function clOpt(url, width){
+  if(!url) return url;
+  if(url.indexOf('res.cloudinary.com')===-1 || url.indexOf('/upload/')===-1) return url;
+  const t = 'f_auto,q_auto'+(width?',w_'+width:'');
+  return url.replace('/upload/', '/upload/'+t+'/');
 }
 
 async function syncConfig(){
@@ -166,7 +174,7 @@ function applySettings(){
       layer.style.background = bg.color||'#07070f';
       document.body.style.background='transparent';
     } else if(bg.mode==='image'){
-      const url = clGet('hp_bg_img');
+      const url = clOpt(clGet('hp_bg_img'), 1600);
       if(url){
         const fit={cover:'center/cover no-repeat fixed',contain:'center/contain no-repeat fixed',repeat:'top left repeat fixed',center:'center/auto no-repeat fixed'};
         layer.style.background = "url('"+url+"') "+(fit[bg.fit]||fit.cover);
@@ -181,7 +189,7 @@ function applySettings(){
     const hdr = JSON.parse(localStorage.getItem('hp_header')||'{}');
     const wrap = document.getElementById('site-header');
     const img  = document.getElementById('site-header-img');
-    const url  = clGet('hp_header_img');
+    const url  = clOpt(clGet('hp_header_img'), 1200);
     if(url && hdr.show!==false){
       img.src=url; wrap.classList.add('on');
       if(hdr.maxW) img.style.maxWidth=hdr.maxW+'px';
@@ -205,7 +213,7 @@ function applySettings(){
       const cfg = cards[key]||{};
 
       /* banner görseli */
-      const bgUrl = clGet('hp_card_'+key);
+      const bgUrl = clOpt(clGet('hp_card_'+key), 600);
       if(bgUrl){ const i=document.getElementById('img-'+key); if(i){i.src=bgUrl;i.classList.add('on');} }
 
       /* url */
@@ -221,7 +229,7 @@ function applySettings(){
       if(inactOverlay){
         const inactImg = document.getElementById('inact-img-'+key);
         const inactTxt = document.getElementById('inact-txt-'+key);
-        const inactUrl = clGet('hp_inact_'+key);
+        const inactUrl = clOpt(clGet('hp_inact_'+key), 400);
         const inactLabel = cfg.inactLabel||'YAKINDA';
         if(inactUrl && inactImg){ inactImg.src=inactUrl; inactImg.classList.add('on'); if(inactTxt) inactTxt.style.display='none'; }
         else { if(inactImg) inactImg.classList.remove('on'); if(inactTxt){ inactTxt.textContent=inactLabel; inactTxt.style.display=''; } }
@@ -230,6 +238,9 @@ function applySettings(){
   }catch(e){}
 }
 
+/* Önce localStorage'daki (önceki ziyaretten kalma) ayarları ANINDA uygula — sayfa asla boş açılmasın.
+   Ardından jsonbin.io'dan taze veriyi arka planda çek ve değişen bir şey varsa sessizce güncelle. */
+applySettings();
 syncConfig().then(applySettings);
 </script>
 </body>
