@@ -239,7 +239,7 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 .sbp-fallback { display:flex; flex-direction:column; align-items:center; gap:2px; }
 .sbp-icon { font-size:16px; }
 .sbp-num { font-family:var(--font-title); font-size:18px; color:var(--gold); line-height:1; }
-.sbp-tag { font-family:var(--font-title); font-size:9px; letter-spacing:1px; color:var(--gold); background:rgba(240,192,64,0.08); border:1px solid var(--border2); border-radius:14px; padding:2px 8px; }
+.sbp-tag { display:none; }
 
 /* ====== CENTER ====== */
 .center-panel { display:flex; flex-direction:column; align-items:stretch; width:100%; min-height:0; overflow:hidden; }
@@ -256,6 +256,15 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 
 .box { aspect-ratio:7/4; background:var(--surface); border:1.5px solid var(--border); border-radius:11px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; position:relative; overflow:hidden; user-select:none; gap:2px; transform-style:preserve-3d; }
 .box:hover:not(.opened):not(.pbox) { border-color:var(--gold); background:var(--surface2); transform:translateY(-3px) scale(1.03); box-shadow:0 7px 20px rgba(240,192,64,0.12); }
+.box::before{content:'';position:absolute;inset:0;z-index:5;pointer-events:none;opacity:0;background:radial-gradient(circle at var(--tilt-x,50%) var(--tilt-y,50%),rgba(255,255,255,.34),transparent 32%);mix-blend-mode:screen;transition:opacity .18s ease;}
+.box::after{content:'';position:absolute;inset:-35% -65%;z-index:6;pointer-events:none;opacity:0;background:linear-gradient(110deg,transparent 42%,rgba(255,255,255,.4) 50%,rgba(240,192,64,.16) 55%,transparent 64%);transform:translateX(-40%);transition:opacity .2s ease;}
+.box:hover:not(.opened):not(.pbox){box-shadow:0 18px 28px rgba(0,0,0,.45),0 0 22px rgba(240,192,64,.28);}
+.box:hover:not(.opened):not(.pbox)::before,.box:hover:not(.opened):not(.pbox)::after{opacity:1;}
+.box:hover:not(.opened):not(.pbox)::after{animation:boxTiltSheen .8s cubic-bezier(.2,.8,.2,1) forwards;}
+@keyframes boxTiltSheen{to{transform:translateX(40%);}}
+/* Kutular yalnızca sağa-sola 3B eğilir; büyüme, parlama ve yansıma yoktur. */
+.box::before,.box::after{display:none;}
+.box:hover:not(.opened):not(.pbox){background:var(--surface);border-color:var(--gold);border-width:1px;box-shadow:0 0 0 .5px rgba(240,192,64,.24);}
 .box.pbox { opacity:0; pointer-events:none; transition:opacity 0.35s ease; }
 .box.opened:not(.opening) { background:#0c0c12; border-color:rgba(255,255,255,0.06); cursor:default; opacity:0.55; transform:none!important; box-shadow:none!important; }
 .box.reveal-hi { animation:boxHiPulse 0.8s ease; }
@@ -596,7 +605,6 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
     <div class="poll-controls">
       <button class="poll-btn poll-btn-start" id="poll-btn-start" onclick="startPoll()">▶ BAŞLAT</button>
       <button class="poll-btn poll-btn-ghost" onclick="resetPoll()">↺ SIFIRLA</button>
-      <button class="poll-btn poll-btn-sim" onclick="startSimulation()">🎲 SİMÜLASYON</button>
       <div class="poll-duration-wrap">
         <span>Süre:</span>
         <input type="number" class="poll-duration-input" id="poll-duration" value="30" min="10" max="120">
@@ -1169,6 +1177,22 @@ async function initGame(){
 }
 
 /* ===== GAME ===== */
+function enableBoxTilt(box){
+  if(!window.matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+  box.addEventListener('pointermove',event=>{
+    if(box.classList.contains('opened')||box.classList.contains('pbox')) return;
+    const rect=box.getBoundingClientRect();
+    const x=(event.clientX-rect.left)/rect.width;
+    const y=(event.clientY-rect.top)/rect.height;
+    box.style.setProperty('--tilt-x',(x*100)+'%');
+    box.style.setProperty('--tilt-y',(y*100)+'%');
+    box.style.transform=`perspective(440px) rotateY(${(x-.5)*30}deg)`;
+  });
+  box.addEventListener('pointerleave',()=>{
+    if(!box.classList.contains('opened')&&!box.classList.contains('pbox')) box.style.transform='scale(1) translateY(0)';
+  });
+}
+
 function buildGame(){
   const g = document.getElementById('boxes-grid');
   g.innerHTML='';
@@ -1191,6 +1215,7 @@ function buildGame(){
       d.innerHTML=`<div class="box-icon">🎁</div><div class="box-number">${i+1}</div><div class="box-amt"></div>`;
     }
     d.onclick=()=>clickBox(i);
+    enableBoxTilt(d);
     g.appendChild(d);
   }
 }

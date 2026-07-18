@@ -396,11 +396,12 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; h
     </div>
 
     <!-- OYUN 3 — henüz yapılmadı -->
-    <div class="gs-card demo">
-      <div class="gs-card-badge demo">YAKINDA</div>
+    <div class="gs-card active-game" style="position:relative;">
+      <div class="gs-card-badge aktif">AKTİF</div>
+      <button onclick="event.stopPropagation();enterGame('isimsehir')" style="position:absolute;top:10px;left:10px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:8px;width:26px;height:26px;font-size:13px;cursor:pointer;color:var(--muted);z-index:2;" title="İsim Şehir Ayarları">⚙️</button>
       <div class="gs-card-icon">🎯</div>
-      <div class="gs-card-name">OYUN 3</div>
-      <div class="gs-card-desc">Yakında<br>eklenecek</div>
+      <div class="gs-card-name">İSİM ŞEHİR</div>
+      <div class="gs-card-desc">Çevrimiçi Lobi<br>Çok Oyunculu</div>
     </div>
   </div>
 </div>
@@ -428,6 +429,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; h
     <button class="tab" onclick="switchTab('homepage')">🏠 ANA SAYFA</button>
     <button class="tab" id="tab-btn-faul" onclick="switchTab('faul')" style="display:none;">🚨 FAUL AVATARLARI</button>
     <button class="tab" id="tab-btn-hesap" onclick="switchTab('hesap')" style="display:none;">🧮 HESAP AYARLARI</button>
+    <button class="tab" id="tab-btn-isimsehir" onclick="switchTab('isimsehir')" style="display:none;">🏙️ İSİM ŞEHİR AYARLARI</button>
   </div>
 
   <!-- PRICES -->
@@ -1012,6 +1014,42 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; h
 
     <div style="max-width:820px;width:100%;">
       <a href="index.html" target="_blank" class="btn-ghost" style="text-align:center;text-decoration:none;display:block;padding:10px;">🏠 Ana Sayfayı Önizle →</a>
+    </div>
+  </div>
+
+  <!-- İSİM ŞEHİR YÖNETİMİ -->
+  <div class="panel" id="tab-isimsehir">
+    <div class="disp-panel">
+      <div class="disp-card">
+        <div class="disp-card-title">İSİM ŞEHİR — GÖRSEL AYARLAR</div>
+        <div class="disp-card-sub">Bu ayarlar İsim Şehir oyununda tüm oyunculara canlı olarak uygulanır.</div>
+        <div class="bg-mode-row" style="margin-top:18px;">
+          <div class="bg-mode-btn active" id="is-bg-color-mode" onclick="isimSetMode('color')">🎨 RENK</div>
+          <div class="bg-mode-btn" id="is-bg-image-mode" onclick="isimSetMode('image')">🖼 GÖRSEL URL</div>
+        </div>
+        <div class="bg-section on" id="is-color-section">
+          <div class="color-custom-row"><label>Zemin rengi:</label><input type="color" id="is-bg-color" value="#1252cc" oninput="isimPreview()"><input type="text" class="color-hex-input" id="is-bg-hex" value="#1252cc" maxlength="7" oninput="isimColorHex(this.value)"></div>
+        </div>
+        <div class="bg-section" id="is-image-section">
+          <div class="bg-img-area" onclick="document.getElementById('is-bg-upload').click()">
+            <div class="bg-img-preview"><img id="is-bg-upload-preview" src="" alt=""><div class="bg-img-ph" id="is-bg-upload-placeholder"><div class="plus">＋</div><span>Arka plan görseli yükle</span><small>PNG, JPG, WEBP — Cloudinary üzerinden kaydedilir</small></div></div>
+          </div>
+          <input type="file" id="is-bg-upload" accept="image/*" style="display:none" onchange="isimUploadBg(event)">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;"><button class="btn-ghost danger" id="is-bg-upload-clear" onclick="isimClearUploadedBg()" style="display:none;font-size:11px;padding:5px 11px;">🗑 Yüklenen görseli kaldır</button><span id="is-bg-upload-note" style="font-size:11px;color:var(--muted);">veya aşağıya görsel URL'si girin</span></div>
+          <div class="color-custom-row"><label>Görsel bağlantısı:</label><input type="url" id="is-bg-image" placeholder="https://.../arka-plan.jpg" oninput="isimPreview()" style="flex:1;min-width:210px;"></div>
+          <div class="bg-fit-row"><div class="bg-fit-btn active" data-is-fit="cover" onclick="isimSetFit('cover')">Tam Kapla</div><div class="bg-fit-btn" data-is-fit="contain" onclick="isimSetFit('contain')">Sığdır</div><div class="bg-fit-btn" data-is-fit="repeat" onclick="isimSetFit('repeat')">Tekrarla</div></div>
+        </div>
+        <div class="bg-opacity-row"><label>Görsel opaklığı:</label><input type="range" id="is-bg-opacity" min="0" max="100" value="100" oninput="isimPreview()"><span class="bg-opacity-val" id="is-opacity-value">%100</span></div>
+        <div class="bg-preview" id="is-preview" style="height:120px;margin-top:18px;"><div style="padding:10px 18px;background:rgba(255,255,255,.15);border-radius:9px;font-weight:700;">İSİM ŞEHİR ÖNİZLEME</div></div>
+      </div>
+      <div class="disp-card">
+        <div class="disp-card-title">BUTONLAR VE EKRAN ÖLÇEĞİ</div>
+        <div class="disp-card-sub">Farklı çözünürlüklerde tüm oyun arayüzünü ve ana vurguları ayarlayın.</div>
+        <div class="color-custom-row"><label>Ana buton rengi:</label><input type="color" id="is-primary" value="#f5c518" oninput="isimPreview()"><input type="text" class="color-hex-input" id="is-primary-hex" value="#f5c518" maxlength="7" oninput="isimPrimaryHex(this.value)"></div>
+        <div class="bg-opacity-row"><label>Ekran ölçeği:</label><input type="range" id="is-scale" min="80" max="125" value="100" oninput="isimPreview()"><span class="bg-opacity-val" id="is-scale-value">%100</span></div>
+        <div class="bg-opacity-row"><label>İçerik genişliği:</label><input type="range" id="is-width" min="720" max="1200" step="20" value="980" oninput="isimPreview()"><span class="bg-opacity-val" id="is-width-value">980px</span></div>
+        <button class="disp-save-btn" onclick="isimSave()">AYARLARI CANLI YAYINLA</button><div id="is-save-note" style="font-size:12px;color:var(--muted);margin-top:10px;"></div>
+      </div>
     </div>
   </div>
 
@@ -1970,6 +2008,7 @@ const HP_GAMES = [
   {key:'faul',  name:'FAUL!',      icon:'🚨', url:'faul.html'},
   {key:'game3', name:'OYUN 3',     icon:'🎯', url:''},
   {key:'game4', name:'HESAP!',     icon:'🧮', url:'matematik.html'},
+  {key:'isimsehir', name:'İSİM ŞEHİR', icon:'🏙️', url:'isim-sehir.html'},
 ];
 /* Henüz gerçek bir oyunu olmayan kartlar için varsayılan durum: kapalı (index.html ile birebir aynı mantık) */
 const DEFAULT_INACTIVE_GAMES = ['game3'];
@@ -2377,6 +2416,61 @@ function saveBg(){
   showToast('✅ Arkaplan kaydedildi');
 }
 
+/* ---- İSİM ŞEHİR YÖNETİMİ ---- */
+let isimBgMode='color', isimBgFit='cover', isimDb=null;
+async function isimGetDb(){
+  if(isimDb) return isimDb;
+  const appMod=await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
+  const fsMod=await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+  const cfg={apiKey:'AIzaSyACr1JjQ3w3Ph0Pt5iPXsD_DnGRTP5eLOI',authDomain:'faul-oyunu.firebaseapp.com',projectId:'faul-oyunu',storageBucket:'faul-oyunu.firebasestorage.app',messagingSenderId:'241126841209',appId:'1:241126841209:web:0548349d5e45dc4518ada8'};
+  const app=appMod.getApps().length?appMod.getApps()[0]:appMod.initializeApp(cfg);
+  isimDb={db:fsMod.getFirestore(app),doc:fsMod.doc,getDoc:fsMod.getDoc,setDoc:fsMod.setDoc};
+  return isimDb;
+}
+function isimSetMode(mode){
+  isimBgMode=mode;
+  ['color','image'].forEach(m=>{document.getElementById('is-bg-'+m+'-mode').classList.toggle('active',m===mode);document.getElementById('is-'+m+'-section').classList.toggle('on',m===mode)});
+  isimPreview();
+}
+function isimSetFit(fit){isimBgFit=fit;document.querySelectorAll('[data-is-fit]').forEach(x=>x.classList.toggle('active',x.dataset.isFit===fit));isimPreview()}
+function isimColorHex(v){if(/^#[0-9a-fA-F]{6}$/.test(v)){document.getElementById('is-bg-color').value=v;isimPreview()}}
+function isimPrimaryHex(v){if(/^#[0-9a-fA-F]{6}$/.test(v)){document.getElementById('is-primary').value=v;isimPreview()}}
+function isimValues(){return {bgColor:document.getElementById('is-bg-color').value,bgImage:document.getElementById('is-bg-image').value.trim(),bgOpacity:+document.getElementById('is-bg-opacity').value,bgFit:isimBgFit,primary:document.getElementById('is-primary').value,scale:+document.getElementById('is-scale').value,contentWidth:+document.getElementById('is-width').value}}
+function isimPreview(){
+  const d=isimValues(),p=document.getElementById('is-preview'),a=1-d.bgOpacity/100;
+  document.getElementById('is-bg-hex').value=d.bgColor;document.getElementById('is-primary-hex').value=d.primary;document.getElementById('is-opacity-value').textContent='%'+d.bgOpacity;document.getElementById('is-scale-value').textContent='%'+d.scale;document.getElementById('is-width-value').textContent=d.contentWidth+'px';
+  p.style.background=isimBgMode==='image'&&d.bgImage?`linear-gradient(rgba(0,0,0,${a}),rgba(0,0,0,${a})),url("${d.bgImage}") center/${isimBgFit==='repeat'?'auto':isimBgFit} ${isimBgFit==='repeat'?'repeat':'no-repeat'}`:d.bgColor;
+  p.querySelector('div').style.background=d.primary;p.querySelector('div').style.color='#111';p.style.fontSize=(d.scale/100)+'em';
+  if(typeof isimSetUploadedPreview==='function') isimSetUploadedPreview(d.bgImage||'');
+}
+async function initIsimSehirTab(){
+  try{const f=await isimGetDb(),s=await f.getDoc(f.doc(f.db,'isimSehirConfig','theme'));if(s.exists()){const d=s.data();['bgColor','bgImage','bgOpacity','primary','scale','contentWidth'].forEach(k=>{if(d[k]!==undefined)document.getElementById('is-'+({bgColor:'bg-color',bgImage:'bg-image',bgOpacity:'bg-opacity',primary:'primary',scale:'scale',contentWidth:'width'}[k])).value=d[k]});isimBgFit=d.bgFit||'cover';isimSetFit(isimBgFit);isimSetMode(d.bgImage?'image':'color')}}catch(e){document.getElementById('is-save-note').textContent='Ayarlar okunamadı; varsayılanlar gösteriliyor.'}isimPreview();
+}
+async function isimSave(){
+  const note=document.getElementById('is-save-note');note.style.color='var(--muted)';note.textContent='Yayınlanıyor...';
+  try{const f=await isimGetDb();await f.setDoc(f.doc(f.db,'isimSehirConfig','theme'),isimValues());note.style.color='var(--green)';note.textContent='✓ Ayarlar yayınlandı; açık oyun ekranları güncellendi.'}catch(e){note.style.color='var(--red)';note.textContent='Ayarlar kaydedilemedi. Firestore erişimini kontrol edin.'}
+}
+function isimSetUploadedPreview(url){
+  const img=document.getElementById('is-bg-upload-preview'),ph=document.getElementById('is-bg-upload-placeholder'),clear=document.getElementById('is-bg-upload-clear');
+  if(!img) return;
+  if(url){img.src=url;img.classList.add('on');if(ph)ph.style.display='none';if(clear)clear.style.display='inline-block'}
+  else{img.src='';img.classList.remove('on');if(ph)ph.style.display='';if(clear)clear.style.display='none'}
+}
+async function isimUploadBg(e){
+  const file=e.target.files&&e.target.files[0]; if(!file) return;
+  const note=document.getElementById('is-bg-upload-note');note.textContent='⏳ Görsel yükleniyor...';
+  try{
+    const url=await uploadToCloudinary(file,'isimsehir_bg_img');
+    document.getElementById('is-bg-image').value=url;
+    isimSetUploadedPreview(url);isimSetMode('image');isimPreview();
+    note.style.color='var(--green)';note.textContent='✓ Görsel yüklendi. Canlı yayınlamak için ayarları kaydedin.';
+  }catch(err){note.style.color='var(--red)';note.textContent='⚠️ Görsel yüklenemedi: '+err.message;}
+}
+function isimClearUploadedBg(){
+  document.getElementById('is-bg-image').value='';document.getElementById('is-bg-upload').value='';isimSetUploadedPreview('');isimPreview();
+  const note=document.getElementById('is-bg-upload-note');note.style.color='var(--muted)';note.textContent='Görsel kaldırıldı; değişikliği yayınlamak için ayarları kaydedin.';
+}
+
 /* ---- FAUL BACKGROUND TAB ---- */
 const SK_FAUL_BG = 'faul_bg';
 let currentFaulBgMode = 'none';
@@ -2527,6 +2621,21 @@ function enterGame(gameId){
   const vmymTabs = ['prices','images','header','display','background','banker','homepage'];
   const faulTabBtn = document.getElementById('tab-btn-faul');
   const hesapTabBtn = document.getElementById('tab-btn-hesap');
+  const isimTabBtn = document.getElementById('tab-btn-isimsehir');
+
+  if(gameId==='isimsehir'){
+    document.querySelectorAll('.tab').forEach(t=>{
+      const match=t.getAttribute('onclick').match(/switchTab\('(\w+)'\)/);
+      if(match) t.style.display = match[1]==='isimsehir' ? '' : 'none';
+    });
+    if(isimTabBtn) isimTabBtn.style.display='';
+    remotePull().then(()=>{
+      initIsimSehirTab();
+      switchTab('isimsehir');
+      showToast('✅ İsim Şehir ayarları yüklendi');
+    });
+    return;
+  }
 
   if(gameId==='faul'){
     // Show only Faul tab, hide vmym tabs

@@ -145,6 +145,18 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
       </div>
     </a>
 
+    <!-- OYUN 5 — İSİM ŞEHİR -->
+    <a href="isim-sehir.html" class="game-card" id="card-isimsehir">
+      <div class="gc-banner">
+        <img class="gc-bg" id="img-isimsehir" src="" alt="">
+        <div class="gc-banner-icon">🏙️</div>
+        <div class="gc-inactive-overlay" id="inact-isimsehir">
+          <img class="gc-inactive-img" id="inact-img-isimsehir" src="" alt="">
+          <div class="gc-inactive-default" id="inact-txt-isimsehir">YAKINDA</div>
+        </div>
+      </div>
+    </a>
+
   </div>
 
 </div>
@@ -226,7 +238,7 @@ function applySettings(){
   /* 4 — kart görselleri + aktiflik + deaktif etiketi */
   try{
     const cards = JSON.parse(localStorage.getItem('hp_cards')||'{}');
-    ['vmym','faul','game3','game4'].forEach(key=>{
+    ['vmym','faul','game3','game4','isimsehir'].forEach(key=>{
       const cfg = cards[key]||{};
 
       /* banner görseli */
