@@ -123,6 +123,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
 .player-chip{background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:13px;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;}
 .player-chip.you{border-color:var(--violet);background:rgba(124,92,255,0.14);}
 .player-chip.host-chip{box-shadow:0 0 0 1px var(--cyan) inset;}
+.pc-remove-btn{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(239,68,68,0.18);border:1px solid rgba(239,68,68,0.4);color:#ff9d9d;font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.pc-remove-btn:hover{background:rgba(239,68,68,0.32);}
 .pc-avatar{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;}
 .pc-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
 .pc-tag{font-size:9px;color:var(--cyan);letter-spacing:1px;font-weight:700;}
@@ -284,7 +286,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, deleteField, serverTimestamp, arrayUnion
+  getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, deleteField, serverTimestamp, arrayUnion, arrayRemove
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -300,7 +302,7 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const db = getFirestore(fbApp);
 
-window.__fb = { doc, setDoc, getDoc, updateDoc, onSnapshot, deleteField, serverTimestamp, arrayUnion, db };
+window.__fb = { doc, setDoc, getDoc, updateDoc, onSnapshot, deleteField, serverTimestamp, arrayUnion, arrayRemove, db };
 window.__fbReady = true;
 window.dispatchEvent(new Event('fb-ready'));
 </script>
@@ -311,8 +313,8 @@ window.dispatchEvent(new Event('fb-ready'));
    (Lobi/oda-kodu mimarisi FAUL! ile aynı mantık)
    ============================================================ */
 
-const QUESTION_COUNT = 10;
-const TIME_PER_QUESTION = 5; // saniye
+let QUESTION_COUNT = 10;
+let TIME_PER_QUESTION = 5; // saniye
 const AVATAR_LIST = ['🧮','🔢','➕','➖','✖️','➗','🧠','🤓','🎯','🚀','⚡','🔥','💡','🏆','🎲','📐','🦾','👾','🐙','🦉'];
 
 let myPlayerId = null;
@@ -453,6 +455,13 @@ async function handleEntrySubmit(){
       const {getDoc} = fb();
       const snap = await getDoc(roomRef(code));
       if(!snap.exists()){ errEl.textContent='Bu kodla bir oda bulunamadı.'; btn.disabled=false; return; }
+      const existingState = snap.data().state;
+      if(existingState && existingState!=='lobby'){
+        errEl.textContent = existingState==='playing'
+          ? 'Bu oda şu anda oyunda. Lütfen host yeni bir tur başlatana kadar bekleyin.'
+          : 'Bu oda az önce bitti. Lütfen host yeniden başlatana kadar bekleyin.';
+        btn.disabled=false; return;
+      }
       roomCode = code;
       isHost = false;
       await joinRoomDoc(code);
@@ -591,7 +600,9 @@ function renderLobby(){
     const p = players[pid]; if(!p) return '';
     const isYou = pid===myPlayerId;
     const isHostP = pid===roomData.hostId;
-    return `<div class="player-chip ${isYou?'you':''} ${isHostP?'host-chip':''}">
+    const canRemove = isHost && !isHostP;
+    return `<div class="player-chip ${isYou?'you':''} ${isHostP?'host-chip':''}" style="position:relative;">
+      ${canRemove?`<button class="pc-remove-btn" onclick="removePlayer('${pid}')" title="Odadan çıkar">✕</button>`:''}
       <div class="pc-avatar">${p.avatar||'🙂'}</div>
       <div class="pc-name">${p.name}${isYou?' (siz)':''}</div>
       ${isHostP?'<div class="pc-tag">HOST</div>':''}
@@ -600,6 +611,21 @@ function renderLobby(){
   document.getElementById('lobby-hint').textContent = isHost
     ? 'Herkes katıldıysa "Oyunu Başlat" butonuna basabilirsiniz.'
     : 'Host oyunu başlatana kadar bekleyin...';
+}
+
+/* ===== OYUNCUYU ODADAN ÇIKAR (host) ===== */
+async function removePlayer(pid){
+  if(!isHost || pid===myPlayerId || pid===roomData.hostId) return;
+  const p = (roomData.players||{})[pid];
+  if(!confirm(`${p?p.name:'Bu oyuncu'} odadan çıkarılsın mı?`)) return;
+  const {updateDoc, deleteField, arrayRemove} = fb();
+  try{
+    await updateDoc(roomRef(roomCode), {
+      ['players.'+pid]: deleteField(),
+      playerOrder: arrayRemove(pid)
+    });
+    showToast('✅ Oyuncu odadan çıkarıldı');
+  }catch(e){ console.error(e); showToast('⚠️ Çıkarılamadı, tekrar deneyin'); }
 }
 
 /* ===== OYUNU BAŞLAT (host) ===== */
@@ -854,9 +880,47 @@ async function replayGame(){
   });
 }
 
+/* ===== ADMİN PANELİNDEN GELEN AYARLAR (soru süresi / sayısı / arkaplan rengi) =====
+   Önce önbellekten anında uygulanır, ardından arka planda taze veri çekilip
+   (henüz bir odaya girilmediyse) sessizce güncellenir — devam eden bir oyunu bozmaz. */
+const HESAP_CFG_CACHE_KEY = 'hesap_cfg_cache';
+
+function getCachedHesapSettings(){
+  try{ return JSON.parse(localStorage.getItem(HESAP_CFG_CACHE_KEY)||'{}'); }catch(e){ return {}; }
+}
+
+async function fetchHesapSettingsRemote(){
+  try{
+    const res = await fetch('https://api.jsonbin.io/v3/b/6a2a8f27f5f4af5e29de21ee/latest', {
+      headers:{'X-Master-Key':'$2a$10$jmvujdFyJ.mML6da40FEleAhD1/oz/xVD612cQ6NAxRM4oQedpnBi'}
+    });
+    if(res.ok){
+      const record = (await res.json()).record || {};
+      const settings = record.hesap_settings || {};
+      try{ localStorage.setItem(HESAP_CFG_CACHE_KEY, JSON.stringify(settings)); }catch(e){}
+      return settings;
+    }
+  }catch(e){}
+  return getCachedHesapSettings();
+}
+
+function applyHesapSettings(settings){
+  settings = settings || {};
+  if(settings.timePerQuestion) TIME_PER_QUESTION = Math.max(3, Math.min(30, settings.timePerQuestion));
+  if(settings.questionCount) QUESTION_COUNT = Math.max(5, Math.min(30, settings.questionCount));
+  const totalEl = document.getElementById('q-total');
+  if(totalEl) totalEl.textContent = QUESTION_COUNT;
+  const bg = document.getElementById('bg-layer');
+  if(bg && settings.bgColor) bg.style.background = settings.bgColor;
+}
+
 /* ===== INIT ===== */
 (function init(){
   buildCarousel();
+  applyHesapSettings(getCachedHesapSettings());
+  fetchHesapSettingsRemote().then(settings=>{
+    if(!roomCode) applyHesapSettings(settings); // henüz odaya girilmediyse güncelle
+  });
 })();
 </script>
 </body>

@@ -44,11 +44,22 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
 /* GAME CARD — sadece banner */
 .game-card{
   border-radius:18px;overflow:hidden;cursor:pointer;
-  transition:all 0.25s cubic-bezier(0.25,0.8,0.25,1);
+  transition:transform 0.22s cubic-bezier(0.16,1,0.3,1),box-shadow 0.22s ease,border-color 0.22s ease;
   text-decoration:none;display:block;position:relative;
-  border:1px solid rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.08);transform-style:preserve-3d;
+  will-change:transform;
 }
-.game-card:hover{transform:translateY(-5px);box-shadow:0 20px 50px rgba(0,0,0,0.5);}
+.game-card::before{content:'';position:absolute;inset:-1px;z-index:6;pointer-events:none;
+  opacity:0;border-radius:inherit;transition:opacity .22s ease;
+  background:linear-gradient(115deg,transparent 20%,rgba(255,255,255,.52) 48%,rgba(240,192,64,.3) 54%,transparent 70%);
+  transform:translateX(-125%);}
+.game-card::after{content:'';position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;
+  background:radial-gradient(circle at var(--glow-x,50%) var(--glow-y,50%),rgba(255,255,255,.32),transparent 32%);
+  mix-blend-mode:screen;transition:opacity .18s ease;}
+.game-card:hover{box-shadow:0 24px 55px rgba(0,0,0,.58),0 0 30px rgba(240,192,64,.18);border-color:rgba(240,192,64,.65);z-index:2;}
+.game-card:hover::before{opacity:1;animation:cardSheen .75s cubic-bezier(.2,.8,.2,1) forwards;}
+.game-card:hover::after{opacity:1;}
+@keyframes cardSheen{to{transform:translateX(125%);}}
 .game-card.inactive{cursor:default;pointer-events:none;}
 
 /* BANNER */
@@ -154,6 +165,12 @@ function clOpt(url, width){
   return url.replace('/upload/', '/upload/'+t+'/');
 }
 
+/* Henüz gerçek bir oyunu olmayan kartlar için varsayılan durum: kapalı.
+   Admin panelinden elle "AKTİF" yapılmadığı sürece bu kartlar tıklanamaz/çıkmaz-sokak olmaz. */
+/* Henüz gerçek bir oyunu olmayan kartlar için varsayılan durum: kapalı.
+   Admin panelinden elle "AKTİF" yapılmadığı sürece bu kartlar tıklanamaz/çıkmaz-sokak olmaz. */
+const DEFAULT_INACTIVE_GAMES = ['game3'];
+
 async function syncConfig(){
   try{
     const res = await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID+'/latest',{headers:{'X-Master-Key':BIN_KEY}});
@@ -221,7 +238,7 @@ function applySettings(){
 
       /* aktif/deaktif */
       const card = document.getElementById('card-'+key);
-      const isActive = cfg.active!==false; // default aktif
+      const isActive = cfg.active!==undefined ? cfg.active!==false : !DEFAULT_INACTIVE_GAMES.includes(key);
       if(card){ card.classList.toggle('inactive',!isActive); }
 
       /* deaktif etiketi */
@@ -242,6 +259,24 @@ function applySettings(){
    Ardından jsonbin.io'dan taze veriyi arka planda çek ve değişen bir şey varsa sessizce güncelle. */
 applySettings();
 syncConfig().then(applySettings);
+
+/* Kartlara imleci takip eden hafif 3B eğim verir. Klavye/dokunmatik kullanımda
+   çalışmaz; böylece erişilebilirlik ve mobil akış aynı kalır. */
+if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+  document.querySelectorAll('.game-card:not(.inactive)').forEach(card => {
+    card.addEventListener('pointermove', event => {
+      const rect = card.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width;
+      const y = (event.clientY - rect.top) / rect.height;
+      const rotateY = (x - .5) * 9;
+      const rotateX = (.5 - y) * 9;
+      card.style.setProperty('--glow-x', (x * 100) + '%');
+      card.style.setProperty('--glow-y', (y * 100) + '%');
+      card.style.transform = `perspective(850px) translateY(-12px) scale(1.065) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    });
+    card.addEventListener('pointerleave', () => { card.style.transform = ''; });
+  });
+}
 </script>
 </body>
 </html>
