@@ -157,6 +157,18 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
       </div>
     </a>
 
+    <!-- OYUN 6 — KATMANER -->
+    <a href="file:///C:/Users/yusuf/Documents/Codex/2026-07-18/bu/outputs/katmaner-yarisma.html" class="game-card" id="card-katmaner">
+      <div class="gc-banner">
+        <img class="gc-bg" id="img-katmaner" src="" alt="">
+        <div class="gc-banner-icon">🎙️</div>
+        <div class="gc-inactive-overlay" id="inact-katmaner">
+          <img class="gc-inactive-img" id="inact-img-katmaner" src="" alt="">
+          <div class="gc-inactive-default" id="inact-txt-katmaner">YAKINDA</div>
+        </div>
+      </div>
+    </a>
+
   </div>
 
 </div>
@@ -238,7 +250,7 @@ function applySettings(){
   /* 4 — kart görselleri + aktiflik + deaktif etiketi */
   try{
     const cards = JSON.parse(localStorage.getItem('hp_cards')||'{}');
-    ['vmym','faul','game3','game4','isimsehir'].forEach(key=>{
+    ['vmym','faul','game3','game4','isimsehir','katmaner'].forEach(key=>{
       const cfg = cards[key]||{};
 
       /* banner görseli */

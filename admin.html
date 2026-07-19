@@ -403,6 +403,12 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; h
       <div class="gs-card-name">İSİM ŞEHİR</div>
       <div class="gs-card-desc">Çevrimiçi Lobi<br>Çok Oyunculu</div>
     </div>
+    <div class="gs-card active-game" style="position:relative;" onclick="enterGame('katmaner')">
+      <div class="gs-card-badge aktif">AKTİF</div>
+      <div class="gs-card-icon">🎙️</div>
+      <div class="gs-card-name">KATMANER</div>
+      <div class="gs-card-desc">Canlı Bilgi<br>Yarışması</div>
+    </div>
   </div>
 </div>
 
@@ -430,6 +436,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; h
     <button class="tab" id="tab-btn-faul" onclick="switchTab('faul')" style="display:none;">🚨 FAUL AVATARLARI</button>
     <button class="tab" id="tab-btn-hesap" onclick="switchTab('hesap')" style="display:none;">🧮 HESAP AYARLARI</button>
     <button class="tab" id="tab-btn-isimsehir" onclick="switchTab('isimsehir')" style="display:none;">🏙️ İSİM ŞEHİR AYARLARI</button>
+    <button class="tab" id="tab-btn-katmaner" onclick="switchTab('katmaner')" style="display:none;">🎙️ KATMANER AYARLARI</button>
   </div>
 
   <!-- PRICES -->
@@ -1049,6 +1056,32 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; h
         <div class="bg-opacity-row"><label>Ekran ölçeği:</label><input type="range" id="is-scale" min="80" max="125" value="100" oninput="isimPreview()"><span class="bg-opacity-val" id="is-scale-value">%100</span></div>
         <div class="bg-opacity-row"><label>İçerik genişliği:</label><input type="range" id="is-width" min="720" max="1200" step="20" value="980" oninput="isimPreview()"><span class="bg-opacity-val" id="is-width-value">980px</span></div>
         <button class="disp-save-btn" onclick="isimSave()">AYARLARI CANLI YAYINLA</button><div id="is-save-note" style="font-size:12px;color:var(--muted);margin-top:10px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KATMANER YÖNETİMİ -->
+  <div class="panel" id="tab-katmaner">
+    <div class="disp-panel">
+      <div class="disp-card"><div class="disp-card-title">SAHNE VE SESLER</div><div class="disp-card-sub">Dosyaları doğrudan bilgisayarından seçip yükle. Yüklenen içerikler yarışmaya otomatik bağlanır.</div>
+        <input id="kat-bg-url" type="hidden"><input id="kat-music-url" type="hidden"><input id="kat-decision-url" type="hidden"><input id="kat-audience-url" type="hidden"><input id="kat-correct-url" type="hidden"><input id="kat-wrong-url" type="hidden">
+        <div class="color-custom-row"><label>Arka plan:</label><input id="kat-bg-file" type="file" accept="image/*,video/*" onchange="katUploadFile(event,'backgroundUrl','kat-bg-url','kat-bg-name')" style="flex:1;min-width:240px;"><span id="kat-bg-name" style="font-size:11px;color:var(--muted);">Dosya seçilmedi</span></div>
+        <div class="bg-fit-row"><div class="bg-fit-btn active" data-kat-bg="image" onclick="katSetType('image')">GÖRSEL</div><div class="bg-fit-btn" data-kat-bg="video" onclick="katSetType('video')">VİDEO</div></div>
+        <div class="color-custom-row" style="margin-top:12px;"><label>Arka plan müziği:</label><input type="file" accept="audio/*" onchange="katUploadFile(event,'musicUrl','kat-music-url','kat-music-name')" style="flex:1;min-width:220px;"><span id="kat-music-name" style="font-size:11px;color:var(--muted);">Dosya seçilmedi</span></div>
+        <div class="color-custom-row" style="margin-top:10px;"><label>Son karar müziği:</label><input type="file" accept="audio/*" onchange="katUploadFile(event,'decisionSoundUrl','kat-decision-url','kat-decision-name')" style="flex:1;min-width:220px;"><span id="kat-decision-name" style="font-size:11px;color:var(--muted);">Dosya seçilmedi</span></div>
+        <div class="color-custom-row" style="margin-top:10px;"><label>Seyirci jokeri müziği:</label><input type="file" accept="audio/*" onchange="katUploadFile(event,'audienceSoundUrl','kat-audience-url','kat-audience-name')" style="flex:1;min-width:220px;"><span id="kat-audience-name" style="font-size:11px;color:var(--muted);">Dosya seçilmedi</span></div>
+        <div class="color-custom-row" style="margin-top:10px;"><label>Doğru cevap sesi:</label><input type="file" accept="audio/*" onchange="katUploadFile(event,'correctSoundUrl','kat-correct-url','kat-correct-name')" style="flex:1;min-width:220px;"><span id="kat-correct-name" style="font-size:11px;color:var(--muted);">Dosya seçilmedi</span></div>
+        <div class="color-custom-row" style="margin-top:10px;"><label>Yanlış cevap sesi:</label><input type="file" accept="audio/*" onchange="katUploadFile(event,'wrongSoundUrl','kat-wrong-url','kat-wrong-name')" style="flex:1;min-width:220px;"><span id="kat-wrong-name" style="font-size:11px;color:var(--muted);">Dosya seçilmedi</span></div>
+        <button class="disp-save-btn" onclick="katSaveSettings()">SAHNE AYARLARINI YAYINLA</button><div id="kat-settings-note" style="font-size:12px;color:var(--muted);margin-top:8px;"></div>
+      </div>
+      <div class="disp-card"><div class="disp-card-title">SORU YÖNETİMİ</div><div class="disp-card-sub">Dört şıklı soru ekleyin; oyun açıkken güncel soru listesi anında kullanılır.</div>
+        <div class="color-custom-row"><label>Kategori:</label><select id="kat-category" style="flex:1;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px;"><option value="GENEL KÜLTÜR">GENEL KÜLTÜR</option><option value="BATUHANFURKAN5 ÖZEL">BATUHANFURKAN5 ÖZEL</option></select></div>
+        <div class="color-custom-row" style="margin-top:10px;"><label>Soru:</label><input id="kat-question" type="text" placeholder="Soruyu yazın" style="flex:1;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;"><input id="kat-a0" placeholder="A şıkkı"><input id="kat-a1" placeholder="B şıkkı"><input id="kat-a2" placeholder="C şıkkı"><input id="kat-a3" placeholder="D şıkkı"></div>
+        <div class="color-custom-row" style="margin-top:10px;"><label>Doğru şık:</label><select id="kat-correct" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px;"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select><label style="margin-left:8px;">Zorluk:</label><select id="kat-difficulty" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px;"><option value="KOLAY">KOLAY</option><option value="ORTA" selected>ORTA</option><option value="ZOR">ZOR</option></select><button class="disp-save-btn" onclick="katAddQuestion()" style="margin:0;padding:9px 18px;">SORU EKLE</button></div>
+        <div class="color-custom-row" style="margin-top:10px;"><label style="display:flex;align-items:center;gap:7px;cursor:pointer;"><input id="kat-audio-question" type="checkbox" onchange="katToggleAudioQuestion()"> 7. SORU — SESLİ SORU</label></div>
+        <div id="kat-question-audio-row" class="color-custom-row" style="display:none;margin-top:8px;"><label>Şarkı / ses:</label><input id="kat-question-audio-file" type="file" accept="audio/*" onchange="katUploadFile(event,'audioUrl','kat-question-audio-url','kat-question-audio-name')" style="flex:1;"><input id="kat-question-audio-url" type="hidden"><span id="kat-question-audio-name" style="font-size:11px;color:var(--muted);">Dosya seçilmedi</span></div>
+        <div id="kat-question-list" style="margin-top:14px;display:flex;flex-direction:column;gap:6px;"></div><button class="disp-save-btn" onclick="katSaveQuestions()">SORULARI YAYINLA</button><div id="kat-question-note" style="font-size:12px;color:var(--muted);margin-top:8px;"></div>
       </div>
     </div>
   </div>
@@ -2471,6 +2504,18 @@ function isimClearUploadedBg(){
   const note=document.getElementById('is-bg-upload-note');note.style.color='var(--muted)';note.textContent='Görsel kaldırıldı; değişikliği yayınlamak için ayarları kaydedin.';
 }
 
+/* ---- KATMANER YÖNETİMİ ---- */
+let katBgType='image',katQuestions=[];
+function katSetType(type){katBgType=type;document.querySelectorAll('[data-kat-bg]').forEach(x=>x.classList.toggle('active',x.dataset.katBg===type));}
+async function katUploadFile(e,field,inputId,nameId){const file=e.target.files[0];if(!file)return;const name=document.getElementById(nameId);name.style.color='var(--gold)';name.textContent='Yükleniyor…';try{const form=new FormData();form.append('file',file);form.append('upload_preset',UPLOAD_PRESET);form.append('folder','katmaner');const res=await fetch('https://api.cloudinary.com/v1_1/'+CLOUD_NAME+'/auto/upload',{method:'POST',body:form});const data=await res.json();if(!res.ok||data.error)throw new Error(data.error?.message||'Yükleme hatası');document.getElementById(inputId).value=data.secure_url;if(field==='backgroundUrl')katSetType(file.type.startsWith('video/')?'video':'image');name.style.color='var(--green)';name.textContent='✓ '+file.name+' yüklendi';showToast('✅ Dosya yüklendi — yayınlamak için sahne ayarlarını kaydedin.');}catch(err){name.style.color='var(--red)';name.textContent='⚠️ Yüklenemedi';showToast('⚠️ Yükleme hatası: '+err.message)}}
+function katAssetName(id,url){const e=document.getElementById(id);if(e)e.textContent=url?'✓ Yüklü dosya':'Dosya seçilmedi';}
+function katToggleAudioQuestion(){const on=document.getElementById('kat-audio-question').checked;document.getElementById('kat-question-audio-row').style.display=on?'flex':'none';}
+function katRenderQuestions(){const list=document.getElementById('kat-question-list');if(!list)return;list.innerHTML='';if(!katQuestions.length){list.innerHTML='<div style="font-size:12px;color:var(--muted);">Henüz soru eklenmedi.</div>';return}katQuestions.forEach((q,i)=>{const row=document.createElement('div');row.style.cssText='display:flex;gap:10px;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:12px;';const t=document.createElement('span');t.style.flex='1';t.textContent=(q.isAudioQuestion?'7. SESLİ SORU · ':'')+(q.category||'GENEL')+' · '+(q.difficulty||'ORTA')+' · '+q.question;const b=document.createElement('button');b.className='btn-ghost danger';b.style.cssText='padding:4px 10px;font-size:11px;';b.textContent='Sil';b.onclick=()=>{katQuestions.splice(i,1);katRenderQuestions()};row.append(t,b);list.append(row)})}
+async function katInit(){try{const f=await isimGetDb(),s=await f.getDoc(f.doc(f.db,'katmanerConfig','settings')),q=await f.getDoc(f.doc(f.db,'katmanerConfig','questions'));const d=s.exists()?s.data():{};document.getElementById('kat-bg-url').value=d.backgroundUrl||'';document.getElementById('kat-music-url').value=d.musicUrl||'';document.getElementById('kat-decision-url').value=d.decisionSoundUrl||'';document.getElementById('kat-audience-url').value=d.audienceSoundUrl||'';document.getElementById('kat-correct-url').value=d.correctSoundUrl||'';document.getElementById('kat-wrong-url').value=d.wrongSoundUrl||'';katAssetName('kat-bg-name',d.backgroundUrl);katAssetName('kat-music-name',d.musicUrl);katAssetName('kat-decision-name',d.decisionSoundUrl);katAssetName('kat-audience-name',d.audienceSoundUrl);katAssetName('kat-correct-name',d.correctSoundUrl);katAssetName('kat-wrong-name',d.wrongSoundUrl);katSetType(d.backgroundType||'image');katQuestions=q.exists()&&Array.isArray(q.data().items)?q.data().items:[];katRenderQuestions()}catch(e){document.getElementById('kat-settings-note').textContent='Ayarlar okunamadı.'}}
+async function katSaveSettings(){const note=document.getElementById('kat-settings-note');try{const f=await isimGetDb();await f.setDoc(f.doc(f.db,'katmanerConfig','settings'),{backgroundUrl:document.getElementById('kat-bg-url').value.trim(),backgroundType:katBgType,musicUrl:document.getElementById('kat-music-url').value.trim(),decisionSoundUrl:document.getElementById('kat-decision-url').value.trim(),audienceSoundUrl:document.getElementById('kat-audience-url').value.trim(),correctSoundUrl:document.getElementById('kat-correct-url').value.trim(),wrongSoundUrl:document.getElementById('kat-wrong-url').value.trim()});note.style.color='var(--green)';note.textContent='✓ Sahne ayarları yayınlandı.'}catch(e){note.style.color='var(--red)';note.textContent='Kaydedilemedi.'}}
+function katAddQuestion(){const a=[0,1,2,3].map(i=>document.getElementById('kat-a'+i).value.trim()),q=document.getElementById('kat-question').value.trim(),isAudio=document.getElementById('kat-audio-question').checked,audioUrl=document.getElementById('kat-question-audio-url').value.trim();if(!q||a.some(x=>!x))return;if(isAudio&&!audioUrl){alert('Sesli soru için önce şarkı veya ses dosyası yükleyin.');return}katQuestions.push({category:document.getElementById('kat-category').value.trim()||'GENEL KÜLTÜR',difficulty:document.getElementById('kat-difficulty').value||'ORTA',question:q,answers:a,correct:+document.getElementById('kat-correct').value,isAudioQuestion:isAudio,audioUrl:audioUrl});['kat-question','kat-a0','kat-a1','kat-a2','kat-a3'].forEach(id=>document.getElementById(id).value='');document.getElementById('kat-audio-question').checked=false;document.getElementById('kat-question-audio-url').value='';document.getElementById('kat-question-audio-file').value='';document.getElementById('kat-question-audio-name').textContent='Dosya seçilmedi';katToggleAudioQuestion();katRenderQuestions();katSaveQuestions()}
+async function katSaveQuestions(){const note=document.getElementById('kat-question-note');try{const f=await isimGetDb();await f.setDoc(f.doc(f.db,'katmanerConfig','questions'),{items:katQuestions});note.style.color='var(--green)';note.textContent='✓ Sorular yayınlandı.'}catch(e){note.style.color='var(--red)';note.textContent='Kaydedilemedi.'}}
+
 /* ---- FAUL BACKGROUND TAB ---- */
 const SK_FAUL_BG = 'faul_bg';
 let currentFaulBgMode = 'none';
@@ -2622,6 +2667,21 @@ function enterGame(gameId){
   const faulTabBtn = document.getElementById('tab-btn-faul');
   const hesapTabBtn = document.getElementById('tab-btn-hesap');
   const isimTabBtn = document.getElementById('tab-btn-isimsehir');
+  const katmanerTabBtn = document.getElementById('tab-btn-katmaner');
+
+  if(gameId==='katmaner'){
+    document.querySelectorAll('.tab').forEach(t=>{
+      const match=t.getAttribute('onclick').match(/switchTab\('(\w+)'\)/);
+      if(match) t.style.display = match[1]==='katmaner' ? '' : 'none';
+    });
+    if(katmanerTabBtn) katmanerTabBtn.style.display='';
+    remotePull().then(()=>{
+      katInit();
+      switchTab('katmaner');
+      showToast('Katmaner ayarları yüklendi');
+    });
+    return;
+  }
 
   if(gameId==='isimsehir'){
     document.querySelectorAll('.tab').forEach(t=>{
@@ -2645,6 +2705,8 @@ function enterGame(gameId){
     });
     if(faulTabBtn) faulTabBtn.style.display='';
     if(hesapTabBtn) hesapTabBtn.style.display='none';
+    if(isimTabBtn) isimTabBtn.style.display='none';
+    if(katmanerTabBtn) katmanerTabBtn.style.display='none';
     remotePull().then(()=>{
       initFaulAvatarsTab();
       initFaulBgTab();
