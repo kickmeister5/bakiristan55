@@ -344,9 +344,28 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; h
 /* TOAST */
 .toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(60px); background:var(--surface2); border:1px solid var(--border2); border-radius:10px; padding:10px 22px; font-size:13px; color:var(--gold); opacity:0; transition:all 0.3s; pointer-events:none; z-index:99; white-space:nowrap; }
 .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ADMIN OTURUMU */
+#admin-auth-gate{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 50% 20%,#2b210c77,transparent 36%),#07070ff5;backdrop-filter:blur(8px)}
+.admin-login-card{width:min(390px,100%);padding:34px 30px;background:linear-gradient(145deg,#191825,#0e0d17);border:1px solid var(--border2);border-radius:18px;box-shadow:0 24px 80px #0009;text-align:center}.admin-login-mark{font-family:var(--font-title);font-size:13px;letter-spacing:5px;color:var(--gold)}.admin-login-card h1{margin:9px 0 6px;font-family:var(--font-title);font-size:37px;letter-spacing:2px}.admin-login-card p{margin:0 0 22px;font-size:12px;color:var(--muted)}.admin-login-card label{display:block;text-align:left;margin:13px 0 6px;font-size:11px;color:var(--muted);letter-spacing:1px}.admin-login-card input{width:100%;padding:12px 13px;background:#090913;border:1px solid var(--border);border-radius:8px;color:var(--text);font:14px var(--font-body);outline:none}.admin-login-card input:focus{border-color:var(--gold)}.admin-login-btn{width:100%;margin-top:20px;padding:13px;border:0;border-radius:8px;background:linear-gradient(135deg,#f6cc54,#bd831f);color:#171005;font:600 15px var(--font-body);cursor:pointer}.admin-login-note{min-height:18px;margin-top:12px;font-size:12px;color:var(--muted)}#admin-logout{position:fixed;top:14px;right:16px;z-index:1000;display:none;border:1px solid var(--border2);border-radius:7px;background:var(--surface);color:var(--muted);padding:7px 10px;font:11px var(--font-body);cursor:pointer}#admin-logout:hover{color:var(--gold)}
 </style>
 </head>
 <body>
+
+<div id="admin-auth-gate">
+  <form class="admin-login-card" id="admin-login-form">
+    <div class="admin-login-mark">OYUN MERKEZİ</div>
+    <h1>YÖNETİCİ GİRİŞİ</h1>
+    <p>Panel ayarlarına erişmek için oturum açın.</p>
+    <label for="admin-username">KULLANICI ADI</label>
+    <input id="admin-username" autocomplete="username" placeholder="admin" required>
+    <label for="admin-password">ŞİFRE</label>
+    <input id="admin-password" type="password" autocomplete="current-password" placeholder="Şifreniz" required>
+    <button class="admin-login-btn" type="submit">GİRİŞ YAP</button>
+    <div class="admin-login-note" id="admin-login-note"></div>
+  </form>
+</div>
+<button id="admin-logout" type="button">ÇIKIŞ YAP</button>
 
 <!-- ===== GAME SELECTOR ===== -->
 <div id="game-selector">
@@ -1257,6 +1276,31 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; h
 
 
 <script>
+const ADMIN_USERNAME='admin';
+const ADMIN_LOGIN_EMAIL='admin@faul-oyunu.local';
+let adminFirebaseAuth=null;
+async function setupAdminAuth(){
+  const appMod=await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
+  const authMod=await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+  const cfg={apiKey:'AIzaSyACr1JjQ3w3Ph0Pt5iPXsD_DnGRTP5eLOI',authDomain:'faul-oyunu.firebaseapp.com',projectId:'faul-oyunu',storageBucket:'faul-oyunu.firebasestorage.app',messagingSenderId:'241126841209',appId:'1:241126841209:web:0548349d5e45dc4518ada8'};
+  const app=appMod.getApps().length?appMod.getApps()[0]:appMod.initializeApp(cfg);
+  adminFirebaseAuth=authMod.getAuth(app);
+  authMod.onAuthStateChanged(adminFirebaseAuth,user=>{
+    const allowed=!!user&&user.email===ADMIN_LOGIN_EMAIL;
+    document.getElementById('admin-auth-gate').style.display=allowed?'none':'grid';
+    document.getElementById('admin-logout').style.display=allowed?'block':'none';
+    if(!allowed&&user)authMod.signOut(adminFirebaseAuth);
+  });
+  document.getElementById('admin-login-form').addEventListener('submit',async e=>{
+    e.preventDefault();const note=document.getElementById('admin-login-note'),username=document.getElementById('admin-username').value.trim().toLocaleLowerCase('tr-TR'),password=document.getElementById('admin-password').value;
+    if(username!==ADMIN_USERNAME){note.style.color='var(--red)';note.textContent='Kullanıcı adı veya şifre hatalı.';return}
+    note.style.color='var(--muted)';note.textContent='Giriş yapılıyor…';
+    try{await authMod.signInWithEmailAndPassword(adminFirebaseAuth,ADMIN_LOGIN_EMAIL,password);document.getElementById('admin-password').value=''}catch(err){note.style.color='var(--red)';note.textContent='Kullanıcı adı veya şifre hatalı.'}
+  });
+  document.getElementById('admin-logout').onclick=()=>authMod.signOut(adminFirebaseAuth);
+}
+setupAdminAuth().catch(()=>{document.getElementById('admin-login-note').style.color='var(--red)';document.getElementById('admin-login-note').textContent='Giriş servisine ulaşılamadı.'});
+
 const STORAGE_KEY_PRICES = 'vmym_prices';
 const DEFAULT_PRICES = [100,250,500,1000,2500,5000,10000,20000,50000,100000,150000,200000,300000,400000,500000,600000,750000,900000,1000000,2000000];
 
