@@ -427,6 +427,11 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; h
       <div class="gs-card-icon">🎙️</div>
       <div class="gs-card-name">KATMANER</div>
       <div class="gs-card-desc">Canlı Bilgi<br>Yarışması</div>
+    </div>    <div class="gs-card active-game" style="position:relative;" onclick="enterGame('yayincitabusu')">
+      <div class="gs-card-badge aktif">AKTİF</div>
+      <div class="gs-card-icon">🎥</div>
+      <div class="gs-card-name">YAYINCI TABUSU</div>
+      <div class="gs-card-desc">Canlı Chat<br>Kelime Oyunu</div>
     </div>
   </div>
 </div>
@@ -455,7 +460,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; h
     <button class="tab" id="tab-btn-faul" onclick="switchTab('faul')" style="display:none;">🚨 FAUL AVATARLARI</button>
     <button class="tab" id="tab-btn-hesap" onclick="switchTab('hesap')" style="display:none;">🧮 HESAP AYARLARI</button>
     <button class="tab" id="tab-btn-isimsehir" onclick="switchTab('isimsehir')" style="display:none;">🏙️ İSİM ŞEHİR AYARLARI</button>
-    <button class="tab" id="tab-btn-katmaner" onclick="switchTab('katmaner')" style="display:none;">🎙️ KATMANER AYARLARI</button>
+    <button class="tab" id="tab-btn-katmaner" onclick="switchTab('katmaner')" style="display:none;">🎙️ KATMANER AYARLARI</button><button class="tab" id="tab-btn-yayincitabusu" onclick="switchTab('yayincitabusu')" style="display:none;">🎥 YAYINCI TABUSU</button>
   </div>
 
   <!-- PRICES -->
@@ -1104,6 +1109,23 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; h
     </div>
   </div>
 
+  <!-- YAYINCI TABUSU MANAGEMENT -->
+  <div class="panel" id="tab-yayincitabusu">
+    <div class="disp-panel">
+      <div class="disp-card"><div class="disp-card-title">YAYINCI TABUSU GÖRÜNÜMÜ</div><div class="disp-card-sub">Yayın ekranındaki başlığı ve chat yazı boyutunu ayarlayın.</div>
+        <div class="color-custom-row"><label>Başlık:</label><input id="taboo-title" value="YAYINCI TABUSU" style="flex:1;"></div>
+        <div class="color-custom-row" style="margin-top:10px;"><label>Chat yazı boyutu:</label><input id="taboo-chat-size" type="number" min="12" max="36" value="20" style="width:90px;"><span style="font-size:12px;color:var(--muted);">px</span></div>
+        <button class="disp-save-btn" onclick="tabooAdminSave()">AYARLARI YAYINLA</button><div id="taboo-settings-note" style="font-size:12px;color:var(--muted);margin-top:8px;"></div>
+      </div>
+      <div class="disp-card"><div class="disp-card-title">KELİME YÖNETİMİ</div><div class="disp-card-sub">Anlatılacak kelimeyi ve söylemesi yasak olan kelimeleri ekleyin. Chat, yazılan kelimelerin sansürünü oyun sırasında kaldırır.</div>
+        <div class="color-custom-row"><label>Anlatılacak:</label><input id="taboo-word" placeholder="Örn: FUTBOL" style="flex:1;"></div>
+        <div class="color-custom-row" style="margin-top:10px;"><label>Yasaklılar:</label><input id="taboo-banned" placeholder="Virgülle ayırın: TOP, KALE, GOL, HAKEM, MAÇ" style="flex:1;"></div>
+        <button class="disp-save-btn" onclick="tabooAdminAddWord()" style="margin-top:12px;">KELİME EKLE</button>
+        <div id="taboo-word-list" style="margin-top:14px;display:flex;flex-direction:column;gap:6px;"></div>
+        <button class="disp-save-btn" onclick="tabooAdminSave()">KELİMELERİ YAYINLA</button><div id="taboo-word-note" style="font-size:12px;color:var(--muted);margin-top:8px;"></div>
+      </div>
+    </div>
+  </div>
   <!-- FAUL AVATAR MANAGEMENT -->
   <div class="panel" id="tab-faul">
     <div class="disp-card hp-section">
@@ -2565,6 +2587,12 @@ async function katSaveSettings(){const note=document.getElementById('kat-setting
 function katAddQuestion(){const a=[0,1,2,3].map(i=>document.getElementById('kat-a'+i).value.trim()),q=document.getElementById('kat-question').value.trim(),pool=document.getElementById('kat-pool').value,audioUrl=document.getElementById('kat-question-audio-url').value.trim(),isAudio=pool==='SESLI';if(!q||a.some(x=>!x))return;if(isAudio&&!audioUrl){alert('Sesli soru için önce şarkı veya ses dosyası yükleyin.');return}katQuestions.push({category:document.getElementById('kat-category').value.trim()||'GENEL KÜLTÜR',pool:pool,difficulty:isAudio?'SESLI':pool,question:q,answers:a,correct:+document.getElementById('kat-correct').value,isAudioQuestion:isAudio,audioUrl:audioUrl});['kat-question','kat-a0','kat-a1','kat-a2','kat-a3'].forEach(id=>document.getElementById(id).value='');document.getElementById('kat-question-audio-url').value='';document.getElementById('kat-question-audio-file').value='';document.getElementById('kat-question-audio-name').textContent='Dosya seçilmedi';katToggleAudioQuestion();katRenderQuestions();katSaveQuestions()}
 async function katSaveQuestions(){const note=document.getElementById('kat-question-note'),data={items:katQuestions};localStorage.setItem('katmaner_questions',JSON.stringify(katQuestions));try{await remotePush()}catch(e){note.style.color='var(--red)';note.textContent='Ortak yayın kaydına ulaşılamadı.';return}try{const f=await isimGetDb();await f.setDoc(f.doc(f.db,'katmanerConfig','questions'),data);note.style.color='var(--green)';note.textContent='✓ Sorular yayınlandı.'}catch(e){note.style.color='var(--gold)';note.textContent='Yedek kayıt alındı; Firestore yazma izni kapalı olduğu için oyuna henüz aktarılamadı. ('+(e.code||'erişim hatası')+')'}}
 
+/* ---- YAYINCI TABUSU YÖNETİMİ ---- */
+let tabooAdminItems=[];
+function tabooAdminRender(){const list=document.getElementById('taboo-word-list');if(!list)return;list.innerHTML='';if(!tabooAdminItems.length){list.innerHTML='<div style="font-size:12px;color:var(--muted);">Henüz kelime eklenmedi.</div>';return}tabooAdminItems.forEach((item,i)=>{const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:12px;';const text=document.createElement('span');text.style.flex='1';text.textContent=item.word+' · '+item.banned.join(', ');const del=document.createElement('button');del.className='btn-ghost danger';del.style.cssText='padding:4px 10px;font-size:11px;';del.textContent='Sil';del.onclick=()=>{tabooAdminItems.splice(i,1);tabooAdminRender()};row.append(text,del);list.append(row)})}
+function tabooAdminAddWord(){const word=document.getElementById('taboo-word').value.trim().toLocaleUpperCase('tr-TR');const banned=document.getElementById('taboo-banned').value.split(',').map(x=>x.trim().toLocaleUpperCase('tr-TR')).filter(Boolean);if(!word||banned.length<1){showToast('Anlatılacak kelime ve en az bir yasaklı kelime girin.');return}tabooAdminItems.push({word,banned});document.getElementById('taboo-word').value='';document.getElementById('taboo-banned').value='';tabooAdminRender();tabooAdminSave()}
+async function tabooAdminInit(){let settings={title:'YAYINCI TABUSU',chatSize:20},items=[];try{const f=await isimGetDb(),s=await f.getDoc(f.doc(f.db,'yayinciTabusuConfig','settings')),c=await f.getDoc(f.doc(f.db,'yayinciTabusuConfig','cards'));if(s.exists())settings=s.data();if(c.exists()&&Array.isArray(c.data().items))items=c.data().items}catch(e){try{settings=JSON.parse(localStorage.getItem('yayinci_tabusu_settings')||'{}');items=JSON.parse(localStorage.getItem('yayinci_tabusu_cards')||'[]')}catch(x){}}document.getElementById('taboo-title').value=settings.title||'YAYINCI TABUSU';document.getElementById('taboo-chat-size').value=settings.chatSize||20;tabooAdminItems=items.filter(x=>x&&x.word&&Array.isArray(x.banned));tabooAdminRender()}
+async function tabooAdminSave(){const settings={title:document.getElementById('taboo-title').value.trim()||'YAYINCI TABUSU',chatSize:Math.max(12,Math.min(36,+document.getElementById('taboo-chat-size').value||20))},note=document.getElementById('taboo-settings-note'),wordNote=document.getElementById('taboo-word-note');localStorage.setItem('yayinci_tabusu_settings',JSON.stringify(settings));localStorage.setItem('yayinci_tabusu_cards',JSON.stringify(tabooAdminItems));note.style.color='var(--muted)';note.textContent='Yayınlanıyor...';try{const f=await isimGetDb();await Promise.all([f.setDoc(f.doc(f.db,'yayinciTabusuConfig','settings'),settings),f.setDoc(f.doc(f.db,'yayinciTabusuConfig','cards'),{items:tabooAdminItems})]);note.style.color='var(--green)';note.textContent='✓ Ayarlar ve kelimeler yayınlandı.';wordNote.style.color='var(--green)';wordNote.textContent='✓ Oyun yeni kelime havuzunu kullanacak.'}catch(e){note.style.color='var(--gold)';note.textContent='Yedek kayıt alındı; Firestore yazma iznini kontrol edin. ('+(e.code||'erişim hatası')+')'}}
 /* ---- FAUL BACKGROUND TAB ---- */
 const SK_FAUL_BG = 'faul_bg';
 let currentFaulBgMode = 'none';
@@ -2718,6 +2746,12 @@ function enterGame(gameId){
   const isimTabBtn = document.getElementById('tab-btn-isimsehir');
   const katmanerTabBtn = document.getElementById('tab-btn-katmaner');
 
+  if(gameId==='yayincitabusu'){
+    document.querySelectorAll('.tab').forEach(t=>{const match=t.getAttribute('onclick').match(/switchTab\('(\w+)'\)/);if(match)t.style.display=match[1]==='yayincitabusu'?'':'none'});
+    const tabooTabBtn=document.getElementById('tab-btn-yayincitabusu');if(tabooTabBtn)tabooTabBtn.style.display='';
+    remotePull().then(()=>{tabooAdminInit();switchTab('yayincitabusu');showToast('Yayıncı Tabusu ayarları yüklendi')});
+    return;
+  }
   if(gameId==='katmaner'){
     document.querySelectorAll('.tab').forEach(t=>{
       const match=t.getAttribute('onclick').match(/switchTab\('(\w+)'\)/);
