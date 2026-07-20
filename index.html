@@ -169,6 +169,18 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
       </div>
     </a>
 
+    <!-- OYUN 7 — YAYINCI TABUSU -->
+    <a href="yayinci-tabusu.html" class="game-card" id="card-yayincitabusu">
+      <div class="gc-banner">
+        <img class="gc-bg" id="img-yayincitabusu" src="" alt="">
+        <div class="gc-banner-icon">🎥</div>
+        <div class="gc-inactive-overlay" id="inact-yayincitabusu">
+          <img class="gc-inactive-img" id="inact-img-yayincitabusu" src="" alt="">
+          <div class="gc-inactive-default" id="inact-txt-yayincitabusu">YAKINDA</div>
+        </div>
+      </div>
+    </a>
+
   </div>
 
 </div>
@@ -250,7 +262,7 @@ function applySettings(){
   /* 4 — kart görselleri + aktiflik + deaktif etiketi */
   try{
     const cards = JSON.parse(localStorage.getItem('hp_cards')||'{}');
-    ['vmym','faul','game3','game4','isimsehir','katmaner'].forEach(key=>{
+    ['vmym','faul','game3','game4','isimsehir','katmaner','yayincitabusu'].forEach(key=>{
       const cfg = cards[key]||{};
 
       /* banner görseli */
