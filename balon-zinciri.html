@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Balon Zinciri</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Outfit:wght@400;600;700;800&display=swap');
+:root{--bg:#06172a;--panel:#09233b;--line:#55d8f25c;--cyan:#78e8ff;--gold:#ffd65b;--pink:#fa5687;--mint:#70f4bd;--muted:#a4c2d5}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 48% -10%,#1c527f,#06172a 52%,#020914);color:#effaff;font-family:Outfit,Arial;overflow:hidden}
+body:before{content:"";inset:0;position:fixed;pointer-events:none;background-image:radial-gradient(#78e8ff24 1px,transparent 2px);background-size:88px 88px}
+.view{display:none;min-height:100vh;position:relative;z-index:1}
+.view.active{display:flex}
+.entry{align-items:center;justify-content:center;padding:24px}
+.entry-card{width:min(760px,96vw);padding:30px;background:#082039ee;border:1px solid var(--line);box-shadow:0 20px 80px #0009;text-align:center}
+.eyebrow{font-weight:800;font-size:12px;letter-spacing:3px;color:var(--gold)}
+h1{font:800 clamp(42px,7vw,76px) "Barlow Condensed";margin:5px 0;letter-spacing:2px}
+.sub{color:var(--muted);margin:0 0 20px;font-size:13px}
+.avatar-list{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin:14px auto 22px;max-width:600px}
+.avatar{width:76px;height:76px;border:1px solid #ffffff2d;background:#0b304f;color:#fff;border-radius:8px;font-size:35px;cursor:pointer;overflow:hidden;transition:.2s;padding:0}
+.avatar img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+.avatar.on{border-color:var(--gold);box-shadow:0 0 16px #ffd65b66;transform:translateY(-3px)}
+.tabs{display:flex;justify-content:center;gap:6px;margin-bottom:12px}
+.tab{border:1px solid #ffffff2c;background:#07182c;color:var(--muted);padding:8px 18px;font:800 13px Outfit;cursor:pointer}
+.tab.on{background:var(--gold);color:#102034}
+.form{display:none;max-width:500px;margin:auto}
+.form.on{display:block}
+.input{width:100%;border:1px solid #67dff766;background:#041323;color:#fff;border-radius:6px;padding:13px;font:600 15px Outfit;outline:0}
+.input:focus{border-color:var(--cyan)}
+.join-grid{display:grid;grid-template-columns:1fr 135px;gap:8px}
+.code-input{position:relative}
+.code-input .input{padding-right:38px}
+.code-eye{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:29px;height:29px;border:0;background:transparent;color:#bfe9f6;cursor:pointer;font-size:15px}
+.btn{width:100%;margin-top:10px;border:1px solid var(--gold);background:linear-gradient(135deg,#ffec88,#ca8b24);color:#102034;padding:12px;font:800 19px "Barlow Condensed";letter-spacing:1.5px;cursor:pointer}
+.btn:disabled{filter:grayscale(1);opacity:.48;cursor:wait}
+.error{min-height:19px;margin-top:10px;font-size:12px;color:#ff99b0}
+.lobby{width:min(1220px,96vw);margin:auto;padding:28px;grid-template-columns:minmax(0,1fr) 285px;gap:19px;align-items:start}
+.panel{background:#071e35ec;border:1px solid var(--line);box-shadow:0 14px 45px #0008}
+.main{padding:22px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.title{font:800 39px "Barlow Condensed";letter-spacing:2px}
+.state{font:800 12px Outfit;letter-spacing:1px;color:var(--gold)}
+.invite{display:grid;grid-template-columns:100px 1fr auto auto;gap:8px;align-items:center;margin:17px 0;border:1px solid #55d8f250;background:#041426;padding:9px}
+.code{font:800 26px "Barlow Condensed";letter-spacing:3px;color:var(--gold)}
+.link{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#b9d5e4;font-size:11px}
+.copy{padding:7px;border:1px solid #55d8f255;background:#0c3150;color:#fff;cursor:pointer}
+.players{display:grid;grid-template-columns:repeat(5,minmax(90px,1fr));gap:10px}
+.player{height:215px;border:1px solid #ffffff20;border-radius:9px;background:#092943;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;overflow:hidden}
+.player.empty{opacity:.38;border-style:dashed}
+.pav{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;overflow:hidden;font-size:42px;background:#0c3453;border:2px solid var(--cyan)}
+.pav img{width:100%;height:100%;object-fit:cover}
+.pname{font:800 17px "Barlow Condensed";margin-top:9px;max-width:94%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.host{position:absolute;top:7px;left:7px;color:var(--gold);font-size:9px;font-weight:800}
+.ready{position:absolute;bottom:8px;color:var(--mint);font-size:10px;font-weight:800}
+.side{padding:19px}
+.side h2{font:800 25px "Barlow Condensed";margin:0}
+.side p{font-size:12px;line-height:1.5;color:var(--muted)}
+.readybtn{background:#0b665d;color:#e5fff7;border-color:var(--mint)}
+.startbtn{background:linear-gradient(135deg,#ffec88,#ca8b24)}
+.count{color:var(--cyan);font-size:12px;font-weight:800;text-align:center;margin-top:14px}
+.game{align-items:center;justify-content:center;flex-direction:column;gap:14px;padding:18px;text-align:center}
+.game>*:not(.table-players){position:relative;z-index:1}
+.table-players{position:absolute;inset:16px 4vw;pointer-events:none;z-index:0}
+.seat{position:absolute;transform:translate(-50%,-50%);min-width:100px;max-width:118px;padding:7px 8px 6px;display:flex;align-items:center;gap:6px;border:1px solid #5fdcf64d;background:#061b30df;box-shadow:0 8px 20px #0007;transition:.25s}
+.seat.active{border-color:var(--gold);box-shadow:0 0 0 2px #ffd65b35,0 0 24px #ffd65b88;background:#2b260fdf}
+.seat-av{width:33px;height:33px;display:grid;place-items:center;overflow:hidden;border-radius:50%;background:#0e3a5a;font-size:20px;border:1px solid #75e7ff88;flex:0 0 auto}
+.seat-av img{width:100%;height:100%;object-fit:cover}
+.seat-nm{min-width:0;font:800 14px 'Barlow Condensed';white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seat.active .seat-nm{color:#ffe58a}
+.seat-turn{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--gold);color:#172131;font:800 9px Outfit;letter-spacing:.7px;padding:3px 5px;white-space:nowrap}
+@keyframes screen-burst{0%,100%{transform:translate(0)}
+7%{transform:translate(-13px,8px)}
+14%{transform:translate(12px,-9px)}
+22%{transform:translate(-10px,-5px)}
+30%{transform:translate(8px,6px)}
+40%{transform:translate(-6px,4px)}
+50%{transform:translate(5px,-3px)}
+60%{transform:translate(-3px,2px)}
+}
+body.screen-shake{animation:screen-burst .85s linear 3}
+body.screen-shake:after{content:'';position:fixed;inset:0;pointer-events:none;z-index:20;background:#fff3;animation:blastflash 2.55s ease-out forwards}
+@keyframes blastflash{0%,10%{opacity:1}
+35%,100%{opacity:0}
+}
+.game-label{font:800 13px Outfit;color:var(--cyan);letter-spacing:2px}
+.turn{display:none}
+.balloon-wrap{width:min(670px,92vw)!important;height:455px!important;margin:0;border:1px solid #66dffb70;background:radial-gradient(ellipse at 50% 100%,#174b6e77,#071c31ee 70%);box-shadow:inset 0 0 70px #0008,0 18px 55px #0008;overflow:hidden}
+.balloon-wrap:after{content:'BALON ALANI';position:absolute;top:18px;left:50%;transform:translateX(-50%);font:800 10px Outfit;letter-spacing:3px;color:#a9dced88}
+.turn{width:min(550px,94vw);padding:15px;border:1px solid var(--line);background:#071e35ec}
+.turnavatar{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;overflow:hidden;margin:auto;background:#0b3150;border:2px solid var(--cyan);font-size:35px}
+.turnavatar img{width:100%;height:100%;object-fit:cover}
+.turnname{font:800 31px "Barlow Condensed";margin-top:5px}
+.turnnote{color:var(--muted);font-size:12px}
+.balloon-wrap{height:210px;display:flex;align-items:center;justify-content:center;transform-origin:50% 0;animation:none}
+.balloon{width:225px;height:225px;border-radius:50%;background:radial-gradient(circle at 30% 22%,#ffe7ef 0 5%,#ff88af 15%,#e52d65 48%,#8a0d37 100%);box-shadow:inset -22px -26px 32px #65021f77,0 20px 42px #fc4e8c55;position:relative;transform:translate(var(--driftX,0px),var(--driftY,0px)) rotate(var(--driftR,0deg)) scale(calc(.54 + var(--inflate,0) * 1.18));transform-origin:50% 50%;transition:transform .1s linear,filter .35s;will-change:transform}
+.balloon.danger{filter:drop-shadow(0 0 20px #ff477fcc);animation:shake .55s infinite}
+@keyframes balloon-sway{0%{transform:translateX(-24px) rotate(-7deg)}
+18%{transform:translateX(16px) rotate(5deg)}
+36%{transform:translateX(-13px) rotate(-4deg)}
+55%{transform:translateX(27px) rotate(8deg)}
+74%{transform:translateX(-18px) rotate(-5deg)}
+100%{transform:translateX(-24px) rotate(-7deg)}
+}
+.balloon:after{display:none}
+.balloon:before{display:none}
+.balloon:after{filter:drop-shadow(0 5px 3px #0007)}
+.balloon::selection{background:transparent}
+.balloon-wrap:before{display:none}
+.balloon-wrap{position:relative}
+.balloon{background:radial-gradient(ellipse at 29% 20%,#fff 0 3%,#ffd5e2 5%,#ff91b7 13%,#ec3d72 45%,#a01340 80%,#60001e 100%)}
+.balloon.danger{background:radial-gradient(ellipse at 29% 20%,#fff4e4 0 3%,#ffcf8d 8%,#ff754b 24%,#e51d42 55%,#6b001a 100%)}
+.balloon.popped{opacity:0!important;transform:scale(1.9)!important;filter:blur(5px)!important;transition:opacity .16s ease-out,transform .2s ease-out,filter .2s ease-out}
+.shockwave{position:absolute;left:50%;top:50%;width:70px;height:70px;border:8px solid #fff3;box-shadow:0 0 30px #ffb6cd,0 0 80px #fff;border-radius:50%;transform:translate(-50%,-50%);animation:shock 1.1s ease-out forwards}
+@keyframes shock{to{width:850px;height:850px;opacity:0;border-width:1px}
+}
+.popword{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:800 100px 'Barlow Condensed';color:#fff;letter-spacing:8px;text-shadow:0 0 24px #ff4f83,5px 6px 0 #a20739;animation:popword .9s ease-out forwards}
+@keyframes popword{0%{scale:.3;opacity:0}
+25%{scale:1.25;opacity:1}
+100%{scale:1.6;opacity:0}
+.tension{font:800 11px Outfit;letter-spacing:2px;color:#ffb6c6;min-height:15px}
+.countdown{position:absolute;z-index:8;font:800 110px 'Barlow Condensed';color:#fff;text-shadow:0 0 28px #75e7ff;pointer-events:none;animation:countpop .8s ease-in-out infinite}
+.countdown.hide{display:none}
+@keyframes countpop{50%{transform:scale(1.18);opacity:.65}
+}
+.fx-layer{position:fixed;inset:0;pointer-events:none;z-index:30;overflow:hidden}
+.shard{position:absolute;width:13px;height:25px;background:linear-gradient(135deg,#ffb3c9,#e71c51);border-radius:70% 20% 70% 20%;animation:shardfly 1.8s cubic-bezier(.1,.8,.2,1) forwards}
+@keyframes shardfly{to{transform:translate(var(--x),var(--y)) rotate(var(--r));opacity:0}
+}
+.seat.active{animation:seatpulse 1.1s ease-in-out infinite}
+@keyframes seatpulse{50%{transform:translate(-50%,-50%) scale(1.06)}
+}
+@media(prefers-reduced-motion:reduce){.balloon-wrap,.balloon.danger{animation:none}
+}
+@keyframes shake{50%{rotate:3deg;translate:4px -1px}
+}
+.need{font:800 40px "Barlow Condensed";color:var(--gold)}
+.wordform{display:grid;grid-template-columns:minmax(0,1fr) 168px;gap:10px;width:min(620px,94vw);height:54px;align-items:stretch}
+.wordform[style*="display: flex"]{display:grid!important}
+.wordform .input,.wordform .btn{height:54px!important;min-height:54px;max-height:54px;align-self:stretch;box-sizing:border-box;line-height:1}
+.wordform .input{min-width:0;padding:0 17px;border-radius:8px;font-size:17px}
+.wordform .btn{margin:0;width:100%;padding:0;border-radius:8px;font-size:20px;letter-spacing:1.2px;display:flex;align-items:center;justify-content:center}
+.wordform.hidden{visibility:hidden}
+.history{font-size:12px;color:#bcd8e6;max-width:620px;min-height:20px}
+.toast{display:none;position:fixed;z-index:10;bottom:20px;left:50%;transform:translateX(-50%);background:#102d48;border:1px solid var(--cyan);padding:9px 15px;font-size:12px}
+.toast.on{display:block}
+@media(max-width:800px){body{overflow:auto}
+.lobby{grid-template-columns:1fr;padding:12px}
+.players{grid-template-columns:repeat(3,1fr)}
+.player{height:180px}
+.join-grid{grid-template-columns:1fr}
+.invite{grid-template-columns:85px 1fr}
+.copy{grid-column:2}
+.wordform{grid-template-columns:1fr;gap:8px;height:auto}
+.wordform .btn{width:100%}
+}
+
+.loader{position:fixed;inset:0;z-index:99;display:grid;place-items:center;background:radial-gradient(circle,#153d60,#020914 72%);transition:opacity .55s ease,visibility .55s}
+.loader.done{opacity:0;visibility:hidden}
+.loader-inner{text-align:center}
+.loader-balloon{width:56px;height:68px;margin:0 auto 14px;border-radius:50% 50% 47% 47%;background:radial-gradient(circle at 30% 20%,#fff 0 4%,#ff8bb2 16%,#d91d5c 72%);animation:loaderbob .8s ease-in-out infinite alternate;box-shadow:0 0 24px #ff5d8b}
+@keyframes loaderbob{to{transform:translateY(-15px) scale(1.08)}
+}
+.loader b{font:800 22px 'Barlow Condensed';letter-spacing:3px}
+.loader small{display:block;margin-top:6px;color:#9ec5d8;font:700 10px Outfit;letter-spacing:2px}
+</style></head><body><div class="loader" id="loader"><div class="loader-inner"><div class="loader-balloon"></div><b>BALON ZİNCİRİ</b><small>SAHNE HAZIRLANIYOR</small></div></div>
+<section class="view entry active" id="entry"><div class="entry-card"><div class="eyebrow">ÇOK OYUNCULU KELİME ZİNCİRİ</div><h1>BALON ZİNCİRİ</h1><p class="sub">Son harfle yeni kelimeyi yaz. Balon bir oyuncuda patlayacak.</p><div class="avatar-list" id="avatars"></div><div class="tabs"><button class="tab on" data-tab="create">ODA KUR</button><button class="tab" data-tab="join">ODAYA KATIL</button></div><div class="form on" id="create-form"><input class="input" id="create-name" maxlength="18" placeholder="Görünen adın"><button class="btn" id="create-btn">ODA OLUŞTUR</button></div><div class="form" id="join-form"><div class="join-grid"><input class="input" id="join-name" maxlength="18" placeholder="Görünen adın"><div class="code-input"><input class="input" id="join-code" type="password" maxlength="5" placeholder="ODA KODU" autocomplete="off"><button class="code-eye" type="button" id="join-code-eye" title="Oda kodunu göster">👁</button></div></div><button class="btn" id="join-btn">ODAYA KATIL</button></div><div class="error" id="entry-error"></div></div></section>
+<section class="view lobby" id="lobby"><main class="panel main"><div class="top"><div class="title">BALON ZİNCİRİ</div><div class="state" id="state">LOBI BEKLİYOR</div></div><div class="invite"><div class="code" id="room-code"></div><div class="link" id="room-link"></div><button class="copy" id="invite-eye" title="Davet bilgisini göster">👁</button><button class="copy" id="copy-btn" title="Davet bağlantısını kopyala">📋</button></div><div class="players" id="players"></div></main><aside class="panel side"><h2>OYUNCULAR</h2><p>En az 2, en fazla 10 oyuncu. Herkes hazır olduğunda oda sahibi oyunu başlatır.</p><button class="btn readybtn" id="ready-btn">HAZIRIM</button><button class="btn startbtn" id="start-btn" style="display:none">OYUNU BAŞLAT</button><div class="count" id="count"></div><div class="error" id="lobby-error"></div></aside></section>
+<section class="view game" id="game"><div class="table-players" id="table-players"></div><div class="fx-layer" id="fx-layer"></div><div class="countdown hide" id="countdown"></div><div class="game-label">BALON ZİNCİRİ · TUR DEVAM EDİYOR</div><div class="turn"><div class="turnavatar" id="turn-avatar"></div><div class="turnname" id="turn-name"></div><div class="turnnote" id="turn-note"></div></div><div class="balloon-wrap"><div class="balloon" id="balloon"></div></div><div class="need" id="need">İLK KELİME</div><form class="wordform" id="word-form"><input class="input" id="word-input" maxlength="30" placeholder="Kelime yaz" autocomplete="off"><button class="btn" type="submit">GÖNDER</button></form><div class="tension" id="tension"></div><div class="history" id="history"></div><div class="error" id="game-error"></div></section><div class="toast" id="toast"></div>
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import{getFirestore,doc,setDoc,getDoc,onSnapshot,runTransaction}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+const app=initializeApp({apiKey:'AIzaSyACr1JjQ3w3Ph0Pt5iPXsD_DnGRTP5eLOI',authDomain:'faul-oyunu.firebaseapp.com',projectId:'faul-oyunu',storageBucket:'faul-oyunu.firebasestorage.app',messagingSenderId:'241126841209',appId:'1:241126841209:web:0548349d5e45dc4518ada8'}),db=getFirestore(app);
+const $=s=>document.querySelector(s),MAX=10,MIN=2,fallback=['🦁','🐯','🐼','🐸','🦊','🐵','🐰','🐻','🐨','🦄','🐙','🦉'].map(value=>({type:'emoji',value}));
+let avatarList=fallback,chosen=fallback[0].value,roomCode='',room=null,unsubscribe=null,balloonTimer=null,balloonExploding=false,inviteVisible=false,hasExploded=false,lastCountdown=-1,audioCtx=null,balloonMotion=null;
+let myId=sessionStorage.getItem('balon_zinciri_player')||('bz_'+crypto.randomUUID());sessionStorage.setItem('balon_zinciri_player',myId);
+function animateGameIn(){['.game-label','.turn','.balloon-wrap','.need','.wordform','.tension','.history'].forEach((s,i)=>{const el=$(s);if(el)el.animate([{opacity:0,transform:'translateY(18px) scale(.96)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:420,delay:i*55,easing:'cubic-bezier(.16,1,.3,1)',fill:'both'})})}function go(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));$('#'+id).classList.add('active');if(id==='game')requestAnimationFrame(animateGameIn)}
+function toast(msg){const e=$('#toast');e.textContent=msg;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),3000)}
+function esc(v){return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function cloud(url,w){return url&&url.includes('/upload/')?url.replace('/upload/','/upload/f_auto,q_auto,w_'+w+'/'):url}
+function avatarHtml(v){return /^https?:/i.test(v||'')?'<img src="'+v+'" alt="">':esc(v)}
+function renderAvatars(){$('#avatars').innerHTML=avatarList.map((a,i)=>'<button class="avatar '+(a.value===chosen?'on':'')+'" data-i="'+i+'">'+(a.type==='img'?'<img src="'+a.value+'" alt="">':a.value)+'</button>').join('');document.querySelectorAll('.avatar').forEach(b=>b.onclick=()=>{chosen=avatarList[Number(b.dataset.i)].value;renderAvatars()})}
+async function loadFaulAvatars(){try{const r=await fetch('https://api.jsonbin.io/v3/b/6a2a8f27f5f4af5e29de21ee/latest');const record=(await r.json()).record||{},urls=record.vmym_cl_urls||{},n=Number(record.faul_avatar_count)||0,list=[];for(let i=0;i<n;i++){if(urls['faul_avatar_'+i])list.push({type:'img',value:cloud(urls['faul_avatar_'+i],160)})}if(list.length){avatarList=list;chosen=list[0].value;renderAvatars()}}catch(e){}}
+function code(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<5;i++)c+=a[Math.floor(Math.random()*a.length)];return c}
+function ref(){return doc(db,'faul_rooms','balon-'+roomCode)}
+function setEntryError(t){$('#entry-error').textContent=t||''}function setLobbyError(t){$('#lobby-error').textContent=t||''}
+function player(name){return{id:myId,name:name,avatar:chosen,ready:false}}
+async function createRoom(){const name=$('#create-name').value.trim();if(!name)return setEntryError('Önce görünen adını yaz.');setEntryError('');const b=$('#create-btn');b.disabled=true;try{roomCode=code();await setDoc(ref(),{game:'balon-zinciri',state:'lobby',hostId:myId,players:[player(name)],createdAt:Date.now()});history.replaceState(null,'','?oda='+roomCode);subscribe()}catch(e){setEntryError('Oda oluşturulamadı: '+(e.code||'bağlantı hatası'));b.disabled=false}}
+async function joinRoom(){const name=$('#join-name').value.trim();roomCode=$('#join-code').value.trim().toUpperCase();if(!name||roomCode.length!==5)return setEntryError('İsim ve 5 haneli oda kodu gerekli.');setEntryError('');const b=$('#join-btn');b.disabled=true;try{await runTransaction(db,async tx=>{const s=await tx.get(ref());if(!s.exists())throw Error('Oda bulunamadı.');const d=s.data(),ps=d.players||[];if(d.game!=='balon-zinciri')throw Error('Bu oda Balon Zinciri odası değil.');if(d.state!=='lobby')throw Error('Oyun çoktan başladı.');if(ps.some(p=>p.id===myId)){myId='bz_'+crypto.randomUUID();sessionStorage.setItem('balon_zinciri_player',myId)}if(ps.length>=MAX)throw Error('Oda dolu.');tx.update(ref(),{players:ps.concat([player(name)])})});history.replaceState(null,'','?oda='+roomCode);subscribe()}catch(e){setEntryError(e.message||e.code||'Odaya katılamadı.');b.disabled=false}}
+function subscribe(){if(unsubscribe)unsubscribe();unsubscribe=onSnapshot(ref(),s=>{if(!s.exists()){setEntryError('Oda bulunamadı.');go('entry');return}room=s.data();if(room.game!=='balon-zinciri'){setEntryError('Bu oda Balon Zinciri odası değil.');go('entry');return}if(room.state==='playing')renderGame();else if(room.state==='ended')renderEnd();else renderLobby()},e=>{const msg='Bağlantı hatası: '+(e.code||'Firestore erişimi');setEntryError(msg);setLobbyError(msg)})}
+function renderInvite(){const url=location.href.split('?')[0]+'?oda='+roomCode;$('#room-code').textContent=inviteVisible?roomCode:'•••••';$('#room-link').textContent=inviteVisible?url:'••••••••••••••••••••••••';$('#invite-eye').textContent=inviteVisible?'🙈':'👁';$('#invite-eye').title=inviteVisible?'Davet bilgisini gizle':'Davet bilgisini göster'}function renderLobby(){go('lobby');const ps=room.players||[],mine=ps.find(p=>p.id===myId),allReady=ps.length>=MIN&&ps.every(p=>p.ready),host=room.hostId===myId;renderInvite();$('#state').textContent=allReady?'TÜM OYUNCULAR HAZIR':'LOBI BEKLİYOR';$('#count').textContent=ps.length+' / '+MAX+' oyuncu';$('#players').innerHTML=ps.concat(Array(Math.max(0,MAX-ps.length)).fill(null)).map(p=>p?'<div class="player"><span class="host">'+(p.id===room.hostId?'ODA SAHİBİ':'')+'</span><div class="pav">'+avatarHtml(p.avatar)+'</div><div class="pname">'+esc(p.name)+'</div><span class="ready">'+(p.ready?'✓ HAZIR':'BEKLİYOR')+'</span></div>':'<div class="player empty">BOŞ</div>').join('');const r=$('#ready-btn');r.textContent=mine&&mine.ready?'HAZIR DEĞİLİM':'HAZIRIM';r.disabled=!mine;const start=$('#start-btn');start.style.display=host?'block':'none';start.disabled=!allReady;start.textContent='OYUNU BAŞLAT'}
+async function toggleReady(){try{await runTransaction(db,async tx=>{const s=await tx.get(ref());if(!s.exists())throw Error('Oda kapatıldı.');const d=s.data(),ps=d.players||[],i=ps.findIndex(p=>p.id===myId);if(i<0)throw Error('Oyuncu bulunamadı.');ps[i]={...ps[i],ready:!ps[i].ready};tx.update(ref(),{players:ps})})}catch(e){setLobbyError(e.message||e.code||'Hazır durumu değişmedi.')}}
+async function startGame(){const b=$('#start-btn');b.disabled=true;b.textContent='BAŞLATILIYOR…';setLobbyError('');try{await runTransaction(db,async tx=>{const s=await tx.get(ref());if(!s.exists())throw Error('Oda kapatıldı.');const d=s.data(),ps=d.players||[];if(d.hostId!==myId)throw Error('Sadece oda sahibi başlatabilir.');if(ps.length<MIN||!ps.every(p=>p.ready))throw Error('Tüm oyuncular hazır değil.');const now=Date.now()+3000,duration=45000+Math.floor(Math.random()*45001);tx.update(ref(),{state:'playing',turnIndex:0,lastLetter:'',used:[],pressure:0,startedAt:now,balloonStartedAt:now,balloonDurationMs:duration,balloonEndsAt:now+duration})})}catch(e){setLobbyError('Başlatılamadı: '+(e.message||e.code||'bağlantı hatası'));b.disabled=false;b.textContent='OYUNU BAŞLAT'}}
+function lastLetter(word){const x=Array.from(word.toLocaleLowerCase('tr-TR')).filter(c=>/[a-zçğıöşü]/i.test(c));return x[x.length-1]||''}
+function renderSeats(activeId){const ps=room.players||[],count=ps.length||1;$('#table-players').innerHTML=ps.map((p,i)=>{const a=-Math.PI/2+(i*2*Math.PI/count),x=(50+43*Math.cos(a)).toFixed(2),y=(50+39*Math.sin(a)).toFixed(2),active=p.id===activeId;return '<div class="seat '+(active?'active':'')+'" style="left:'+x+'%;top:'+y+'%"><div class="seat-av">'+avatarHtml(p.avatar)+'</div><div class="seat-nm">'+esc(p.name)+'</div>'+(active?'<span class="seat-turn">SIRA ONDA</span>':'')+'</div>'}).join('')}function renderGame(){hasExploded=false;$('#balloon').classList.remove('popped');go('game');const ps=room.players||[],current=ps[(Number(room.turnIndex)||0)%ps.length],mine=current&&current.id===myId;renderSeats(current?current.id:'');$('#need').textContent=room.lastLetter?'“'+room.lastLetter.toLocaleUpperCase('tr-TR')+'” İLE BAŞLA':'İLK KELİME';$('#word-form').classList.toggle('hidden',!mine);$('#word-form').style.display=mine?'flex':'none';$('#history').textContent=(room.used||[]).length?'Son kelimeler: '+(room.used||[]).slice(-8).join(' · '):'Henüz kelime yazılmadı.';startBalloonTimer()}function startBalloonTimer(){cancelAnimationFrame(balloonTimer);balloonExploding=false;balloonMotion={x:0,y:0,vx:155,vy:118,last:performance.now()};const tick=()=>{if(!room||room.state!=='playing')return;const now=Date.now(),started=Number(room.balloonStartedAt)||now,duration=Number(room.balloonDurationMs)||60000,ratio=Math.max(0,Math.min(1,(now-started)/duration)),b=$('#balloon'),wrap=document.querySelector('.balloon-wrap');b.style.setProperty('--inflate',ratio.toFixed(4));b.parentElement.style.setProperty('--inflate',ratio.toFixed(4));b.classList.toggle('danger',ratio>.78);const left=Math.max(0,(started-now)/1000),cd=$('#countdown');if(left>0){const n=Math.ceil(left);cd.textContent=n;cd.classList.remove('hide');$('#word-form').classList.add('hidden');$('#word-form').style.display='none';$('#tension').textContent='BALON SAHNEYE GELİYOR…';if(n!==lastCountdown){lastCountdown=n;beep(350+n*90,.06)}}else{cd.classList.add('hide');const mine=(room.players||[])[(Number(room.turnIndex)||0)%(room.players||[]).length]?.id===myId;$('#word-form').classList.toggle('hidden',!mine);$('#word-form').style.display=mine?'flex':'none';$('#tension').textContent=ratio>.78?'BALON HER AN PATLAYABİLİR':ratio>.55?'GERİLİM YÜKSELİYOR':'BALON ŞİŞİYOR';}const t=performance.now(),dt=Math.min(.05,(t-balloonMotion.last)/1000),scale=1+ratio*.72,limitX=Math.max(0,(wrap.clientWidth-225*scale)/2-7),limitY=Math.max(0,(wrap.clientHeight-225*scale)/2-7);balloonMotion.last=t;balloonMotion.x+=balloonMotion.vx*dt;balloonMotion.y+=balloonMotion.vy*dt;if(Math.abs(balloonMotion.x)>=limitX){balloonMotion.x=Math.sign(balloonMotion.x)*limitX;balloonMotion.vx*=-1;}
+if(Math.abs(balloonMotion.y)>=limitY){balloonMotion.y=Math.sign(balloonMotion.y)*limitY;balloonMotion.vy*=-1;}
+b.style.setProperty('--driftX',balloonMotion.x.toFixed(1)+'px');b.style.setProperty('--driftY',balloonMotion.y.toFixed(1)+'px');b.style.setProperty('--driftR',(balloonMotion.vx/155*7).toFixed(2)+'deg');if(ratio>=1)explodeBalloon();balloonTimer=requestAnimationFrame(tick)};tick()}async function explodeBalloon(){if(balloonExploding)return;balloonExploding=true;try{await runTransaction(db,async tx=>{const s=await tx.get(ref());if(!s.exists())return;const d=s.data();if(d.state!=='playing'||Date.now()<Number(d.balloonEndsAt))return;const ps=d.players||[],current=ps[(Number(d.turnIndex)||0)%ps.length];tx.update(ref(),{state:'ended',loserId:current?current.id:'',endedAt:Date.now()})})}catch(e){balloonExploding=false}}function beep(f,d=.12){try{audioCtx=audioCtx||new AudioContext();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=f;g.gain.value=.035;o.connect(g);g.connect(audioCtx.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+d);o.stop(audioCtx.currentTime+d)}catch(e){}}function burst(){const l=$('#fx-layer'),wave=document.createElement('i'),word=document.createElement('b');wave.className='shockwave';word.className='popword';word.textContent='POP!';l.append(wave,word);setTimeout(()=>{wave.remove();word.remove()},1200);for(let i=0;i<38;i++){const e=document.createElement('i'),a=Math.random()*Math.PI*2,dist=180+Math.random()*620;e.className='shard';e.style.left='50%';e.style.top='50%';e.style.setProperty('--x',Math.cos(a)*dist+'px');e.style.setProperty('--y',Math.sin(a)*dist+'px');e.style.setProperty('--r',(Math.random()*900-450)+'deg');l.appendChild(e);setTimeout(()=>e.remove(),1900)}beep(70,.7)}function celebrate(){beep(700,.08);const l=$('#fx-layer');for(let i=0;i<12;i++){const e=document.createElement('i');e.className='shard';e.style.background='#75e7ff';e.style.left=(42+Math.random()*16)+'%';e.style.top='63%';e.style.setProperty('--x',(Math.random()*220-110)+'px');e.style.setProperty('--y',(-70-Math.random()*130)+'px');e.style.setProperty('--r',(Math.random()*540-270)+'deg');l.appendChild(e);setTimeout(()=>e.remove(),1900)}}function shakeScreen(){burst();document.body.classList.remove('screen-shake');void document.body.offsetWidth;document.body.classList.add('screen-shake');setTimeout(()=>document.body.classList.remove('screen-shake'),2800)}function renderEnd(){cancelAnimationFrame(balloonTimer);go('game');if(!hasExploded){hasExploded=true;shakeScreen()}const loser=(room.players||[]).find(p=>p.id===room.loserId);renderSeats(room.loserId);$('.game-label').textContent='BALON PATLADI!';$('#turn-avatar').innerHTML='💥';$('#turn-name').textContent=loser?loser.name:'Tur bitti';$('#turn-note').textContent='Balon '+(loser?loser.name+' adlı oyuncuda':'')+' patladı.';$('#need').textContent='TUR TAMAMLANDI';$('#balloon').style.setProperty('--inflate','1.35');$('#balloon').classList.add('danger','popped');$('#word-form').classList.add('hidden');$('#history').textContent='Oda sahibi yeni tur için yeni oda açabilir.'}
+async function sendWord(e){e.preventDefault();const input=$('#word-input'),submit=$('#word-form button'),word=input.value.trim().toLocaleLowerCase('tr-TR').replace(/[^a-zçğıöşü]/gi,'');if(word.length<2)return toast('En az iki harfli kelime yaz.');submit.disabled=true;try{await runTransaction(db,async tx=>{const s=await tx.get(ref());if(!s.exists())throw Error('Oda kapatıldı.');const d=s.data(),ps=d.players||[],current=ps[(Number(d.turnIndex)||0)%ps.length];if(d.state!=='playing'||!current||current.id!==myId)throw Error('Sıra sende değil.');if(d.lastLetter&&word[0]!==d.lastLetter)throw Error('Kelime '+d.lastLetter.toLocaleUpperCase('tr-TR')+' ile başlamalı.');if((d.used||[]).includes(word))throw Error('Bu kelime daha önce yazıldı.');const used=(d.used||[]).concat([word]),pressure=(Number(d.pressure)||0)+1;tx.update(ref(),{turnIndex:((Number(d.turnIndex)||0)+1)%ps.length,lastLetter:lastLetter(word),used:used,pressure:pressure})});input.value='';celebrate()}catch(err){toast(err.message||err.code||'Kelime gönderilemedi.')}finally{submit.disabled=false}}
+window.addEventListener('load',()=>setTimeout(()=>$('#loader').classList.add('done'),450));document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));$('#create-form').classList.toggle('on',t.dataset.tab==='create');$('#join-form').classList.toggle('on',t.dataset.tab==='join');setEntryError('')});
+$('#create-btn').onclick=createRoom;$('#join-btn').onclick=joinRoom;$('#invite-eye').onclick=()=>{inviteVisible=!inviteVisible;renderInvite()};$('#join-code-eye').onclick=()=>{const i=$('#join-code'),open=i.type==='text';i.type=open?'password':'text';$('#join-code-eye').textContent=open?'👁':'🙈';$('#join-code-eye').title=open?'Oda kodunu göster':'Oda kodunu gizle'};$('#ready-btn').onclick=toggleReady;$('#start-btn').onclick=startGame;$('#word-form').onsubmit=sendWord;$('#copy-btn').onclick=async()=>{try{await navigator.clipboard.writeText(location.href.split('?')[0]+'?oda='+roomCode);toast('Davet bağlantısı kopyalandı.')}catch(e){toast('Bağlantı kopyalanamadı.')}};const q=new URLSearchParams(location.search).get('oda');if(q){$('#join-code').value=q.toUpperCase();document.querySelector('[data-tab="join"]').click()}renderAvatars();loadFaulAvatars();
+</script></body></html>

@@ -1,0 +1,9 @@
+{
+  "name": "balon-zinciri-assets",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "esbuild": "^0.28.1",
+    "gsap": "^3.15.0"
+  }
+}

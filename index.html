@@ -181,6 +181,18 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
       </div>
     </a>
 
+    <!-- OYUN 8 — BALON ZİNCİRİ -->
+    <a href="balon-zinciri.html" class="game-card" id="card-balonzinciri">
+      <div class="gc-banner">
+        <img class="gc-bg" id="img-balonzinciri" src="" alt="">
+        <div class="gc-banner-icon">🎈</div>
+        <div class="gc-inactive-overlay" id="inact-balonzinciri">
+          <img class="gc-inactive-img" id="inact-img-balonzinciri" src="" alt="">
+          <div class="gc-inactive-default" id="inact-txt-balonzinciri">YAKINDA</div>
+        </div>
+      </div>
+    </a>
+
   </div>
 
 </div>
@@ -262,7 +274,7 @@ function applySettings(){
   /* 4 — kart görselleri + aktiflik + deaktif etiketi */
   try{
     const cards = JSON.parse(localStorage.getItem('hp_cards')||'{}');
-    ['vmym','faul','game3','game4','isimsehir','katmaner','yayincitabusu'].forEach(key=>{
+    ['vmym','faul','game3','game4','isimsehir','katmaner','yayincitabusu','balonzinciri'].forEach(key=>{
       const cfg = cards[key]||{};
 
       /* banner görseli */
@@ -314,5 +326,47 @@ if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
   });
 }
 </script>
-</body>
+<style>
+.fidget-slot{position:fixed;right:20px;bottom:18px;z-index:50;width:226px;user-select:none;touch-action:none;filter:drop-shadow(0 12px 15px #0008)}
+.fidget-head{height:13px;display:flex;justify-content:center;cursor:grab;position:relative;z-index:4}.fidget-head:active{cursor:grabbing}.fidget-ring{width:34px;height:13px;border:4px solid #ffdb56;border-bottom:0;border-radius:14px 14px 0 0;background:#926018;box-shadow:0 0 0 2px #64400c,0 3px 7px #0008}.fidget-body{position:relative;padding:14px 24px 8px 13px;border:3px solid #ffe88d;border-radius:30px 21px 21px 30px;background:linear-gradient(90deg,#b46b0d 0,#ffe77d 15%,#f4b82b 26%,#fff2a4 50%,#d48912 76%,#8d5006 100%);box-shadow:inset 0 4px #fff8,inset 0 -7px 12px #603600aa,0 5px 0 #7d4708}.fidget-body:before{content:'';position:absolute;inset:8px;border:1px solid #fff7c488;border-radius:22px 13px 13px 22px;pointer-events:none}.fidget-title{display:none}.fidget-reels{position:relative;z-index:2;display:flex;gap:5px;justify-content:center;padding:8px 8px 9px;border-radius:9px;background:linear-gradient(#724007,#da9217 13%,#fff4c7 21%,#e0a02b 91%,#714006);box-shadow:inset 0 1px 5px #3c2109,0 2px #fff6}.fidget-window{width:49px;height:54px;display:grid;place-items:center;background:linear-gradient(100deg,#bfc1c2,#fff,#c6c7c6);border:2px solid #8b580d;border-radius:4px;box-shadow:inset 0 0 9px #0008;color:#e83234;font-size:35px;text-shadow:1px 2px #6c1717;overflow:hidden}.fidget-window.spin{animation:fidgetBlur .1s linear infinite}@keyframes fidgetBlur{50%{transform:translateY(-3px);filter:blur(1px)}}.fidget-lever{position:absolute;z-index:5;right:-28px;top:12px;width:31px;height:87px;padding:0;border:0;background:transparent;cursor:pointer;transform-origin:8px 72px;transition:transform .22s ease}.fidget-lever:before{content:'';position:absolute;left:5px;bottom:10px;width:13px;height:65px;border-radius:12px;background:linear-gradient(90deg,#8e4a08,#e8a731,#935006);box-shadow:1px 2px 3px #0008}.fidget-lever:after{content:'';position:absolute;left:0;top:0;width:29px;height:29px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffb5a4,#db2a24 38%,#64100f 75%);box-shadow:0 0 9px #ff5544,1px 2px 3px #000}.fidget-lever.pull{transform:rotate(31deg)}.fidget-lever span{position:absolute;left:5px;bottom:2px;width:14px;height:14px;border-radius:50%;background:#72400c;box-shadow:inset 0 1px #ffe799}.fidget-slot.jackpot .fidget-body{animation:fidgetWin .55s ease-in-out 3}@keyframes fidgetWin{50%{filter:brightness(1.35);box-shadow:0 0 23px #ffdf62,inset 0 4px #fff8,inset 0 -7px 12px #603600aa,0 5px 0 #7d4708}}
+</style>
+<style>
+.fidget-slot.jackpot{animation:fidgetShake .12s linear 8}@keyframes fidgetShake{25%{transform:translateX(-4px) rotate(-2deg)}75%{transform:translateX(4px) rotate(2deg)}}.fidget-spark{position:fixed;z-index:999;width:9px;height:9px;border-radius:50%;pointer-events:none;box-shadow:0 0 12px currentColor;animation:fidgetSpark .8s cubic-bezier(.12,.7,.25,1) forwards}.fidget-flash{position:fixed;z-index:998;width:20px;height:20px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#fff 0 9%,#ffed6b 20%,#ff9d1d77 42%,transparent 70%);transform:translate(-50%,-50%) scale(.2);animation:fidgetFlash .6s ease-out forwards}@keyframes fidgetSpark{to{transform:translate(var(--x),var(--y)) scale(0);opacity:0}}@keyframes fidgetFlash{to{transform:translate(-50%,-50%) scale(13);opacity:0}}
+</style><style>
+html.fidget-page-jackpot body{animation:fidgetPageShake .095s linear 12;filter:brightness(1.12) saturate(1.28)}@keyframes fidgetPageShake{25%{transform:translate(-7px,3px) rotate(-.15deg)}50%{transform:translate(6px,-4px) rotate(.15deg)}75%{transform:translate(-3px,5px)}}.fidget-screen-flash{position:fixed;inset:0;z-index:900;pointer-events:none;background:radial-gradient(ellipse at 50% 52%,#fff8 0,#ffe76d99 16%,#ff9d1d33 34%,transparent 70%);animation:fidgetScreenPulse 1.15s ease-out forwards}@keyframes fidgetScreenPulse{0%{opacity:0;transform:scale(.6)}14%{opacity:1;transform:scale(1.03)}100%{opacity:0;transform:scale(1.24)}}.fidget-page-spark{position:fixed;z-index:901;width:12px;height:12px;border-radius:2px;pointer-events:none;box-shadow:0 0 17px currentColor;animation:fidgetPageSpark 1.35s cubic-bezier(.08,.78,.25,1) forwards}@keyframes fidgetPageSpark{to{transform:translate(var(--x),var(--y)) rotate(560deg) scale(0);opacity:0}}
+</style><div class="fidget-slot" id="fidget-slot" aria-label="Sürüklenebilir dekoratif slot anahtarlık">
+  <div class="fidget-head" id="fidget-drag" title="Sürükleyerek taşı"><div class="fidget-ring"></div></div>
+  <div class="fidget-body"><div class="fidget-reels"><div class="fidget-window">7</div><div class="fidget-window">7</div><div class="fidget-window">7</div></div></div><button class="fidget-lever" id="fidget-spin" type="button" aria-label="Makaraları çevir"><span></span></button>
+</div>
+<script>
+(()=>{const toy=document.getElementById('fidget-slot'),drag=document.getElementById('fidget-drag'),spin=document.getElementById('fidget-spin'),reels=[...toy.querySelectorAll('.fidget-window')],icons=['7','★','🍒','♦','💎','♠','☀','♥'];let dragging=false,offsetX=0,offsetY=0,spinning=false;try{const p=JSON.parse(localStorage.getItem('index_fidget_slot_position')||'null');if(p&&Number.isFinite(p.x)&&Number.isFinite(p.y)){toy.style.left=p.x+'px';toy.style.top=p.y+'px';toy.style.right='auto';toy.style.bottom='auto'}}catch(e){}function clamp(v,min,max){return Math.min(max,Math.max(min,v))}function move(e){if(!dragging)return;const x=clamp(e.clientX-offsetX,0,window.innerWidth-toy.offsetWidth),y=clamp(e.clientY-offsetY,0,window.innerHeight-toy.offsetHeight);toy.style.left=x+'px';toy.style.top=y+'px';toy.style.right='auto';toy.style.bottom='auto'}drag.addEventListener('pointerdown',e=>{dragging=true;const r=toy.getBoundingClientRect();offsetX=e.clientX-r.left;offsetY=e.clientY-r.top;drag.setPointerCapture(e.pointerId);e.preventDefault()});drag.addEventListener('pointermove',move);drag.addEventListener('pointerup',()=>{if(!dragging)return;dragging=false;const r=toy.getBoundingClientRect();localStorage.setItem('index_fidget_slot_position',JSON.stringify({x:Math.round(r.left),y:Math.round(r.top)}))});function fidgetBurst(){const r=toy.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,root=document.documentElement;root.classList.add('fidget-page-jackpot');const screen=document.createElement('i');screen.className='fidget-screen-flash';document.body.append(screen);setTimeout(()=>{root.classList.remove('fidget-page-jackpot');screen.remove()},1200);const flash=document.createElement('i');flash.className='fidget-flash';flash.style.left=cx+'px';flash.style.top=cy+'px';document.body.append(flash);setTimeout(()=>flash.remove(),650);for(let i=0;i<26;i++){const s=document.createElement('i'),a=Math.random()*Math.PI*2,d=55+Math.random()*125;s.className='fidget-spark';s.style.left=cx+'px';s.style.top=cy+'px';s.style.color=['#fff','#ffe75b','#ff7a45','#72eaff','#ff5f9a'][i%5];s.style.setProperty('--x',Math.cos(a)*d+'px');s.style.setProperty('--y',Math.sin(a)*d+'px');document.body.append(s);setTimeout(()=>s.remove(),900)}for(let i=0;i<70;i++){const s=document.createElement('i'),x=Math.random()*innerWidth,y=Math.random()*innerHeight,a=Math.random()*Math.PI*2,d=80+Math.random()*330;s.className='fidget-page-spark';s.style.left=x+'px';s.style.top=y+'px';s.style.color=['#fff','#ffe75b','#ff9d2e','#72eaff','#ff5f9a'][i%5];s.style.setProperty('--x',Math.cos(a)*d+'px');s.style.setProperty('--y',Math.sin(a)*d+'px');document.body.append(s);setTimeout(()=>s.remove(),1450)}}spin.addEventListener('click',()=>{if(spinning)return;spinning=true;spin.disabled=true;spin.classList.add('pull');toy.classList.remove('jackpot');const timers=reels.map((reel,i)=>{reel.classList.add('spin');let n=0;const t=setInterval(()=>{reel.textContent=icons[(Math.floor(Math.random()*icons.length)+n++)%icons.length]},65);setTimeout(()=>{clearInterval(t);reel.classList.remove('spin');reel.textContent=icons[Math.floor(Math.random()*icons.length)];if(i===reels.length-1){spinning=false;spin.disabled=false;spin.classList.remove('pull');const vals=reels.map(r=>r.textContent);if(vals.every(v=>v===vals[0])){toy.classList.add('jackpot');fidgetBurst()}}},700+i*330);return t})})})();
+</script></body>
+<style>
+/* Fidget slot — koyu metal, keskin köşeli kasa */
+.fidget-slot{filter:drop-shadow(0 16px 20px #000b)}
+.fidget-head{height:15px}.fidget-ring{width:38px;height:15px;border:3px solid #8b949e;border-bottom:0;border-radius:7px 7px 0 0;background:linear-gradient(90deg,#181c22,#4b535d,#15191e);box-shadow:0 0 0 2px #050608,0 4px 8px #000b}
+.fidget-body{padding:15px 25px 10px 14px;border:2px solid #87919c;border-radius:5px;background:linear-gradient(135deg,#3d454e 0,#11151a 10%,#252c34 48%,#0a0d11 51%,#323a43 100%);clip-path:polygon(4% 0,96% 0,100% 13%,100% 87%,96% 100%,4% 100%,0 87%,0 13%);box-shadow:inset 0 1px #dbe5ee55,inset 0 -8px 14px #000c,0 5px 0 #050608,0 9px 16px #000b}
+.fidget-body:before{inset:7px;border:1px solid #9aa6b244;border-radius:2px;clip-path:polygon(4% 0,96% 0,100% 14%,100% 86%,96% 100%,4% 100%,0 86%,0 14%)}
+.fidget-reels{gap:5px;padding:8px 8px 9px;border:1px solid #050608;border-radius:3px;background:linear-gradient(180deg,#07090c,#303841 48%,#0a0d11);box-shadow:inset 0 1px 4px #000,0 1px #aeb9c533}
+.fidget-window{width:49px;height:54px;border:2px solid #69737d;border-radius:2px;background:linear-gradient(105deg,#6e7780,#f4f6f7 48%,#7e8790);box-shadow:inset 0 0 10px #0009,0 0 0 1px #080a0d;color:#d82731;text-shadow:1px 2px #54090d}
+.fidget-lever:before{border-radius:3px;background:linear-gradient(90deg,#11161c,#89939e 48%,#20262d);box-shadow:1px 2px 4px #000}.fidget-lever:after{border:2px solid #9ca6b0;background:radial-gradient(circle at 35% 30%,#ffb0aa,#bd2628 42%,#350609 78%);box-shadow:0 0 10px #e64a4b88,1px 2px 4px #000}.fidget-lever span{background:#101419;box-shadow:inset 0 1px #aab3bd55}
+.fidget-slot.jackpot .fidget-body{animation:fidgetWinMono .55s ease-in-out 3}@keyframes fidgetWinMono{50%{filter:brightness(1.45);box-shadow:0 0 24px #dceaffaa,inset 0 1px #fff8,inset 0 -8px 14px #000c,0 5px 0 #050608}}
+</style>
+<style>
+/* Kol yerine ana spin düğmesi */
+.fidget-slot{padding-bottom:43px}
+.fidget-lever{right:50%;top:auto;bottom:0;width:104px;height:34px;padding:0;border:1px solid #8ff0a3;border-radius:3px;background:linear-gradient(135deg,#35cc6c,#08783d);box-shadow:inset 0 1px #d5ffe066,0 4px 0 #034423,0 8px 13px #0009;transform:translateX(50%);transform-origin:50% 50%;font:800 16px Outfit;letter-spacing:2px;color:#effff2;text-shadow:0 1px #063b20}
+.fidget-lever:before{display:none}.fidget-lever:after{content:'SPİN';position:static;width:auto;height:auto;border:0;border-radius:0;background:none;box-shadow:none}
+.fidget-lever span{display:none}.fidget-lever.pull{transform:translateX(50%) translateY(3px) scale(.97);box-shadow:inset 0 1px #d5ffe044,0 1px 0 #034423,0 3px 7px #0009}
+</style>
+<style>
+.fidget-slot{padding-bottom:58px}
+.fidget-lever{bottom:0;width:54px;height:54px;border-radius:50%;font-size:11px;letter-spacing:.7px;background:radial-gradient(circle at 34% 27%,#9cffb7 0 6%,#35cc6c 31%,#08783d 69%,#034423 100%);box-shadow:inset 0 2px #e2ffdf99,inset 0 -7px 10px #025227,0 4px 0 #02371d,0 8px 14px #0009}
+.fidget-lever.pull{transform:translateX(50%) translateY(4px) scale(.94);box-shadow:inset 0 2px #e2ffdf66,inset 0 -7px 10px #025227,0 1px 0 #02371d,0 3px 7px #0009}
+</style>
+<style>
+.fidget-lever{border:2px solid #fff;box-shadow:inset 0 2px #e2ffdf99,inset 0 -7px 10px #025227,0 0 0 1px #0a4f2c,0 4px 0 #02371d,0 8px 14px #0009}
+.fidget-lever:after{display:inline-block;font-style:italic;transform:skewX(-8deg)}
+</style>
+<style>.fidget-lever:after{font-family:var(--disp)}</style>
 </html>
