@@ -133,6 +133,44 @@ async function receiveKickEvent(request, env) {
   return json({ ok: true });
 }
 
+/* Geçici topluluk modu: VMYM/Tabu'daki tarayıcı sohbet gözleminden gelen onay.
+   Resmî webhook bağlandığında /kick-event doğrulaması bu akışın yerini alabilir. */
+async function confirmFromChatClient(request, env) {
+  const body = await request.json().catch(() => null);
+  const requestId = String(body?.requestId || '');
+  const username = String(body?.kickUsername || '').trim().replace(/^@/, '');
+  const kickUserId = String(body?.kickUserId || '').trim();
+  const message = String(body?.message || '').trim();
+  if (!/^[0-9a-f-]{36}$/i.test(requestId) || !validUsername(username) || !/^[0-9]+$/.test(kickUserId)) {
+    return json({ error: 'Sohbet doğrulama bilgisi geçersiz.' }, { status: 400 });
+  }
+  const match = /^!findik\s+([A-Z2-9]{7})$/i.exec(message);
+  if (!match) return json({ error: 'Onay mesajı bulunamadı.' }, { status: 400 });
+  const pending = await env.FINDIK_DB.prepare(`SELECT * FROM verification_requests
+    WHERE id=? AND verified_user_id IS NULL AND expires_at>?`).bind(requestId, now()).first();
+  if (!pending || pending.kick_username_normalized !== username.toLowerCase()) {
+    return json({ error: 'Bu kod için geçerli bir doğrulama isteği yok.' }, { status: 400 });
+  }
+  if ((await digest(match[1].toUpperCase() + env.CODE_PEPPER)) !== pending.code_hash) {
+    return json({ error: 'Kod eşleşmedi.' }, { status: 400 });
+  }
+  const existing = await env.FINDIK_DB.prepare('SELECT id FROM users WHERE kick_user_id=?').bind(kickUserId).first();
+  const nameOwner = await env.FINDIK_DB.prepare('SELECT id FROM users WHERE kick_username_normalized=?').bind(username.toLowerCase()).first();
+  if (!existing && nameOwner) return json({ error: 'Bu Kick kullanıcı adı başka bir profile bağlı.' }, { status: 409 });
+  const userId = existing?.id || id(), statements=[];
+  if (!existing) {
+    statements.push(env.FINDIK_DB.prepare(`INSERT INTO users(id,kick_user_id,kick_username,kick_username_normalized,display_name,coins,created_at)
+      VALUES(?,?,?,?,?,?,?)`).bind(userId,kickUserId,username,username.toLowerCase(),username,100,now()));
+    statements.push(env.FINDIK_DB.prepare('INSERT INTO coin_ledger(id,user_id,amount,reason,created_at) VALUES(?,?,?,?,?)')
+      .bind(id(),userId,100,'welcome_bonus',now()));
+  }
+  statements.push(env.FINDIK_DB.prepare('UPDATE verification_requests SET verified_user_id=?,verified_at=? WHERE id=? AND verified_user_id IS NULL')
+    .bind(userId,now(),pending.id));
+  await env.FINDIK_DB.batch(statements);
+  const profile=await env.FINDIK_DB.prepare('SELECT kick_username,display_name,coins FROM users WHERE id=?').bind(userId).first();
+  return json({ verified:true,profile:publicProfile(profile) },{headers:{'set-cookie':await issueSession(userId,env)}});
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -140,6 +178,7 @@ export default {
     if (request.method === 'POST' && url.pathname === '/api/account/request') return requestVerification(request, env);
     if (request.method === 'GET' && url.pathname === '/api/account/status') return verificationStatus(request, env);
     if (request.method === 'POST' && url.pathname === '/api/account/kick-event') return receiveKickEvent(request, env);
+    if (request.method === 'POST' && url.pathname === '/api/account/client-confirm') return confirmFromChatClient(request, env);
     if (request.method === 'GET' && url.pathname === '/api/account/me') return json({ profile: publicProfile(await accountFromSession(request, env)) });
     if (request.method === 'POST' && url.pathname === '/api/account/logout') {
       const raw = getCookie(request, 'findik_session');
