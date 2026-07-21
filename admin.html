@@ -1033,7 +1033,18 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; h
       </div>
     </div>
 
-    <!-- 4. OYUN KARTLARI -->
+    <!-- 4. SLOT FIDGET -->
+    <div class="disp-card hp-section">
+      <div class="disp-card-title">SLOT FIDGET</div>
+      <div class="disp-card-sub">Ana sayfanın sağ altındaki sürüklenebilir dekoratif slot makinesini görünür veya gizli yapın.</div>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-top:14px;">
+        <input type="checkbox" id="hp-fidget-enabled" style="width:18px;height:18px;cursor:pointer;accent-color:var(--gold);">
+        <span style="font-size:13px;font-weight:700;">ANA SAYFADA SLOT FIDGET GÖSTER</span>
+      </label>
+      <button class="disp-save-btn" onclick="saveHpFidget()" style="margin-top:15px;">FIDGET AYARINI KAYDET</button>
+    </div>
+
+    <!-- 5. OYUN KARTLARI -->
     <div class="disp-card hp-section">
       <div class="disp-card-title">OYUN KARTLARI</div>
       <div class="disp-card-sub">Her oyun için banner görseli yükleyin, aktif/deaktif yapın. Deaktif olunca üzerine etiket görseli koyabilirsiniz.</div>
@@ -1553,7 +1564,7 @@ async function syncRemoteConfig() {
 const BIN_ID = '6a2a8f27f5f4af5e29de21ee';
 const BIN_KEY = '$2a$10$jmvujdFyJ.mML6da40FEleAhD1/oz/xVD612cQ6NAxRM4oQedpnBi';
 const BIN_API = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
-const ALL_KEYS = ['vmym_prices','vmym_zoom','vmym_ratio','vmym_lp','vmym_bg','vmym_header_size','vmym_cl_urls','hp_bg','hp_card_w','hp_card_h','hp_cards','faul_avatar_count','faul_bg','hp_header','faul_words','vmym_sbp','hesap_settings','katmaner_settings','katmaner_questions'];
+const ALL_KEYS = ['vmym_prices','vmym_zoom','vmym_ratio','vmym_lp','vmym_bg','vmym_header_size','vmym_cl_urls','hp_bg','hp_card_w','hp_card_h','hp_cards','hp_fidget','faul_avatar_count','faul_bg','hp_header','faul_words','vmym_sbp','hesap_settings','katmaner_settings','katmaner_questions'];
 
 async function remoteFetch(){
   try{
@@ -2144,6 +2155,11 @@ function initHomepageTab(){
   try{hpCardW=JSON.parse(localStorage.getItem('hp_card_w')||'300');document.getElementById('hp-card-w').value=hpCardW;}catch(e){}
   try{hpCardH=JSON.parse(localStorage.getItem('hp_card_h')||'300');document.getElementById('hp-card-h').value=hpCardH;}catch(e){}
   document.getElementById('hp-card-size-val').textContent=hpCardW+' × '+hpCardH+' px';
+  try{
+    const fidget=JSON.parse(localStorage.getItem('hp_fidget')||'{"enabled":true}');
+    const chk=document.getElementById('hp-fidget-enabled');
+    if(chk) chk.checked=fidget.enabled!==false;
+  }catch(e){}
   buildHpCardsGrid();
 }
 
@@ -2229,6 +2245,13 @@ function saveHpCards(){
   localStorage.setItem('hp_card_w',JSON.stringify(hpCardW));
   localStorage.setItem('hp_card_h',JSON.stringify(hpCardH));
   remotePush(); showToast('✅ Kart boyutları kaydedildi');
+}
+
+function saveHpFidget(){
+  const enabled=!!document.getElementById('hp-fidget-enabled')?.checked;
+  localStorage.setItem('hp_fidget',JSON.stringify({enabled}));
+  remotePush();
+  showToast(enabled?'Slot fidget ana sayfada gösterilecek':'Slot fidget ana sayfadan gizlendi');
 }
 
 /* GAME CARDS — banner + aktif/deaktif + deaktif etiketi */

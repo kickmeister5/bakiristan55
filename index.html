@@ -15,6 +15,7 @@
   --card-min-w:150px;--card-banner-h:150px;
 }
 html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--font-body);overflow-x:hidden;}
+html.fidget-hidden .fidget-slot{display:none!important;}
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
   background:radial-gradient(ellipse 60% 40% at 20% 10%,rgba(240,192,64,0.04) 0%,transparent 60%),
              radial-gradient(ellipse 40% 60% at 80% 80%,rgba(100,80,200,0.04) 0%,transparent 60%);}
@@ -84,6 +85,15 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
 .gc-inactive-img{max-width:70%;max-height:70%;object-fit:contain;display:none;}
 .gc-inactive-img.on{display:block;}
 .gc-inactive-default{font-family:var(--font-title);font-size:clamp(16px,3vw,26px);letter-spacing:3px;color:rgba(255,255,255,0.7);}
+</style>
+<style>
+/* Fındık hesabı — sunucu doğrulamalı profil çekmecesi */
+.account-dock{position:fixed;left:0;top:50%;z-index:120;transform:translateY(-50%);display:flex;align-items:stretch;font-family:var(--font-body)}
+.account-toggle{width:48px;min-height:164px;border:1px solid #f0c04088;border-left:0;border-radius:0 14px 14px 0;background:linear-gradient(180deg,#241d0d,#0e101a);color:#f8db75;cursor:pointer;box-shadow:8px 10px 28px #0008;writing-mode:vertical-rl;letter-spacing:2px;font:700 13px var(--font-body);transition:transform .22s ease,background .22s ease}
+.account-toggle:hover{background:#332812}.account-dock.open .account-toggle{transform:translateX(352px)}
+.account-panel{position:absolute;left:0;top:50%;width:352px;transform:translate(-372px,-50%);padding:19px;background:linear-gradient(145deg,#151724f8,#090b12fa);border:1px solid #f0c04055;border-left:0;border-radius:0 18px 18px 0;box-shadow:12px 14px 38px #000a;transition:transform .28s cubic-bezier(.2,.85,.25,1);backdrop-filter:blur(14px)}
+.account-dock.open .account-panel{transform:translate(0,-50%)}
+.account-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.account-kicker{font:700 11px var(--font-body);letter-spacing:2px;color:#f0c040}.account-title{font:400 32px var(--font-title);letter-spacing:1px}.account-close{border:0;background:transparent;color:#a6a3b4;font-size:24px;cursor:pointer;padding:2px 6px}.account-copy{color:#aaa8b8;font-size:12px;line-height:1.55;margin:8px 0 15px}.account-field{width:100%;height:45px;padding:0 13px;border:1px solid #ffffff1e;border-radius:9px;background:#060811;color:#fff;font:600 14px var(--font-body);outline:none}.account-field:focus{border-color:#f0c04099;box-shadow:0 0 0 3px #f0c0401a}.account-btn{width:100%;min-height:44px;margin-top:10px;border:1px solid #f6d869;border-radius:9px;background:linear-gradient(135deg,#f6d55d,#b37b1c);color:#181208;cursor:pointer;font:700 13px var(--font-body);letter-spacing:.5px}.account-btn:disabled{opacity:.55;cursor:wait}.account-note{min-height:20px;margin-top:11px;color:#b7b4c7;font-size:11px;line-height:1.45}.account-note.error{color:#ff9da6}.account-note.success{color:#87f2bd}.account-code{margin-top:14px;padding:13px;border:1px solid #62d7f055;border-radius:10px;background:#091522;color:#ccefff}.account-code strong{display:block;margin:5px 0;color:#fff;font:700 17px var(--font-body);letter-spacing:.3px}.account-code small{color:#90aaba;font-size:11px}.account-profile{display:grid;grid-template-columns:48px 1fr;gap:11px;align-items:center;margin-top:12px;padding:13px;border:1px solid #f0c04044;border-radius:11px;background:#15130d}.account-avatar{width:48px;height:48px;display:grid;place-items:center;border-radius:50%;background:#32280c;border:1px solid #f0c040;color:#f9d761;font-size:22px}.account-name{font-weight:700}.account-kick{margin-top:2px;color:#9d9bad;font-size:11px}.account-coins{display:inline-flex;align-items:center;gap:5px;margin-top:7px;color:#f8d55c;font-weight:700;font-size:13px}.account-logout{margin-top:12px;border:0;background:transparent;color:#aaa7b5;font:600 11px var(--font-body);cursor:pointer;text-decoration:underline}@media(max-width:600px){.account-panel{width:min(338px,calc(100vw - 28px))}.account-dock.open .account-toggle{transform:translateX(min(338px,calc(100vw - 28px)))}.account-toggle{min-height:126px}}
 </style>
 </head>
 <body>
@@ -197,6 +207,24 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
 
 </div>
 
+<aside class="account-dock" id="account-dock" aria-label="Fındık hesabı">
+  <section class="account-panel" id="account-panel" aria-live="polite">
+    <div class="account-head"><div><div class="account-kicker">FINDIK HESABI</div><div class="account-title">PROFİLİN</div></div><button class="account-close" id="account-close" type="button" aria-label="Hesap panelini kapat">×</button></div>
+    <div id="account-guest">
+      <p class="account-copy">Kick kullanıcı adını doğrula; hesabın açıldığında sana tek seferlik <b>100 Fındık Coin</b> tanımlanır.</p>
+      <input class="account-field" id="account-kick-name" autocomplete="username" maxlength="40" placeholder="Kick kullanıcı adın" aria-label="Kick kullanıcı adı">
+      <button class="account-btn" id="account-request" type="button">HESABI DOĞRULA</button>
+      <div class="account-code" id="account-code" hidden></div>
+      <div class="account-note" id="account-note"></div>
+    </div>
+    <div id="account-signed" hidden>
+      <div class="account-profile"><div class="account-avatar">🌰</div><div><div class="account-name" id="account-name">—</div><div class="account-kick" id="account-kick">—</div><div class="account-coins">🌰 <span id="account-coins">0</span> FINDIK COIN</div></div></div>
+      <button class="account-logout" id="account-logout" type="button">Hesaptan çık</button>
+    </div>
+  </section>
+  <button class="account-toggle" id="account-toggle" type="button" aria-expanded="false">🌰 HESABIM</button>
+</aside>
+
 <script>
 const BIN_ID  = '6a2a8f27f5f4af5e29de21ee';
 const BIN_KEY = '$2a$10$jmvujdFyJ.mML6da40FEleAhD1/oz/xVD612cQ6NAxRM4oQedpnBi';
@@ -224,7 +252,7 @@ async function syncConfig(){
     const res = await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID+'/latest',{headers:{'X-Master-Key':BIN_KEY}});
     if(!res.ok) return;
     const rec = (await res.json()).record||{};
-    ['hp_bg','hp_card_w','hp_card_h','hp_cards','hp_header','vmym_cl_urls'].forEach(k=>{
+    ['hp_bg','hp_card_w','hp_card_h','hp_cards','hp_fidget','hp_header','vmym_cl_urls'].forEach(k=>{
       if(rec[k]!==undefined) localStorage.setItem(k, typeof rec[k]==='string'?rec[k]:JSON.stringify(rec[k]));
     });
   }catch(e){}
@@ -272,6 +300,11 @@ function applySettings(){
   }catch(e){}
 
   /* 4 — kart görselleri + aktiflik + deaktif etiketi */
+  try{
+    const fidget=JSON.parse(localStorage.getItem('hp_fidget')||'{"enabled":true}');
+    document.documentElement.classList.toggle('fidget-hidden',fidget.enabled===false);
+  }catch(e){}
+
   try{
     const cards = JSON.parse(localStorage.getItem('hp_cards')||'{}');
     ['vmym','faul','game3','game4','isimsehir','katmaner','yayincitabusu','balonzinciri'].forEach(key=>{
@@ -325,6 +358,28 @@ if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
     card.addEventListener('pointerleave', () => { card.style.transform = ''; });
   });
 }
+</script>
+<script>
+/* Hesap doğrulaması yalnızca /api/account üzerinden yürür.
+   Tarayıcı hiçbir zaman Coin bakiyesini yazmaz; oturum HttpOnly çerezdir. */
+(()=>{
+  const dock=document.getElementById('account-dock'),toggle=document.getElementById('account-toggle'),close=document.getElementById('account-close');
+  const guest=document.getElementById('account-guest'),signed=document.getElementById('account-signed'),input=document.getElementById('account-kick-name');
+  const request=document.getElementById('account-request'),note=document.getElementById('account-note'),code=document.getElementById('account-code');
+  let pollTimer=null,activeRequest=null;
+  const api=(path,options={})=>fetch('/api/account'+path,{credentials:'same-origin',headers:{'Content-Type':'application/json',...(options.headers||{})},...options}).then(async r=>{const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||'Hesap sunucusu henüz etkinleştirilmedi.');return data});
+  const setNote=(text,type='')=>{note.textContent=text;note.className='account-note '+type};
+  const open=state=>{dock.classList.toggle('open',state);toggle.setAttribute('aria-expanded',String(state))};
+  toggle.onclick=()=>open(!dock.classList.contains('open'));close.onclick=()=>open(false);
+  function signedIn(profile){guest.hidden=true;signed.hidden=false;document.getElementById('account-name').textContent=profile.displayName||profile.kickUsername;document.getElementById('account-kick').textContent='@'+profile.kickUsername;document.getElementById('account-coins').textContent=Number(profile.coins||0).toLocaleString('tr-TR');code.hidden=true;if(pollTimer)clearInterval(pollTimer)}
+  function signedOut(){guest.hidden=false;signed.hidden=true;activeRequest=null;if(pollTimer)clearInterval(pollTimer);pollTimer=null;code.hidden=true;setNote('')}
+  async function refresh(){try{const data=await api('/me');if(data.profile)signedIn(data.profile);else signedOut()}catch(e){signedOut();setNote('Hesap sistemi yakında açılıyor.','')}}
+  async function poll(){if(!activeRequest)return;try{const data=await api('/status?requestId='+encodeURIComponent(activeRequest));if(data.verified){signedIn(data.profile);setNote('Hesabın doğrulandı. Hoş geldin!','success')}else if(data.expired){setNote('Kodun süresi doldu. Yeni bir kod oluşturabilirsin.','error');clearInterval(pollTimer);pollTimer=null;request.disabled=false;request.textContent='YENİ KOD OLUŞTUR'}}catch(e){/* geçici ağ kesintisinde kodu ekranda tut */}}
+  request.onclick=async()=>{const username=input.value.trim().replace(/^@/,'');if(!/^[a-zA-Z0-9_]{2,40}$/.test(username)){setNote('Kick kullanıcı adını yalnızca harf, rakam ve alt çizgi ile yaz.','error');return}request.disabled=true;setNote('Tek kullanımlık kod hazırlanıyor…');try{const data=await api('/request',{method:'POST',body:JSON.stringify({kickUsername:username})});activeRequest=data.requestId;code.hidden=false;code.innerHTML=`<small>Kick’te <b>@batuhanfurkan5</b> sohbetine, ${data.expiresInMinutes||5} dakika içinde şunu aynen yaz:</small><strong>${escapeHtml(data.message)}</strong><small>Mesajı senin hesabından gördüğümüzde profilin otomatik açılır.</small>`;setNote('Sohbet mesajın bekleniyor…');request.textContent='DOĞRULAMA BEKLENİYOR';if(pollTimer)clearInterval(pollTimer);pollTimer=setInterval(poll,3500);poll()}catch(e){setNote(e.message||'Hesap sistemi yakında açılıyor.','error');request.disabled=false;request.textContent='HESABI DOĞRULA'}};
+  document.getElementById('account-logout').onclick=async()=>{try{await api('/logout',{method:'POST',body:'{}'})}catch(e){}signedOut()};
+  function escapeHtml(value){return String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+  refresh();
+})();
 </script>
 <style>
 .fidget-slot{position:fixed;right:20px;bottom:18px;z-index:50;width:226px;user-select:none;touch-action:none;filter:drop-shadow(0 12px 15px #0008)}
