@@ -368,13 +368,11 @@ async function adminDeleteUser(request,env){
   return json({orders:results.map(x=>({...x,unit_price:Number(x.unit_price)}))});
 }
 const DEFAULT_SLOT_SYMBOLS=[
-  {id:'x2',name:'2X',image_url:'',multiplier:2,rarity:55,active:true,sort_order:0},
-  {id:'x5',name:'5X',image_url:'',multiplier:5,rarity:25,active:true,sort_order:1},
-  {id:'x10',name:'10X',image_url:'',multiplier:10,rarity:11,active:true,sort_order:2},
-  {id:'x25',name:'25X',image_url:'',multiplier:25,rarity:5,active:true,sort_order:3},
-  {id:'x50',name:'50X',image_url:'',multiplier:50,rarity:2,active:true,sort_order:4},
-  {id:'x100',name:'100X',image_url:'',multiplier:100,rarity:1,active:true,sort_order:5},
-  {id:'x500',name:'500X',image_url:'',multiplier:500,rarity:1,active:true,sort_order:6}
+  {id:'nut',name:'Fındık',image_url:'findik-logo.png',multiplier:3,rarity:20,active:true,sort_order:0},
+  {id:'star',name:'Yıldız',image_url:'',multiplier:5,rarity:20,active:true,sort_order:1},
+  {id:'gem',name:'Elmas',image_url:'',multiplier:8,rarity:20,active:true,sort_order:2},
+  {id:'crown',name:'Taç',image_url:'',multiplier:12,rarity:20,active:true,sort_order:3},
+  {id:'berry',name:'Kiraz',image_url:'',multiplier:10,rarity:20,active:true,sort_order:4}
 ];async function getSlotConfig(env,includeInactive=false){
   try {
     const config=await env.FINDIK_DB.prepare('SELECT win_rate,cascade_rate FROM slot_config WHERE id=?').bind('main').first();
@@ -453,8 +451,12 @@ async function adminSlotConfig(request,env){
   const items=Array.isArray(body?.symbols)?body.symbols:[];
   const xItems=Array.isArray(body?.xSymbols)?body.xSymbols:DEFAULT_X_SYMBOLS;
   if(!items.length)return json({error:'En az bir ana sembol eklemelisin.'},{status:400});
+  const mainItems=items.slice(0,30).map(x=>({...x,rarity:Math.max(1,Math.min(100,Math.round(Number(x.rarity)||1)))})).filter(x=>String(x.name||'').trim()&&Number(x.multiplier)>0&&x.active!==false);
+  if(!mainItems.length)return json({error:'En az bir aktif ana sembol eklemelisin.'},{status:400});
+  const probabilityTotal=mainItems.reduce((sum,x)=>sum+x.rarity,0);
+  if(probabilityTotal!==100)return json({error:'Ana sembollerin görünme oranları toplamı tam %100 olmalı.'},{status:400});
   const statements=[env.FINDIK_DB.prepare('INSERT INTO slot_config(id,win_rate,cascade_rate,updated_at) VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET win_rate=excluded.win_rate,cascade_rate=excluded.cascade_rate,updated_at=excluded.updated_at').bind('main',winRate,cascadeRate,now()),env.FINDIK_DB.prepare('INSERT INTO slot_bonus_config(id,chance,updated_at) VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET chance=excluded.chance,updated_at=excluded.updated_at').bind('main',xChance,now()),env.FINDIK_DB.prepare('INSERT INTO slot_media_config(id,music_url,updated_at) VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET music_url=excluded.music_url,updated_at=excluded.updated_at').bind('main',musicUrl,now()),env.FINDIK_DB.prepare('DELETE FROM slot_symbols'),env.FINDIK_DB.prepare('DELETE FROM slot_symbol_rarity'),env.FINDIK_DB.prepare('DELETE FROM slot_x_symbols')];
-  items.slice(0,30).forEach((x,index)=>{const name=String(x.name||'').trim().slice(0,40),multiplier=Number(x.multiplier);if(!name||!Number.isFinite(multiplier)||multiplier<=0)return;statements.push(env.FINDIK_DB.prepare('INSERT INTO slot_symbols(id,name,image_url,multiplier,active,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)').bind(String(x.id||id()),name,String(x.image_url||'').slice(0,1200),multiplier,x.active===false?0:1,index,now(),now()))});
+  mainItems.forEach((x,index)=>{const name=String(x.name||'').trim().slice(0,40),multiplier=Number(x.multiplier),symbolId=String(x.id||id()),rarity=Math.max(1,Math.min(100,Math.round(Number(x.rarity)||1)));statements.push(env.FINDIK_DB.prepare('INSERT INTO slot_symbols(id,name,image_url,multiplier,active,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)').bind(symbolId,name,String(x.image_url||'').slice(0,1200),multiplier,1,index,now(),now()));statements.push(env.FINDIK_DB.prepare('INSERT INTO slot_symbol_rarity(symbol_id,rarity) VALUES(?,?)').bind(symbolId,rarity))});
   xItems.slice(0,20).forEach((x,index)=>{const name=String(x.name||'').trim().slice(0,40),multiplier=Number(x.multiplier);if(!name||!Number.isFinite(multiplier)||multiplier<=0)return;const rarity=Math.max(1,Math.min(10000,Math.round(Number(x.rarity)||1)));statements.push(env.FINDIK_DB.prepare('INSERT INTO slot_x_symbols(id,name,image_url,multiplier,rarity,active,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)').bind(String(x.id||id()),name,String(x.image_url||'').slice(0,1200),multiplier,rarity,x.active===false?0:1,index,now(),now()))});
   await env.FINDIK_DB.batch(statements);
   return json(await getSlotConfig(env,true));
