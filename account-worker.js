@@ -343,7 +343,22 @@ async function adminLogs(request, env) {
   ]);
   return json({users:users.results||[],purchases:purchases.results||[],ledger:ledger.results||[]});
 }
-async function adminOrders(request, env) {
+async function adminDeleteUser(request,env){
+  const denied=await requireAdmin(request,env);if(denied)return denied;
+  const body=await request.json().catch(()=>null),username=String(body?.username||'').trim().replace(/^@/,'').toLowerCase();
+  if(!validUsername(username))return json({error:'Geçerli bir kullanıcı adı yaz.'},{status:400});
+  const user=await env.FINDIK_DB.prepare('SELECT id,kick_username FROM users WHERE kick_username_normalized=?').bind(username).first();
+  if(!user)return json({error:'Kullanıcı bulunamadı.'},{status:404});
+  await env.FINDIK_DB.batch([
+    env.FINDIK_DB.prepare('DELETE FROM sessions WHERE user_id=?').bind(user.id),
+    env.FINDIK_DB.prepare('DELETE FROM coin_ledger WHERE user_id=?').bind(user.id),
+    env.FINDIK_DB.prepare('DELETE FROM slot_highscores WHERE user_id=?').bind(user.id),
+    env.FINDIK_DB.prepare('DELETE FROM shop_purchases WHERE user_id=?').bind(user.id),
+    env.FINDIK_DB.prepare('DELETE FROM verification_requests WHERE verified_user_id=? OR kick_username_normalized=?').bind(user.id,username),
+    env.FINDIK_DB.prepare('DELETE FROM users WHERE id=?').bind(user.id)
+  ]);
+  return json({ok:true,username:user.kick_username});
+}async function adminOrders(request, env) {
   const denied=await requireAdmin(request,env);if(denied)return denied;
   const q=(new URL(request.url).searchParams.get('q')||'').trim().toLowerCase(),like=`%${q}%`;
   const {results=[]}=await env.FINDIK_DB.prepare(`SELECT p.id,p.product_name,p.unit_price,p.customer_name,p.shipping_address,p.phone,p.created_at,u.kick_username,u.display_name
@@ -459,6 +474,7 @@ export default {
     if (request.method === 'POST' && url.pathname === '/api/account/admin/products/archive') return adminProductStatus(request,env);
     if (request.method === 'POST' && url.pathname === '/api/account/admin/coins') return adminCoinAdjustment(request,env);
     if (request.method === 'GET' && url.pathname === '/api/account/admin/logs') return adminLogs(request,env);
+    if (request.method === 'POST' && url.pathname === '/api/account/admin/users/delete') return adminDeleteUser(request,env);
     if (request.method === 'GET' && url.pathname === '/api/account/admin/orders') return adminOrders(request,env);
     if (url.pathname === '/api/account/admin/slot' && (request.method === 'GET'||request.method==='POST')) return adminSlotConfig(request,env);
     if (request.method === 'POST' && url.pathname === '/api/account/request') return requestVerification(request, env);
