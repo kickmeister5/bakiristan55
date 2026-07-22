@@ -380,7 +380,32 @@ const DEFAULT_SLOT_SYMBOLS=[
 function shuffle(items){for(let i=items.length-1;i>0;i--){const j=randomIndex(i+1);[items[i],items[j]]=[items[j],items[i]]}return items}
 function weightedPick(items){const total=items.reduce((sum,item)=>sum+Math.max(1,Math.round(Number(item.rarity)||1)),0);let roll=randomIndex(total);for(const item of items){roll-=Math.max(1,Math.round(Number(item.rarity)||1));if(roll<0)return item}return items[items.length-1]}
 function slotLossGrid(symbols){const counts=new Map(),grid=[];while(grid.length<30){const possible=symbols.filter(x=>(counts.get(x.id)||0)<7);const pick=weightedPick(possible);grid.push(pick.id);counts.set(pick.id,(counts.get(pick.id)||0)+1)}return shuffle(grid)}
-function slotWinGrid(symbols,winner){const counts=new Map([[winner.id,8]]),grid=Array(8).fill(winner.id);while(grid.length<30){const possible=symbols.filter(x=>x.id!==winner.id&&(counts.get(x.id)||0)<7);const pick=weightedPick(possible);grid.push(pick.id);counts.set(pick.id,(counts.get(pick.id)||0)+1)}return shuffle(grid)}async function getSlotLeaderboard(env){
+function slotWinGrid(symbols,winner){const counts=new Map([[winner.id,8]]),grid=Array(8).fill(winner.id);while(grid.length<30){const possible=symbols.filter(x=>x.id!==winner.id&&(counts.get(x.id)||0)<7);const pick=weightedPick(possible);grid.push(pick.id);counts.set(pick.id,(counts.get(pick.id)||0)+1)}return shuffle(grid)}function planSlotCascades(startGrid,winner,symbols,cascadeRate,bonus,bet){
+  let grid=startGrid.slice(),first=true,bonusPlaced=!!bonus&&Number(bonus.dropRound??0)===0;
+  const plan=[];
+  for(let round=1;round<=30;round++){
+    const matches=symbols.filter(s=>grid.filter(id=>id===s.id).length>=8);
+    const hit=first?winner:matches[0];
+    if(!hit)break;
+    const positions=[];grid.forEach((id,index)=>{if(id===hit.id)positions.push(index)});
+    const counts=new Map();grid.forEach((id,index)=>{if(!positions.includes(index))counts.set(id,(counts.get(id)||0)+1)});
+    const nextTarget=randomIndex(100)<Number(cascadeRate||0)?weightedPick(symbols):null;
+    let needed=nextTarget?Math.max(0,8-(counts.get(nextTarget.id)||0)):0;
+    const xPosition=bonus&&!bonusPlaced&&Number(bonus.dropRound??0)===round?positions[randomIndex(positions.length)]:-1;
+    if(xPosition>=0)bonusPlaced=true;
+    const next=grid.map((id,index)=>{
+      if(!positions.includes(index))return id;
+      if(index===xPosition)return bonus.id;
+      let pick;
+      if(nextTarget&&needed>0){pick=nextTarget;needed--}
+      else {const possible=symbols.filter(s=>s.id!==nextTarget?.id&&(counts.get(s.id)||0)<7);pick=weightedPick(possible)}
+      counts.set(pick.id,(counts.get(pick.id)||0)+1);return pick.id;
+    });
+    plan.push({hitId:hit.id,positions,nextGrid:next,payout:Math.max(1,Math.round(bet*hit.multiplier))});
+    grid=next;first=false;
+  }
+  return plan;
+}async function getSlotLeaderboard(env){
   const {results=[]}=await env.FINDIK_DB.prepare('SELECT username,best_payout FROM slot_highscores ORDER BY best_payout DESC,updated_at ASC LIMIT 10').all();
   return {items:results.map(x=>({username:x.username,bestPayout:Number(x.best_payout)}))};
 }async function slotSpin(request,env){
@@ -393,13 +418,13 @@ function slotWinGrid(symbols,winner){const counts=new Map([[winner.id,8]]),grid=
   const spent=await env.FINDIK_DB.prepare('UPDATE users SET coins=coins-? WHERE id=? AND coins>=?').bind(bet,user.id,bet).run();
   if(!spent.meta?.changes)return json({error:'Yeterli Fındık Coin yok.'},{status:409});
   const won=randomIndex(100)<config.winRate;let grid,payout=0,basePayout=0,winner=null,bonus=null;
-  if(won){winner=weightedPick(symbols);grid=slotWinGrid(symbols,winner);const xPool=(config.xSymbols||[]).filter(x=>x.active!==false);const pickedBonus=xPool.length&&randomIndex(100)<Number(config.xChance||0)?weightedPick(xPool):null;bonus=pickedBonus?{...pickedBonus,dropRound:randomIndex(2)}:null;if(bonus&&bonus.dropRound===0){const slots=grid.map((id,index)=>id===winner.id?-1:index).filter(index=>index>=0);grid[slots[randomIndex(slots.length)]]=bonus.id}basePayout=Math.max(1,Math.round(bet*winner.multiplier));payout=basePayout*(bonus?bonus.multiplier:1);await env.FINDIK_DB.prepare('UPDATE users SET coins=coins+? WHERE id=?').bind(payout,user.id).run()}else{grid=slotLossGrid(symbols)}
+  let cascadePlan=[],initialPayout=0;if(won){winner=weightedPick(symbols);grid=slotWinGrid(symbols,winner);const xPool=(config.xSymbols||[]).filter(x=>x.active!==false);const pickedBonus=xPool.length&&randomIndex(100)<Number(config.xChance||0)?weightedPick(xPool):null;bonus=pickedBonus?{...pickedBonus,dropRound:randomIndex(2)}:null;if(bonus&&bonus.dropRound===0){const slots=grid.map((id,index)=>id===winner.id?-1:index).filter(index=>index>=0);grid[slots[randomIndex(slots.length)]]=bonus.id}cascadePlan=planSlotCascades(grid,winner,symbols,config.cascadeRate,bonus,bet);initialPayout=Number(cascadePlan[0]?.payout||Math.max(1,Math.round(bet*winner.multiplier)));basePayout=cascadePlan.reduce((sum,step)=>sum+Number(step.payout||0),0);payout=basePayout*(bonus?bonus.multiplier:1);await env.FINDIK_DB.prepare('UPDATE users SET coins=coins+? WHERE id=?').bind(payout,user.id).run()}else{grid=slotLossGrid(symbols)}
   const spinId=id();const statements=[env.FINDIK_DB.prepare('INSERT INTO coin_ledger(id,user_id,amount,reason,created_at) VALUES(?,?,?,?,?)').bind(id(),user.id,-bet,`slot_bet:${spinId}`,now())];
   if(payout)statements.push(env.FINDIK_DB.prepare('INSERT INTO coin_ledger(id,user_id,amount,reason,created_at) VALUES(?,?,?,?,?)').bind(id(),user.id,payout,`slot_win:${spinId}:${winner.id}`,now()));
   await env.FINDIK_DB.batch(statements);
   const fresh=await env.FINDIK_DB.prepare('SELECT id,kick_username,display_name,coins FROM users WHERE id=?').bind(user.id).first();
   if(payout)await env.FINDIK_DB.prepare('INSERT INTO slot_highscores(user_id,username,best_payout,updated_at) VALUES(?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET username=excluded.username,best_payout=MAX(slot_highscores.best_payout,excluded.best_payout),updated_at=CASE WHEN excluded.best_payout>slot_highscores.best_payout THEN excluded.updated_at ELSE slot_highscores.updated_at END').bind(user.id,fresh.kick_username,payout,now()).run();
-  return json({ok:true,profile:publicProfile(fresh),grid,winner:winner?{id:winner.id,name:winner.name,multiplier:winner.multiplier}:null,bonus:bonus?{id:bonus.id,name:bonus.name,image_url:bonus.image_url||'',multiplier:bonus.multiplier,dropRound:bonus.dropRound}:null,basePayout,payout,bet,config:{winRate:config.winRate,symbols,xSymbols:config.xSymbols||[]}});
+  return json({ok:true,profile:publicProfile(fresh),grid,winner:winner?{id:winner.id,name:winner.name,multiplier:winner.multiplier}:null,bonus:bonus?{id:bonus.id,name:bonus.name,image_url:bonus.image_url||'',multiplier:bonus.multiplier,dropRound:bonus.dropRound}:null,basePayout,initialPayout,cascadePlan,payout,bet,config:{winRate:config.winRate,symbols,xSymbols:config.xSymbols||[]}});
 }
 async function adminSlotConfig(request,env){
   const denied=await requireAdmin(request,env);if(denied)return denied;
