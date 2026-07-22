@@ -262,16 +262,9 @@ async function buyProduct(request, env) {
   const refreshed=await env.FINDIK_DB.prepare('SELECT id,kick_username,display_name,coins FROM users WHERE id=?').bind(user.id).first();
   return json({ ok:true, profile:publicProfile(refreshed), purchase:{id:purchaseId,name:product.name,price} });
 }
-async function adminLogin(request, env) {
-  const body=await request.json().catch(()=>null);
-  const password=String(body?.password||'');
-  if (!env.ADMIN_PASSWORD) return json({ error:'ADMIN_PASSWORD sunucu sırrı henüz ayarlanmadı.' },{status:503});
-  if ((await digest(password + env.SESSION_PEPPER)) !== (await digest(env.ADMIN_PASSWORD + env.SESSION_PEPPER))) return json({ error:'Yönetici şifresi hatalı.' },{status:401});
-  return json({ ok:true },{headers:{'set-cookie':await issueAdminSession(env)}});
-}
-async function requireAdmin(request, env) {
-  return (await adminFromSession(request,env)) ? null : json({error:'Yönetici oturumu gerekli.'},{status:401});
-}
+// Test sürecinde yönetim API'leri şifresizdir. Canlı açılıştan önce admin oturumu yeniden etkinleştirilecek.
+async function adminLogin(request, env) { return json({ ok:true }); }
+async function requireAdmin(request, env) { return null; }
 async function adminProducts(request, env) {
   const denied=await requireAdmin(request,env); if(denied)return denied;
   if(request.method==='GET') return json({items:await listShopProducts(env,true)});
