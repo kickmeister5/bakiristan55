@@ -1,3 +1,5 @@
+-- LEGACY: Yalnızca account-schema.sql eski sürümle daha önce kurulmuşsa çalıştırılır.
+-- Yeni kurulumda account-schema.sql bu tabloyu zaten içerir; bu dosyayı çalıştırmayın.
 CREATE TABLE IF NOT EXISTS slot_highscores (
   user_id TEXT PRIMARY KEY,
   username TEXT NOT NULL,

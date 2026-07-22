@@ -77,6 +77,7 @@ CREATE INDEX IF NOT EXISTS idx_admin_sessions_token ON admin_sessions(token_hash
 CREATE TABLE IF NOT EXISTS slot_config (
   id TEXT PRIMARY KEY,
   win_rate INTEGER NOT NULL DEFAULT 20 CHECK (win_rate BETWEEN 0 AND 100),
+  cascade_rate INTEGER NOT NULL DEFAULT 10 CHECK (cascade_rate BETWEEN 0 AND 100),
   updated_at INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS slot_symbols (
@@ -90,3 +91,15 @@ CREATE TABLE IF NOT EXISTS slot_symbols (
   updated_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_slot_symbols_active ON slot_symbols(active, sort_order);
+CREATE TABLE IF NOT EXISTS slot_highscores (
+  user_id TEXT PRIMARY KEY REFERENCES users(id),
+  username TEXT NOT NULL,
+  best_payout INTEGER NOT NULL DEFAULT 0 CHECK (best_payout >= 0),
+  updated_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_slot_highscores_best ON slot_highscores(best_payout DESC);
+
+CREATE TABLE IF NOT EXISTS slot_symbol_rarity (
+  symbol_id TEXT PRIMARY KEY REFERENCES slot_symbols(id) ON DELETE CASCADE,
+  rarity INTEGER NOT NULL DEFAULT 1 CHECK (rarity BETWEEN 1 AND 10000)
+);
