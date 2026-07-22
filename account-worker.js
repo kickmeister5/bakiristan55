@@ -368,7 +368,7 @@ async function adminDeleteUser(request,env){
   return json({orders:results.map(x=>({...x,unit_price:Number(x.unit_price)}))});
 }
 const DEFAULT_SLOT_SYMBOLS=[
-  {id:'nut',name:'Fındık',image_url:'findik-logo.png',multiplier:3,rarity:20,active:true,sort_order:0},
+  {id:'nut',name:'Fındık',image_url:'FC.png',multiplier:3,rarity:20,active:true,sort_order:0},
   {id:'star',name:'Yıldız',image_url:'',multiplier:5,rarity:20,active:true,sort_order:1},
   {id:'gem',name:'Elmas',image_url:'',multiplier:8,rarity:20,active:true,sort_order:2},
   {id:'crown',name:'Taç',image_url:'',multiplier:12,rarity:20,active:true,sort_order:3},
@@ -380,7 +380,7 @@ const DEFAULT_SLOT_SYMBOLS=[
     const mediaConfig=await env.FINDIK_DB.prepare('SELECT music_url FROM slot_media_config WHERE id=?').bind('main').first();
     const where=includeInactive?'':'WHERE s.active=1';
     const {results=[]}=await env.FINDIK_DB.prepare(`SELECT s.id,s.name,s.image_url,s.multiplier,s.active,s.sort_order,COALESCE(r.rarity,1) AS rarity FROM slot_symbols s LEFT JOIN slot_symbol_rarity r ON r.symbol_id=s.id ${where} ORDER BY s.sort_order,s.created_at`).all();
-    const saved=results.map(x=>({id:x.id,name:x.name,image_url:x.image_url||'',multiplier:Number(x.multiplier),rarity:Math.max(1,Number(x.rarity||1)),active:!!x.active}));
+    const saved=results.map(x=>({id:x.id,name:x.name,image_url:x.image_url==='findik-logo.png'?'FC.png':(x.image_url||''),multiplier:Number(x.multiplier),rarity:Math.max(1,Number(x.rarity||1)),active:!!x.active}));
     const known=new Set(saved.map(x=>x.id));
     const symbols=saved.concat(DEFAULT_SLOT_SYMBOLS.filter(x=>!known.has(x.id))).slice(0,Math.max(5,saved.length));
     const {results:xRows=[]}=await env.FINDIK_DB.prepare('SELECT id,name,image_url,multiplier,rarity,active FROM slot_x_symbols ORDER BY sort_order,created_at').all();
