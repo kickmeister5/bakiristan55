@@ -44,7 +44,7 @@ function ensureSchema(env) {
     `CREATE TABLE IF NOT EXISTS slot_symbols (id TEXT PRIMARY KEY,name TEXT NOT NULL,image_url TEXT NOT NULL DEFAULT '',multiplier REAL NOT NULL CHECK (multiplier > 0),active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0,1)),sort_order INTEGER NOT NULL DEFAULT 0,created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL)`,
     `CREATE INDEX IF NOT EXISTS idx_slot_symbols_active ON slot_symbols(active, sort_order)`,
     `CREATE TABLE IF NOT EXISTS slot_symbol_rarity (symbol_id TEXT PRIMARY KEY,rarity INTEGER NOT NULL DEFAULT 1 CHECK (rarity BETWEEN 1 AND 10000))`,    `CREATE TABLE IF NOT EXISTS slot_highscores (user_id TEXT PRIMARY KEY REFERENCES users(id),username TEXT NOT NULL,best_payout INTEGER NOT NULL DEFAULT 0 CHECK (best_payout >= 0),updated_at INTEGER NOT NULL)`,
-    `CREATE TABLE IF NOT EXISTS slot_bonus_config (id TEXT PRIMARY KEY,chance INTEGER NOT NULL DEFAULT 10 CHECK (chance BETWEEN 0 AND 100),updated_at INTEGER NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS slot_bonus_config (id TEXT PRIMARY KEY,chance INTEGER NOT NULL DEFAULT 10 CHECK (chance BETWEEN 0 AND 100),updated_at INTEGER NOT NULL)`, `CREATE TABLE IF NOT EXISTS slot_media_config (id TEXT PRIMARY KEY,music_url TEXT NOT NULL DEFAULT '',updated_at INTEGER NOT NULL)`,
     `CREATE TABLE IF NOT EXISTS slot_x_symbols (id TEXT PRIMARY KEY,name TEXT NOT NULL,image_url TEXT NOT NULL DEFAULT '',multiplier REAL NOT NULL CHECK (multiplier > 0),rarity INTEGER NOT NULL DEFAULT 1 CHECK (rarity BETWEEN 1 AND 10000),active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0,1)),sort_order INTEGER NOT NULL DEFAULT 0,created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL)`,
     `CREATE INDEX IF NOT EXISTS idx_slot_x_symbols_active ON slot_x_symbols(active, sort_order)`,    `CREATE INDEX IF NOT EXISTS idx_slot_highscores_best ON slot_highscores(best_payout DESC)`
   ];
@@ -364,6 +364,7 @@ const DEFAULT_SLOT_SYMBOLS=[
   try {
     const config=await env.FINDIK_DB.prepare('SELECT win_rate,cascade_rate FROM slot_config WHERE id=?').bind('main').first();
     const bonusConfig=await env.FINDIK_DB.prepare('SELECT chance FROM slot_bonus_config WHERE id=?').bind('main').first();
+    const mediaConfig=await env.FINDIK_DB.prepare('SELECT music_url FROM slot_media_config WHERE id=?').bind('main').first();
     const where=includeInactive?'':'WHERE s.active=1';
     const {results=[]}=await env.FINDIK_DB.prepare(`SELECT s.id,s.name,s.image_url,s.multiplier,s.active,s.sort_order,COALESCE(r.rarity,1) AS rarity FROM slot_symbols s LEFT JOIN slot_symbol_rarity r ON r.symbol_id=s.id ${where} ORDER BY s.sort_order,s.created_at`).all();
     const saved=results.map(x=>({id:x.id,name:x.name,image_url:x.image_url||'',multiplier:Number(x.multiplier),rarity:Math.max(1,Number(x.rarity||1)),active:!!x.active}));
@@ -372,7 +373,7 @@ const DEFAULT_SLOT_SYMBOLS=[
     const {results:xRows=[]}=await env.FINDIK_DB.prepare('SELECT id,name,image_url,multiplier,rarity,active FROM slot_x_symbols ORDER BY sort_order,created_at').all();
     const xAll=xRows.map(x=>({id:x.id,name:x.name,image_url:x.image_url||'',multiplier:Number(x.multiplier),rarity:Math.max(1,Number(x.rarity||1)),active:!!x.active}));
     const xSymbols=(xAll.length?xAll:DEFAULT_X_SYMBOLS.map(x=>({...x}))).filter(x=>includeInactive||x.active!==false);
-    return {winRate:config?Number(config.win_rate):20,cascadeRate:config?Number(config.cascade_rate):10,xChance:bonusConfig?Number(bonusConfig.chance):10,symbols,xSymbols,storageReady:true};
+    return {winRate:config?Number(config.win_rate):20,cascadeRate:config?Number(config.cascade_rate):10,xChance:bonusConfig?Number(bonusConfig.chance):10,musicUrl:mediaConfig?.music_url||'',symbols,xSymbols,storageReady:true};
   } catch (error) {
     return {winRate:20,cascadeRate:10,xChance:10,symbols:DEFAULT_SLOT_SYMBOLS.map(x=>({...x})),xSymbols:DEFAULT_X_SYMBOLS.map(x=>({...x})),storageReady:false};
   }
@@ -433,10 +434,11 @@ async function adminSlotConfig(request,env){
   const winRate=Math.max(0,Math.min(100,Math.round(Number(body?.winRate)||0)));
   const cascadeRate=Math.max(0,Math.min(100,Math.round(Number(body?.cascadeRate??10))));
   const xChance=Math.max(0,Math.min(100,Math.round(Number(body?.xChance??10))));
+  const musicUrl=String(body?.musicUrl||'').trim().slice(0,1600);
   const items=Array.isArray(body?.symbols)?body.symbols:[];
   const xItems=Array.isArray(body?.xSymbols)?body.xSymbols:DEFAULT_X_SYMBOLS;
   if(!items.length)return json({error:'En az bir ana sembol eklemelisin.'},{status:400});
-  const statements=[env.FINDIK_DB.prepare('INSERT INTO slot_config(id,win_rate,cascade_rate,updated_at) VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET win_rate=excluded.win_rate,cascade_rate=excluded.cascade_rate,updated_at=excluded.updated_at').bind('main',winRate,cascadeRate,now()),env.FINDIK_DB.prepare('INSERT INTO slot_bonus_config(id,chance,updated_at) VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET chance=excluded.chance,updated_at=excluded.updated_at').bind('main',xChance,now()),env.FINDIK_DB.prepare('DELETE FROM slot_symbols'),env.FINDIK_DB.prepare('DELETE FROM slot_symbol_rarity'),env.FINDIK_DB.prepare('DELETE FROM slot_x_symbols')];
+  const statements=[env.FINDIK_DB.prepare('INSERT INTO slot_config(id,win_rate,cascade_rate,updated_at) VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET win_rate=excluded.win_rate,cascade_rate=excluded.cascade_rate,updated_at=excluded.updated_at').bind('main',winRate,cascadeRate,now()),env.FINDIK_DB.prepare('INSERT INTO slot_bonus_config(id,chance,updated_at) VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET chance=excluded.chance,updated_at=excluded.updated_at').bind('main',xChance,now()),env.FINDIK_DB.prepare('INSERT INTO slot_media_config(id,music_url,updated_at) VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET music_url=excluded.music_url,updated_at=excluded.updated_at').bind('main',musicUrl,now()),env.FINDIK_DB.prepare('DELETE FROM slot_symbols'),env.FINDIK_DB.prepare('DELETE FROM slot_symbol_rarity'),env.FINDIK_DB.prepare('DELETE FROM slot_x_symbols')];
   items.slice(0,30).forEach((x,index)=>{const name=String(x.name||'').trim().slice(0,40),multiplier=Number(x.multiplier);if(!name||!Number.isFinite(multiplier)||multiplier<=0)return;statements.push(env.FINDIK_DB.prepare('INSERT INTO slot_symbols(id,name,image_url,multiplier,active,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)').bind(String(x.id||id()),name,String(x.image_url||'').slice(0,1200),multiplier,x.active===false?0:1,index,now(),now()))});
   xItems.slice(0,20).forEach((x,index)=>{const name=String(x.name||'').trim().slice(0,40),multiplier=Number(x.multiplier);if(!name||!Number.isFinite(multiplier)||multiplier<=0)return;const rarity=Math.max(1,Math.min(10000,Math.round(Number(x.rarity)||1)));statements.push(env.FINDIK_DB.prepare('INSERT INTO slot_x_symbols(id,name,image_url,multiplier,rarity,active,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)').bind(String(x.id||id()),name,String(x.image_url||'').slice(0,1200),multiplier,rarity,x.active===false?0:1,index,now(),now()))});
   await env.FINDIK_DB.batch(statements);
