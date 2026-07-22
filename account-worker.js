@@ -43,7 +43,7 @@ function ensureSchema(env) {
     `CREATE TABLE IF NOT EXISTS slot_config (id TEXT PRIMARY KEY,win_rate INTEGER NOT NULL DEFAULT 20 CHECK (win_rate BETWEEN 0 AND 100),cascade_rate INTEGER NOT NULL DEFAULT 10 CHECK (cascade_rate BETWEEN 0 AND 100),updated_at INTEGER NOT NULL)`,
     `CREATE TABLE IF NOT EXISTS slot_symbols (id TEXT PRIMARY KEY,name TEXT NOT NULL,image_url TEXT NOT NULL DEFAULT '',multiplier REAL NOT NULL CHECK (multiplier > 0),active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0,1)),sort_order INTEGER NOT NULL DEFAULT 0,created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL)`,
     `CREATE INDEX IF NOT EXISTS idx_slot_symbols_active ON slot_symbols(active, sort_order)`,
-    `CREATE TABLE IF NOT EXISTS slot_highscores (user_id TEXT PRIMARY KEY REFERENCES users(id),username TEXT NOT NULL,best_payout INTEGER NOT NULL DEFAULT 0 CHECK (best_payout >= 0),updated_at INTEGER NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS slot_symbol_rarity (symbol_id TEXT PRIMARY KEY,rarity INTEGER NOT NULL DEFAULT 1 CHECK (rarity BETWEEN 1 AND 10000))`,    `CREATE TABLE IF NOT EXISTS slot_highscores (user_id TEXT PRIMARY KEY REFERENCES users(id),username TEXT NOT NULL,best_payout INTEGER NOT NULL DEFAULT 0 CHECK (best_payout >= 0),updated_at INTEGER NOT NULL)`,
     `CREATE INDEX IF NOT EXISTS idx_slot_highscores_best ON slot_highscores(best_payout DESC)`
   ];
   schemaReady = env.FINDIK_DB.batch(sql.map(statement => env.FINDIK_DB.prepare(statement))).catch(error => { schemaReady=null; throw error; });
@@ -351,29 +351,30 @@ async function adminOrders(request, env) {
   return json({orders:results.map(x=>({...x,unit_price:Number(x.unit_price)}))});
 }
 const DEFAULT_SLOT_SYMBOLS=[
-  {id:'nut',name:'Fındık',image_url:'findik-logo.png',multiplier:3,active:true,sort_order:0},
-  {id:'star',name:'Yıldız',image_url:'',multiplier:5,active:true,sort_order:1},
-  {id:'gem',name:'Elmas',image_url:'',multiplier:8,active:true,sort_order:2},
-  {id:'crown',name:'Taç',image_url:'',multiplier:12,active:true,sort_order:3},{id:'berry',name:'Kiraz',image_url:'',multiplier:10,active:true,sort_order:4}
-];
-async function getSlotConfig(env,includeInactive=false){
+  {id:'x2',name:'2X',image_url:'',multiplier:2,rarity:55,active:true,sort_order:0},
+  {id:'x5',name:'5X',image_url:'',multiplier:5,rarity:25,active:true,sort_order:1},
+  {id:'x10',name:'10X',image_url:'',multiplier:10,rarity:11,active:true,sort_order:2},
+  {id:'x25',name:'25X',image_url:'',multiplier:25,rarity:5,active:true,sort_order:3},
+  {id:'x50',name:'50X',image_url:'',multiplier:50,rarity:2,active:true,sort_order:4},
+  {id:'x100',name:'100X',image_url:'',multiplier:100,rarity:1,active:true,sort_order:5},
+  {id:'x500',name:'500X',image_url:'',multiplier:500,rarity:1,active:true,sort_order:6}
+];async function getSlotConfig(env,includeInactive=false){
   try {
     const config=await env.FINDIK_DB.prepare('SELECT win_rate,cascade_rate FROM slot_config WHERE id=?').bind('main').first();
-    const where=includeInactive?'':'WHERE active=1';
-    const {results=[]}=await env.FINDIK_DB.prepare(`SELECT id,name,image_url,multiplier,active,sort_order FROM slot_symbols ${where} ORDER BY sort_order,created_at`).all();
-    const saved=results.map(x=>({id:x.id,name:x.name,image_url:x.image_url||'',multiplier:Number(x.multiplier),active:!!x.active}));
+    const where=includeInactive?'':'WHERE s.active=1';
+    const {results=[]}=await env.FINDIK_DB.prepare(`SELECT s.id,s.name,s.image_url,s.multiplier,s.active,s.sort_order,COALESCE(r.rarity,1) AS rarity FROM slot_symbols s LEFT JOIN slot_symbol_rarity r ON r.symbol_id=s.id ${where} ORDER BY s.sort_order,s.created_at`).all();
+    const saved=results.map(x=>({id:x.id,name:x.name,image_url:x.image_url||'',multiplier:Number(x.multiplier),rarity:Math.max(1,Number(x.rarity||1)),active:!!x.active}));
     const known=new Set(saved.map(x=>x.id));
     const symbols=saved.concat(DEFAULT_SLOT_SYMBOLS.filter(x=>!known.has(x.id))).slice(0,Math.max(5,saved.length));
     return {winRate:config?Number(config.win_rate):20,cascadeRate:config?Number(config.cascade_rate):10,symbols,storageReady:true};
   } catch (error) {
     return {winRate:20,cascadeRate:10,symbols:DEFAULT_SLOT_SYMBOLS.map(x=>({...x})),storageReady:false};
   }
-}
-function randomIndex(max){const bytes=crypto.getRandomValues(new Uint32Array(1));return bytes[0]%max}
+}function randomIndex(max){const bytes=crypto.getRandomValues(new Uint32Array(1));return bytes[0]%max}
 function shuffle(items){for(let i=items.length-1;i>0;i--){const j=randomIndex(i+1);[items[i],items[j]]=[items[j],items[i]]}return items}
-function slotLossGrid(symbols){const counts=new Map(),grid=[];while(grid.length<30){const possible=symbols.filter(x=>(counts.get(x.id)||0)<7);const pick=possible[randomIndex(possible.length)];grid.push(pick.id);counts.set(pick.id,(counts.get(pick.id)||0)+1)}return shuffle(grid)}
-function slotWinGrid(symbols,winner){const counts=new Map([[winner.id,8]]),grid=Array(8).fill(winner.id);while(grid.length<30){const possible=symbols.filter(x=>x.id!==winner.id&&(counts.get(x.id)||0)<7);const pick=possible[randomIndex(possible.length)];grid.push(pick.id);counts.set(pick.id,(counts.get(pick.id)||0)+1)}return shuffle(grid)}
-async function getSlotLeaderboard(env){
+function weightedPick(items){const total=items.reduce((sum,item)=>sum+Math.max(1,Math.round(Number(item.rarity)||1)),0);let roll=randomIndex(total);for(const item of items){roll-=Math.max(1,Math.round(Number(item.rarity)||1));if(roll<0)return item}return items[items.length-1]}
+function slotLossGrid(symbols){const counts=new Map(),grid=[];while(grid.length<30){const possible=symbols.filter(x=>(counts.get(x.id)||0)<7);const pick=weightedPick(possible);grid.push(pick.id);counts.set(pick.id,(counts.get(pick.id)||0)+1)}return shuffle(grid)}
+function slotWinGrid(symbols,winner){const counts=new Map([[winner.id,8]]),grid=Array(8).fill(winner.id);while(grid.length<30){const possible=symbols.filter(x=>x.id!==winner.id&&(counts.get(x.id)||0)<7);const pick=weightedPick(possible);grid.push(pick.id);counts.set(pick.id,(counts.get(pick.id)||0)+1)}return shuffle(grid)}async function getSlotLeaderboard(env){
   const {results=[]}=await env.FINDIK_DB.prepare('SELECT username,best_payout FROM slot_highscores ORDER BY best_payout DESC,updated_at ASC LIMIT 10').all();
   return {items:results.map(x=>({username:x.username,bestPayout:Number(x.best_payout)}))};
 }async function slotSpin(request,env){
@@ -386,7 +387,7 @@ async function getSlotLeaderboard(env){
   const spent=await env.FINDIK_DB.prepare('UPDATE users SET coins=coins-? WHERE id=? AND coins>=?').bind(bet,user.id,bet).run();
   if(!spent.meta?.changes)return json({error:'Yeterli Fındık Coin yok.'},{status:409});
   const won=randomIndex(100)<config.winRate;let grid,payout=0,winner=null;
-  if(won){winner=symbols[randomIndex(symbols.length)];grid=slotWinGrid(symbols,winner);payout=Math.max(1,Math.round(bet*winner.multiplier));await env.FINDIK_DB.prepare('UPDATE users SET coins=coins+? WHERE id=?').bind(payout,user.id).run()}else grid=slotLossGrid(symbols);
+  if(won){winner=weightedPick(symbols);grid=slotWinGrid(symbols,winner);payout=Math.max(1,Math.round(bet*winner.multiplier));await env.FINDIK_DB.prepare('UPDATE users SET coins=coins+? WHERE id=?').bind(payout,user.id).run()}else grid=slotLossGrid(symbols);
   const spinId=id();const statements=[env.FINDIK_DB.prepare('INSERT INTO coin_ledger(id,user_id,amount,reason,created_at) VALUES(?,?,?,?,?)').bind(id(),user.id,-bet,`slot_bet:${spinId}`,now())];
   if(payout)statements.push(env.FINDIK_DB.prepare('INSERT INTO coin_ledger(id,user_id,amount,reason,created_at) VALUES(?,?,?,?,?)').bind(id(),user.id,payout,`slot_win:${spinId}:${winner.id}`,now()));
   await env.FINDIK_DB.batch(statements);
@@ -397,13 +398,28 @@ async function getSlotLeaderboard(env){
 async function adminSlotConfig(request,env){
   const denied=await requireAdmin(request,env);if(denied)return denied;
   if(request.method==='GET')return json(await getSlotConfig(env,true));
-  const body=await request.json().catch(()=>null),winRate=Math.max(0,Math.min(100,Math.round(Number(body?.winRate)||0))),cascadeRate=Math.max(0,Math.min(100,Math.round(Number(body?.cascadeRate??10)))),items=Array.isArray(body?.symbols)?body.symbols:[];
+  const body=await request.json().catch(()=>null);
+  const winRate=Math.max(0,Math.min(100,Math.round(Number(body?.winRate)||0)));
+  const cascadeRate=Math.max(0,Math.min(100,Math.round(Number(body?.cascadeRate??10))));
+  const items=Array.isArray(body?.symbols)?body.symbols:[];
   if(!items.length)return json({error:'En az bir sembol eklemelisin.'},{status:400});
-  const statements=[env.FINDIK_DB.prepare('INSERT INTO slot_config(id,win_rate,cascade_rate,updated_at) VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET win_rate=excluded.win_rate,cascade_rate=excluded.cascade_rate,updated_at=excluded.updated_at').bind('main',winRate,cascadeRate,now()),env.FINDIK_DB.prepare('DELETE FROM slot_symbols')];
-  items.slice(0,30).forEach((x,index)=>{const name=String(x.name||'').trim().slice(0,40),multiplier=Number(x.multiplier);if(name&&Number.isFinite(multiplier)&&multiplier>0)statements.push(env.FINDIK_DB.prepare('INSERT INTO slot_symbols(id,name,image_url,multiplier,active,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)').bind(String(x.id||id()),name,String(x.image_url||'').slice(0,1200),multiplier,x.active===false?0:1,index,now(),now()))});
-  await env.FINDIK_DB.batch(statements);return json(await getSlotConfig(env,true));
+  const statements=[
+    env.FINDIK_DB.prepare('INSERT INTO slot_config(id,win_rate,cascade_rate,updated_at) VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET win_rate=excluded.win_rate,cascade_rate=excluded.cascade_rate,updated_at=excluded.updated_at').bind('main',winRate,cascadeRate,now()),
+    env.FINDIK_DB.prepare('DELETE FROM slot_symbols'),
+    env.FINDIK_DB.prepare('DELETE FROM slot_symbol_rarity')
+  ];
+  items.slice(0,30).forEach((x,index)=>{
+    const name=String(x.name||'').trim().slice(0,40);
+    const multiplier=Number(x.multiplier);
+    if(!name||!Number.isFinite(multiplier)||multiplier<=0)return;
+    const symbolId=String(x.id||id());
+    const rarity=Math.max(1,Math.min(10000,Math.round(Number(x.rarity)||1)));
+    statements.push(env.FINDIK_DB.prepare('INSERT INTO slot_symbols(id,name,image_url,multiplier,active,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)').bind(symbolId,name,String(x.image_url||'').slice(0,1200),multiplier,x.active===false?0:1,index,now(),now()));
+    statements.push(env.FINDIK_DB.prepare('INSERT INTO slot_symbol_rarity(symbol_id,rarity) VALUES(?,?)').bind(symbolId,rarity));
+  });
+  await env.FINDIK_DB.batch(statements);
+  return json(await getSlotConfig(env,true));
 }
-
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
