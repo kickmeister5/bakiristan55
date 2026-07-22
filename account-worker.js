@@ -363,14 +363,18 @@ const DEFAULT_SLOT_SYMBOLS=[
 ];async function getSlotConfig(env,includeInactive=false){
   try {
     const config=await env.FINDIK_DB.prepare('SELECT win_rate,cascade_rate FROM slot_config WHERE id=?').bind('main').first();
+    const bonusConfig=await env.FINDIK_DB.prepare('SELECT chance FROM slot_bonus_config WHERE id=?').bind('main').first();
     const where=includeInactive?'':'WHERE s.active=1';
     const {results=[]}=await env.FINDIK_DB.prepare(`SELECT s.id,s.name,s.image_url,s.multiplier,s.active,s.sort_order,COALESCE(r.rarity,1) AS rarity FROM slot_symbols s LEFT JOIN slot_symbol_rarity r ON r.symbol_id=s.id ${where} ORDER BY s.sort_order,s.created_at`).all();
     const saved=results.map(x=>({id:x.id,name:x.name,image_url:x.image_url||'',multiplier:Number(x.multiplier),rarity:Math.max(1,Number(x.rarity||1)),active:!!x.active}));
     const known=new Set(saved.map(x=>x.id));
     const symbols=saved.concat(DEFAULT_SLOT_SYMBOLS.filter(x=>!known.has(x.id))).slice(0,Math.max(5,saved.length));
-    return {winRate:config?Number(config.win_rate):20,cascadeRate:config?Number(config.cascade_rate):10,symbols,storageReady:true};
+    const {results:xRows=[]}=await env.FINDIK_DB.prepare('SELECT id,name,image_url,multiplier,rarity,active FROM slot_x_symbols ORDER BY sort_order,created_at').all();
+    const xAll=xRows.map(x=>({id:x.id,name:x.name,image_url:x.image_url||'',multiplier:Number(x.multiplier),rarity:Math.max(1,Number(x.rarity||1)),active:!!x.active}));
+    const xSymbols=(xAll.length?xAll:DEFAULT_X_SYMBOLS.map(x=>({...x}))).filter(x=>includeInactive||x.active!==false);
+    return {winRate:config?Number(config.win_rate):20,cascadeRate:config?Number(config.cascade_rate):10,xChance:bonusConfig?Number(bonusConfig.chance):10,symbols,xSymbols,storageReady:true};
   } catch (error) {
-    return {winRate:20,cascadeRate:10,symbols:DEFAULT_SLOT_SYMBOLS.map(x=>({...x})),storageReady:false};
+    return {winRate:20,cascadeRate:10,xChance:10,symbols:DEFAULT_SLOT_SYMBOLS.map(x=>({...x})),xSymbols:DEFAULT_X_SYMBOLS.map(x=>({...x})),storageReady:false};
   }
 }function randomIndex(max){const bytes=crypto.getRandomValues(new Uint32Array(1));return bytes[0]%max}
 function shuffle(items){for(let i=items.length-1;i>0;i--){const j=randomIndex(i+1);[items[i],items[j]]=[items[j],items[i]]}return items}
