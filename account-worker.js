@@ -44,7 +44,9 @@ function ensureSchema(env) {
     `CREATE TABLE IF NOT EXISTS slot_symbols (id TEXT PRIMARY KEY,name TEXT NOT NULL,image_url TEXT NOT NULL DEFAULT '',multiplier REAL NOT NULL CHECK (multiplier > 0),active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0,1)),sort_order INTEGER NOT NULL DEFAULT 0,created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL)`,
     `CREATE INDEX IF NOT EXISTS idx_slot_symbols_active ON slot_symbols(active, sort_order)`,
     `CREATE TABLE IF NOT EXISTS slot_symbol_rarity (symbol_id TEXT PRIMARY KEY,rarity INTEGER NOT NULL DEFAULT 1 CHECK (rarity BETWEEN 1 AND 10000))`,    `CREATE TABLE IF NOT EXISTS slot_highscores (user_id TEXT PRIMARY KEY REFERENCES users(id),username TEXT NOT NULL,best_payout INTEGER NOT NULL DEFAULT 0 CHECK (best_payout >= 0),updated_at INTEGER NOT NULL)`,
-    `CREATE INDEX IF NOT EXISTS idx_slot_highscores_best ON slot_highscores(best_payout DESC)`
+    `CREATE TABLE IF NOT EXISTS slot_bonus_config (id TEXT PRIMARY KEY,chance INTEGER NOT NULL DEFAULT 10 CHECK (chance BETWEEN 0 AND 100),updated_at INTEGER NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS slot_x_symbols (id TEXT PRIMARY KEY,name TEXT NOT NULL,image_url TEXT NOT NULL DEFAULT '',multiplier REAL NOT NULL CHECK (multiplier > 0),rarity INTEGER NOT NULL DEFAULT 1 CHECK (rarity BETWEEN 1 AND 10000),active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0,1)),sort_order INTEGER NOT NULL DEFAULT 0,created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL)`,
+    `CREATE INDEX IF NOT EXISTS idx_slot_x_symbols_active ON slot_x_symbols(active, sort_order)`,    `CREATE INDEX IF NOT EXISTS idx_slot_highscores_best ON slot_highscores(best_payout DESC)`
   ];
   schemaReady = env.FINDIK_DB.batch(sql.map(statement => env.FINDIK_DB.prepare(statement))).catch(error => { schemaReady=null; throw error; });
   return schemaReady;
@@ -386,14 +388,14 @@ function slotWinGrid(symbols,winner){const counts=new Map([[winner.id,8]]),grid=
   if(symbols.length<2)return json({error:'Slot için en az iki aktif sembol gerekiyor.'},{status:409});
   const spent=await env.FINDIK_DB.prepare('UPDATE users SET coins=coins-? WHERE id=? AND coins>=?').bind(bet,user.id,bet).run();
   if(!spent.meta?.changes)return json({error:'Yeterli Fındık Coin yok.'},{status:409});
-  const won=randomIndex(100)<config.winRate;let grid,payout=0,winner=null;
-  if(won){winner=weightedPick(symbols);grid=slotWinGrid(symbols,winner);payout=Math.max(1,Math.round(bet*winner.multiplier));await env.FINDIK_DB.prepare('UPDATE users SET coins=coins+? WHERE id=?').bind(payout,user.id).run()}else grid=slotLossGrid(symbols);
+  const won=randomIndex(100)<config.winRate;let grid,payout=0,basePayout=0,winner=null,bonus=null;
+  if(won){winner=weightedPick(symbols);grid=slotWinGrid(symbols,winner);const xPool=(config.xSymbols||[]).filter(x=>x.active!==false);bonus=xPool.length&&randomIndex(100)<Number(config.xChance||0)?weightedPick(xPool):null;basePayout=Math.max(1,Math.round(bet*winner.multiplier));payout=basePayout*(bonus?bonus.multiplier:1);await env.FINDIK_DB.prepare('UPDATE users SET coins=coins+? WHERE id=?').bind(payout,user.id).run()}else grid=slotLossGrid(symbols);
   const spinId=id();const statements=[env.FINDIK_DB.prepare('INSERT INTO coin_ledger(id,user_id,amount,reason,created_at) VALUES(?,?,?,?,?)').bind(id(),user.id,-bet,`slot_bet:${spinId}`,now())];
   if(payout)statements.push(env.FINDIK_DB.prepare('INSERT INTO coin_ledger(id,user_id,amount,reason,created_at) VALUES(?,?,?,?,?)').bind(id(),user.id,payout,`slot_win:${spinId}:${winner.id}`,now()));
   await env.FINDIK_DB.batch(statements);
   const fresh=await env.FINDIK_DB.prepare('SELECT id,kick_username,display_name,coins FROM users WHERE id=?').bind(user.id).first();
   if(payout)await env.FINDIK_DB.prepare('INSERT INTO slot_highscores(user_id,username,best_payout,updated_at) VALUES(?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET username=excluded.username,best_payout=MAX(slot_highscores.best_payout,excluded.best_payout),updated_at=CASE WHEN excluded.best_payout>slot_highscores.best_payout THEN excluded.updated_at ELSE slot_highscores.updated_at END').bind(user.id,fresh.kick_username,payout,now()).run();
-  return json({ok:true,profile:publicProfile(fresh),grid,winner:winner?{id:winner.id,name:winner.name,multiplier:winner.multiplier}:null,payout,bet,config:{winRate:config.winRate,symbols}});
+  return json({ok:true,profile:publicProfile(fresh),grid,winner:winner?{id:winner.id,name:winner.name,multiplier:winner.multiplier}:null,bonus:bonus?{id:bonus.id,name:bonus.name,image_url:bonus.image_url||'',multiplier:bonus.multiplier}:null,basePayout,payout,bet,config:{winRate:config.winRate,symbols}});
 }
 async function adminSlotConfig(request,env){
   const denied=await requireAdmin(request,env);if(denied)return denied;
@@ -401,22 +403,13 @@ async function adminSlotConfig(request,env){
   const body=await request.json().catch(()=>null);
   const winRate=Math.max(0,Math.min(100,Math.round(Number(body?.winRate)||0)));
   const cascadeRate=Math.max(0,Math.min(100,Math.round(Number(body?.cascadeRate??10))));
+  const xChance=Math.max(0,Math.min(100,Math.round(Number(body?.xChance??10))));
   const items=Array.isArray(body?.symbols)?body.symbols:[];
-  if(!items.length)return json({error:'En az bir sembol eklemelisin.'},{status:400});
-  const statements=[
-    env.FINDIK_DB.prepare('INSERT INTO slot_config(id,win_rate,cascade_rate,updated_at) VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET win_rate=excluded.win_rate,cascade_rate=excluded.cascade_rate,updated_at=excluded.updated_at').bind('main',winRate,cascadeRate,now()),
-    env.FINDIK_DB.prepare('DELETE FROM slot_symbols'),
-    env.FINDIK_DB.prepare('DELETE FROM slot_symbol_rarity')
-  ];
-  items.slice(0,30).forEach((x,index)=>{
-    const name=String(x.name||'').trim().slice(0,40);
-    const multiplier=Number(x.multiplier);
-    if(!name||!Number.isFinite(multiplier)||multiplier<=0)return;
-    const symbolId=String(x.id||id());
-    const rarity=Math.max(1,Math.min(10000,Math.round(Number(x.rarity)||1)));
-    statements.push(env.FINDIK_DB.prepare('INSERT INTO slot_symbols(id,name,image_url,multiplier,active,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)').bind(symbolId,name,String(x.image_url||'').slice(0,1200),multiplier,x.active===false?0:1,index,now(),now()));
-    statements.push(env.FINDIK_DB.prepare('INSERT INTO slot_symbol_rarity(symbol_id,rarity) VALUES(?,?)').bind(symbolId,rarity));
-  });
+  const xItems=Array.isArray(body?.xSymbols)?body.xSymbols:DEFAULT_X_SYMBOLS;
+  if(!items.length)return json({error:'En az bir ana sembol eklemelisin.'},{status:400});
+  const statements=[env.FINDIK_DB.prepare('INSERT INTO slot_config(id,win_rate,cascade_rate,updated_at) VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET win_rate=excluded.win_rate,cascade_rate=excluded.cascade_rate,updated_at=excluded.updated_at').bind('main',winRate,cascadeRate,now()),env.FINDIK_DB.prepare('INSERT INTO slot_bonus_config(id,chance,updated_at) VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET chance=excluded.chance,updated_at=excluded.updated_at').bind('main',xChance,now()),env.FINDIK_DB.prepare('DELETE FROM slot_symbols'),env.FINDIK_DB.prepare('DELETE FROM slot_symbol_rarity'),env.FINDIK_DB.prepare('DELETE FROM slot_x_symbols')];
+  items.slice(0,30).forEach((x,index)=>{const name=String(x.name||'').trim().slice(0,40),multiplier=Number(x.multiplier);if(!name||!Number.isFinite(multiplier)||multiplier<=0)return;statements.push(env.FINDIK_DB.prepare('INSERT INTO slot_symbols(id,name,image_url,multiplier,active,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)').bind(String(x.id||id()),name,String(x.image_url||'').slice(0,1200),multiplier,x.active===false?0:1,index,now(),now()))});
+  xItems.slice(0,20).forEach((x,index)=>{const name=String(x.name||'').trim().slice(0,40),multiplier=Number(x.multiplier);if(!name||!Number.isFinite(multiplier)||multiplier<=0)return;const rarity=Math.max(1,Math.min(10000,Math.round(Number(x.rarity)||1)));statements.push(env.FINDIK_DB.prepare('INSERT INTO slot_x_symbols(id,name,image_url,multiplier,rarity,active,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)').bind(String(x.id||id()),name,String(x.image_url||'').slice(0,1200),multiplier,rarity,x.active===false?0:1,index,now(),now()))});
   await env.FINDIK_DB.batch(statements);
   return json(await getSlotConfig(env,true));
 }
