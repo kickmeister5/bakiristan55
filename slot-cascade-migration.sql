@@ -1,0 +1,1 @@
+ALTER TABLE slot_config ADD COLUMN cascade_rate INTEGER NOT NULL DEFAULT 10 CHECK (cascade_rate BETWEEN 0 AND 100);
