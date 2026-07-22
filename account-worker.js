@@ -440,6 +440,8 @@ function slotWinGrid(symbols,winner){const counts=new Map([[winner.id,8]]),grid=
   if(payout)await env.FINDIK_DB.prepare('INSERT INTO slot_highscores(user_id,username,best_payout,updated_at) VALUES(?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET username=excluded.username,best_payout=MAX(slot_highscores.best_payout,excluded.best_payout),updated_at=CASE WHEN excluded.best_payout>slot_highscores.best_payout THEN excluded.updated_at ELSE slot_highscores.updated_at END').bind(user.id,fresh.kick_username,payout,now()).run();
   return json({ok:true,profile:publicProfile(fresh),grid,winner:winner?{id:winner.id,name:winner.name,multiplier:winner.multiplier}:null,bonus:bonus?{id:bonus.id,name:bonus.name,image_url:bonus.image_url||'',multiplier:bonus.multiplier,dropRound:bonus.dropRound}:null,basePayout,initialPayout,cascadePlan,payout,bet,config:{winRate:config.winRate,symbols,xSymbols:config.xSymbols||[]}});
 }
+const STREAM_GAME_HOSTS=new Set(['kickmeister5','batuhanfurkan5']);
+async function streamGameHostStatus(request,env){const user=await accountFromSession(request,env);const name=String(user?.kick_username_normalized||user?.kick_username||'').toLowerCase();return json({host:STREAM_GAME_HOSTS.has(name),username:user?.kick_username||null});}
 async function adminSlotConfig(request,env){
   const denied=await requireAdmin(request,env);if(denied)return denied;
   if(request.method==='GET')return json(await getSlotConfig(env,true));
@@ -483,6 +485,7 @@ export default {
     if (request.method === 'GET' && url.pathname === '/api/account/status') return verificationStatus(request, env);
     if (request.method === 'POST' && url.pathname === '/api/account/kick-event') return receiveKickEvent(request, env);
     if (request.method === 'POST' && url.pathname === '/api/account/client-confirm') return confirmFromChatClient(request, env);
+    if (request.method === 'GET' && url.pathname === '/api/account/game/host') return streamGameHostStatus(request,env);
     if (request.method === 'GET' && url.pathname === '/api/account/me') return json({ profile: publicProfile(await accountFromSession(request, env)) });
     if (request.method === 'GET' && url.pathname === '/api/account/shop/products') return json({items:await listShopProducts(env)});
     if (request.method === 'GET' && url.pathname === '/api/account/shop/history') return shopHistory(request,env);

@@ -44,7 +44,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
 
 /* GAME CARD — sadece banner */
 .game-card{
-  border-radius:18px;overflow:hidden;cursor:pointer;
+  border-radius:18px;overflow:visible;cursor:pointer;
   transition:transform 0.22s cubic-bezier(0.16,1,0.3,1),box-shadow 0.22s ease,border-color 0.22s ease;
   text-decoration:none;display:block;position:relative;
   border:1px solid rgba(255,255,255,0.08);transform-style:preserve-3d;
@@ -61,7 +61,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
 .game-card:hover::before{opacity:1;animation:cardSheen .75s cubic-bezier(.2,.8,.2,1) forwards;}
 .game-card:hover::after{opacity:1;}
 @keyframes cardSheen{to{transform:translateX(125%);}}
-.game-card.inactive{cursor:default;pointer-events:none;}
+.game-card.inactive{display:none;cursor:default;pointer-events:none;}
+.coin-drop-badge{position:absolute;right:-15px;bottom:-15px;z-index:12;width:68px;height:68px;object-fit:contain;filter:drop-shadow(0 5px 9px rgba(0,0,0,.72));pointer-events:none;}
 
 /* BANNER */
 .gc-banner{
@@ -192,6 +193,10 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
       </div>
     </a>
 
+    <!-- OYUN 9 — CÜMLE AVI -->
+    <a href="cumle-avi.html" class="game-card" id="card-cumleavi">
+      <div class="gc-banner"><img class="gc-bg" id="img-cumleavi" src="" alt=""><div class="gc-banner-icon">⌨️</div><div class="gc-inactive-overlay" id="inact-cumleavi"><img class="gc-inactive-img" id="inact-img-cumleavi" src="" alt=""><div class="gc-inactive-default" id="inact-txt-cumleavi">YAKINDA</div></div></div>
+    </a>
     <!-- OYUN 8 — BALON ZİNCİRİ -->
     <a href="balon-zinciri.html" class="game-card" id="card-balonzinciri">
       <div class="gc-banner">
@@ -310,8 +315,22 @@ function applySettings(){
 
   try{
     const cards = JSON.parse(localStorage.getItem('hp_cards')||'{}');
-    ['vmym','faul','game3','game4','isimsehir','katmaner','yayincitabusu','balonzinciri'].forEach(key=>{
+    ['vmym','faul','game3','game4','isimsehir','katmaner','yayincitabusu','balonzinciri','cumleavi'].forEach(key=>{
       const cfg = cards[key]||{};
+
+      /* Fındık Coin ödül rozeti */
+      const dropCard = document.getElementById('card-'+key);
+      if(dropCard){
+        const existingDrop = dropCard.querySelector('.coin-drop-badge');
+        if(existingDrop) existingDrop.remove();
+        if(cfg.drop){
+          const badge = document.createElement('img');
+          badge.className = 'coin-drop-badge';
+          badge.src = 'coinsdrop.png';
+          badge.alt = 'Fındık Coin ödüllü oyun';
+          dropCard.appendChild(badge);
+        }
+      }
 
       /* banner görseli */
       const bgUrl = clOpt(clGet('hp_card_'+key), 600);

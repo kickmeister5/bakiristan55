@@ -2136,6 +2136,7 @@ const HP_GAMES = [
   {key:'katmaner', name:'KATMANER', icon:'🎙️', url:'file:///C:/Users/yusuf/Documents/Codex/2026-07-18/bu/outputs/katmaner-yarisma.html'},
   {key:'yayincitabusu', name:'YAYINCI TABUSU', icon:'🎥', url:'yayinci-tabusu.html'},
   {key:'balonzinciri', name:'BALON ZİNCİRİ', icon:'🎈', url:'balon-zinciri.html'},
+  {key:'cumleavi', name:'CÜMLE AVI', icon:'⌨️', url:'cumle-avi.html'},
 ];
 /* Henüz gerçek bir oyunu olmayan kartlar için varsayılan durum: kapalı (index.html ile birebir aynı mantık) */
 const DEFAULT_INACTIVE_GAMES = ['game3'];
@@ -2294,6 +2295,10 @@ function buildHpCardsGrid(){
           <span>AKTİF</span>
           <input type="checkbox" id="hp-act-${game.key}" ${isActive?'checked':''} style="width:16px;height:16px;cursor:pointer;" onchange="updateHpActiveState('${game.key}')">
         </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--muted);">
+          <span>DROP</span>
+          <input type="checkbox" id="hp-drop-${game.key}" ${cfg.drop?'checked':''} style="width:16px;height:16px;cursor:pointer;" title="Bu oyun Fındık Coin ödülü verir">
+        </label>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
@@ -2394,8 +2399,10 @@ function saveHpCardData(){
     const chk=document.getElementById('hp-act-'+game.key);
     const u=document.getElementById('hp-cu-'+game.key);
     const il=document.getElementById('hp-il-'+game.key);
+    const drop=document.getElementById('hp-drop-'+game.key);
     data[game.key]={
       active: chk?chk.checked:true,
+      drop: drop?drop.checked:false,
       url: u?u.value:game.url,
       inactLabel: il?il.value:'YAKINDA',
     };
