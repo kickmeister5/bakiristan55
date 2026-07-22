@@ -105,8 +105,8 @@ async function requestVerification(request, env) {
   await env.FINDIK_DB.prepare(`INSERT INTO verification_requests
     (id,kick_username,kick_username_normalized,code_hash,expires_at,created_at) VALUES(?,?,?,?,?,?)`)
     .bind(requestId, kickUsername, normalized, codeHash, expiresAt, now()).run();
-  // Yalnızca Cloudflare'de TEST_AUTO_APPROVE=true iken kullanılan test kolaylığı.
-  if (env.TEST_AUTO_APPROVE !== 'false') {
+  // Yalnızca TEST_AUTO_APPROVE=true açıkça tanımlanırsa kullanılan test kolaylığı.
+  if (env.TEST_AUTO_APPROVE === 'true') {
     const testKickId = `test:${normalized}`;
     const existing = await env.FINDIK_DB.prepare('SELECT id FROM users WHERE kick_user_id=?').bind(testKickId).first();
     const nameOwner = await env.FINDIK_DB.prepare('SELECT id FROM users WHERE kick_username_normalized=?').bind(normalized).first();
