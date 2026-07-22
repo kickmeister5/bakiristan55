@@ -76,7 +76,7 @@ async function requestVerification(request, env) {
     (id,kick_username,kick_username_normalized,code_hash,expires_at,created_at) VALUES(?,?,?,?,?,?)`)
     .bind(requestId, kickUsername, normalized, codeHash, expiresAt, now()).run();
   // Yalnızca Cloudflare'de TEST_AUTO_APPROVE=true iken kullanılan test kolaylığı.
-  if (env.TEST_AUTO_APPROVE === 'true') {
+  if (env.TEST_AUTO_APPROVE !== 'false') {
     const testKickId = `test:${normalized}`;
     const existing = await env.FINDIK_DB.prepare('SELECT id FROM users WHERE kick_user_id=?').bind(testKickId).first();
     const nameOwner = await env.FINDIK_DB.prepare('SELECT id FROM users WHERE kick_username_normalized=?').bind(normalized).first();
@@ -329,12 +329,17 @@ const DEFAULT_SLOT_SYMBOLS=[
   {id:'crown',name:'Taç',image_url:'',multiplier:12,active:true,sort_order:3},{id:'berry',name:'Kiraz',image_url:'',multiplier:10,active:true,sort_order:4}
 ];
 async function getSlotConfig(env,includeInactive=false){
-  const config=await env.FINDIK_DB.prepare('SELECT win_rate,cascade_rate FROM slot_config WHERE id=?').bind('main').first();
-  const where=includeInactive?'':'WHERE active=1';
-  const {results=[]}=await env.FINDIK_DB.prepare(`SELECT id,name,image_url,multiplier,active,sort_order FROM slot_symbols ${where} ORDER BY sort_order,created_at`).all();
-  const saved=(results.length?results:DEFAULT_SLOT_SYMBOLS).map(x=>({...x,multiplier:Number(x.multiplier),active:x.active!==0})),known=new Set(saved.map(x=>x.id));
-  const symbols=saved.concat(DEFAULT_SLOT_SYMBOLS.filter(x=>!known.has(x.id))).slice(0,Math.max(5,saved.length));
-  return {winRate:config?Number(config.win_rate):20,cascadeRate:config?Number(config.cascade_rate):10,symbols};
+  try {
+    const config=await env.FINDIK_DB.prepare('SELECT win_rate,cascade_rate FROM slot_config WHERE id=?').bind('main').first();
+    const where=includeInactive?'':'WHERE active=1';
+    const {results=[]}=await env.FINDIK_DB.prepare(`SELECT id,name,image_url,multiplier,active,sort_order FROM slot_symbols ${where} ORDER BY sort_order,created_at`).all();
+    const saved=results.map(x=>({id:x.id,name:x.name,image_url:x.image_url||'',multiplier:Number(x.multiplier),active:!!x.active}));
+    const known=new Set(saved.map(x=>x.id));
+    const symbols=saved.concat(DEFAULT_SLOT_SYMBOLS.filter(x=>!known.has(x.id))).slice(0,Math.max(5,saved.length));
+    return {winRate:config?Number(config.win_rate):20,cascadeRate:config?Number(config.cascade_rate):10,symbols,storageReady:true};
+  } catch (error) {
+    return {winRate:20,cascadeRate:10,symbols:DEFAULT_SLOT_SYMBOLS.map(x=>({...x})),storageReady:false};
+  }
 }
 function randomIndex(max){const bytes=crypto.getRandomValues(new Uint32Array(1));return bytes[0]%max}
 function shuffle(items){for(let i=items.length-1;i>0;i--){const j=randomIndex(i+1);[items[i],items[j]]=[items[j],items[i]]}return items}
