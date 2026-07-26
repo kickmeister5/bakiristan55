@@ -44,7 +44,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
 
 /* GAME CARD — sadece banner */
 .game-card{
-  border-radius:18px;overflow:visible;cursor:pointer;
+  border-radius:14px;overflow:visible;cursor:pointer;
   transition:transform 0.22s cubic-bezier(0.16,1,0.3,1),box-shadow 0.22s ease,border-color 0.22s ease;
   text-decoration:none;display:block;position:relative;
   border:1px solid rgba(255,255,255,0.08);transform-style:preserve-3d;
@@ -53,12 +53,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
 .game-card::before{content:'';position:absolute;inset:-1px;z-index:6;pointer-events:none;
   opacity:0;border-radius:inherit;transition:opacity .22s ease;
   background:linear-gradient(115deg,transparent 20%,rgba(255,255,255,.52) 48%,rgba(240,192,64,.3) 54%,transparent 70%);
-  transform:translateX(-125%);}
+  transform:translateX(-125%);clip-path:inset(0 round 14px);}
 .game-card::after{content:'';position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;
   background:radial-gradient(circle at var(--glow-x,50%) var(--glow-y,50%),rgba(255,255,255,.32),transparent 32%);
-  mix-blend-mode:screen;transition:opacity .18s ease;}
+  mix-blend-mode:screen;transition:opacity .18s ease;border-radius:inherit;}
 .game-card:hover{box-shadow:0 24px 55px rgba(0,0,0,.58),0 0 30px rgba(240,192,64,.18);border-color:rgba(240,192,64,.65);z-index:2;}
-.game-card:hover::before{opacity:1;animation:cardSheen .75s cubic-bezier(.2,.8,.2,1) forwards;}
+.game-card:hover::before{opacity:0;animation:none;}
 .game-card:hover::after{opacity:1;}
 @keyframes cardSheen{to{transform:translateX(125%);}}
 .game-card.inactive{display:none;cursor:default;pointer-events:none;}
@@ -67,7 +67,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
 /* BANNER */
 .gc-banner{
   width:100%;height:var(--card-banner-h,300px);
-  position:relative;overflow:hidden;display:block;
+  position:relative;overflow:hidden;display:block;border-radius:inherit;
   background:#0a0a14;
 }
 .gc-banner img.gc-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;}

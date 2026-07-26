@@ -388,6 +388,12 @@ html,body{
 .setup-btn{width:100%;border:none;border-radius:12px;padding:15px;font-family:var(--font-title);font-size:20px;letter-spacing:2px;color:#fff;cursor:pointer;transition:opacity 0.15s;}
 .setup-btn:hover{opacity:0.9;}
 .setup-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.turn-scoreboard{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin:20px 0 16px;padding:10px;border:1px solid rgba(255,255,255,.1);border-radius:16px;background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.015));}
+.turn-score-team{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:11px;background:rgba(0,0,0,.18);}
+.turn-score-team.red{border:1px solid rgba(255,99,116,.28);}.turn-score-team.blue{border:1px solid rgba(87,183,255,.3);}
+.turn-score-team span{font-size:10px;letter-spacing:1.6px;font-weight:800;}.turn-score-team.red span{color:#ff98a4;}.turn-score-team.blue span{color:#8fd0ff;}
+.turn-score-team strong{font-family:var(--font-title);font-size:34px;line-height:1;color:#fff;}.turn-score-team.blue{text-align:center;}
+.turn-score-vs{font-size:10px;font-weight:800;letter-spacing:1.4px;color:var(--muted);}
 
 /* ===== COUNTDOWN OVERLAY ===== */
 .countdown-overlay{position:fixed;inset:0;z-index:350;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;}
@@ -603,6 +609,11 @@ html,body{
   <div class="modal" style="text-align:center;">
     <div id="start-avatar-wrap" style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden;margin:0 auto 16px;"></div>
     <div class="modal-title">SIRA SENDE</div>
+    <div class="turn-scoreboard" aria-label="Anlık takım skorları">
+      <div class="turn-score-team red"><span>KIRMIZI</span><strong id="start-score-red">0</strong></div>
+      <div class="turn-score-vs">SKOR</div>
+      <div class="turn-score-team blue"><span>MAVİ</span><strong id="start-score-blue">0</strong></div>
+    </div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:22px;">Hazır olduğunda turu başlatabilirsin.</div>
     <button class="setup-btn" id="start-action-btn" onclick="startTurn()" style="background:var(--yellow);color:#000;">▶ TURU BAŞLAT</button>
   </div>
@@ -1339,7 +1350,13 @@ async function lockAndStart(){
   const blueCount = (teams.blue||[]).filter(x=>x).length;
   if(redCount<1 || blueCount<1){ showToast('⚠️ Her takımda en az 1 oyuncu olmalı'); return; }
 
-  shuffleWords();
+  const seenWords = new Set();
+  const wordDeck = shuffleArr(getWordBank().filter(item=>{
+    const key = String(item.word||'').trim().toLocaleUpperCase('tr-TR');
+    if(!key || seenWords.has(key)) return false;
+    seenWords.add(key); return true;
+  }));
+  if(!wordDeck.length){ showToast('⚠️ Oyun için kelime bulunamadı'); return; }
   const {updateDoc} = fb();
   await updateDoc(roomRef(roomCode), {
     state: 'playing',
@@ -1350,6 +1367,8 @@ async function lockAndStart(){
     scores: { red:0, blue:0 },
     turn: null,
     log: [],
+    wordDeck,
+    wordIndex: 0,
     settings: gameSettings  // tüm oyuncular aynı ayarı görsün
   });
   document.getElementById('btn-settings').style.display = 'none';
@@ -1405,6 +1424,10 @@ function renderGame(){
   // Skorlar — takım başlıklarının üstündeki score-bar
   document.getElementById('lobby-score-red').textContent = scores.red;
   document.getElementById('lobby-score-blue').textContent = scores.blue;
+  const startRed = document.getElementById('start-score-red');
+  const startBlue = document.getElementById('start-score-blue');
+  if(startRed) startRed.textContent = scores.red;
+  if(startBlue) startBlue.textContent = scores.blue;
 
   // Orta panel başlığı: oynayan takım + anlatıcı
   const teamNameEl = document.getElementById('active-team-name');
@@ -1586,8 +1609,13 @@ function runCountdown(){
 
 async function reallyStartTurn(){
   const {updateDoc} = fb();
-  if(wordIndex>=shuffledWords.length || shuffledWords.length===0) shuffleWords();
-  const w = shuffledWords[wordIndex++];
+  const deck = Array.isArray(roomData.wordDeck) ? roomData.wordDeck : [];
+  const deckIndex = Number(roomData.wordIndex||0);
+  if(!deck.length || deckIndex >= deck.length){
+    showToast('📚 Kelime destesi bitti. Yeni oyun başlatılmalı.');
+    return;
+  }
+  const w = deck[deckIndex];
   turnPassCount = 0;
   turnFoulCount = 0;
   const turn = {
@@ -1597,7 +1625,7 @@ async function reallyStartTurn(){
     durationSec: gameSettings.duration,
     currentWord: w
   };
-  await updateDoc(roomRef(roomCode), { turn, log: [] });
+  await updateDoc(roomRef(roomCode), { turn, log: [], wordIndex: deckIndex + 1 });
 }
 
 /* Oyun bittiğinde takımlardaki tüm aktif oyuncuları bekleyenler listesine taşır (kimse lobiden atılmaz) */
@@ -1644,9 +1672,15 @@ async function markWord(type){
     turn.pass++; turnPassCount++; log.push({type,word});
   }
 
-  if(wordIndex>=shuffledWords.length) shuffleWords();
-  turn.currentWord = shuffledWords[wordIndex++];
-  await updateDoc(roomRef(roomCode), { turn, scores, log });
+  const deck = Array.isArray(roomData.wordDeck) ? roomData.wordDeck : [];
+  const nextIndex = Number(roomData.wordIndex||0);
+  if(nextIndex >= deck.length){
+    await updateDoc(roomRef(roomCode), { turn: null, scores, log, ready:false, wordIndex: nextIndex });
+    showToast('📚 Kelime destesi bitti. Bu oyunda kelimeler tekrarlanmaz.');
+    return;
+  }
+  turn.currentWord = deck[nextIndex];
+  await updateDoc(roomRef(roomCode), { turn, scores, log, wordIndex: nextIndex + 1 });
 }
 
 /* Rakip takım "FAUL!" butonuna basınca */
