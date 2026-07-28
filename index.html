@@ -210,7 +210,11 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
       </div>
     </a>
 
-  </div>
+      <!-- OYUN 10 — CHAT ÇEKİLİŞİ -->
+    <a href="cekilis.html" class="game-card" id="card-cekilis">
+      <div class="gc-banner"><img class="gc-bg" id="img-cekilis" src="" alt=""><div class="gc-banner-icon">🎉</div><div class="gc-inactive-overlay" id="inact-cekilis"><img class="gc-inactive-img" id="inact-img-cekilis" src="" alt=""><div class="gc-inactive-default" id="inact-txt-cekilis">YAKINDA</div></div></div>
+    </a>
+</div>
 
 </div>
 
@@ -318,7 +322,7 @@ function applySettings(){
 
   try{
     const cards = JSON.parse(localStorage.getItem('hp_cards')||'{}');
-    ['vmym','faul','game3','game4','isimsehir','katmaner','yayincitabusu','balonzinciri','cumleavi'].forEach(key=>{
+    ['vmym','faul','game3','game4','isimsehir','katmaner','yayincitabusu','balonzinciri','cumleavi','cekilis'].forEach(key=>{
       const cfg = cards[key]||{};
 
       /* Fındık Coin ödül rozeti */
