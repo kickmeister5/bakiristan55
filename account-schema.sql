@@ -38,6 +38,13 @@ CREATE TABLE IF NOT EXISTS coin_ledger (
 );
 
 -- Mağaza ürünleri silinmek yerine pasifleştirilir; eski siparişler korunur.
+CREATE TABLE IF NOT EXISTS daily_claims (
+  user_id TEXT NOT NULL REFERENCES users(id),
+  claimed_day TEXT NOT NULL,
+  claimed_at INTEGER NOT NULL,
+  PRIMARY KEY(user_id, claimed_day)
+);
+
 CREATE TABLE IF NOT EXISTS shop_products (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,

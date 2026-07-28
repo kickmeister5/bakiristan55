@@ -1087,7 +1087,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; h
       <div class="disp-card">
         <div class="disp-card-title">BUTONLAR VE EKRAN ÖLÇEĞİ</div>
         <div class="disp-card-sub">Farklı çözünürlüklerde tüm oyun arayüzünü ve ana vurguları ayarlayın.</div>
-        <div class="color-custom-row"><label>Ana buton rengi:</label><input type="color" id="is-primary" value="#f5c518" oninput="isimPreview()"><input type="text" class="color-hex-input" id="is-primary-hex" value="#f5c518" maxlength="7" oninput="isimPrimaryHex(this.value)"></div>
+        <div class="color-custom-row"><label>Ana buton rengi:</label><input type="color" id="is-primary" value="#f5c518" oninput="isimPreview()"><input type="text" class="color-hex-input" id="is-primary-hex" value="#f5c518" maxlength="7" oninput="isimPrimaryHex(this.value)"></div><div class="color-custom-row" style="margin-top:14px;"><label>Lobi ana kart rengi:</label><input type="color" id="is-card-bg" value="#0d143d" oninput="isimPreview()"></div><div class="color-custom-row" style="margin-top:10px;"><label>Oyuncu kart rengi:</label><input type="color" id="is-player-card-bg" value="#18224b" oninput="isimPreview()"></div>
         <div class="bg-opacity-row"><label>Ekran ölçeği:</label><input type="range" id="is-scale" min="80" max="125" value="100" oninput="isimPreview()"><span class="bg-opacity-val" id="is-scale-value">%100</span></div>
         <div class="bg-opacity-row"><label>İçerik genişliği:</label><input type="range" id="is-width" min="720" max="1200" step="20" value="980" oninput="isimPreview()"><span class="bg-opacity-val" id="is-width-value">980px</span></div>
         <button class="disp-save-btn" onclick="isimSave()">AYARLARI CANLI YAYINLA</button><div id="is-save-note" style="font-size:12px;color:var(--muted);margin-top:10px;"></div>
@@ -1579,7 +1579,7 @@ async function syncRemoteConfig() {
 const BIN_ID = '6a2a8f27f5f4af5e29de21ee';
 const BIN_KEY = '$2a$10$jmvujdFyJ.mML6da40FEleAhD1/oz/xVD612cQ6NAxRM4oQedpnBi';
 const BIN_API = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
-const ALL_KEYS = ['vmym_prices','vmym_zoom','vmym_ratio','vmym_lp','vmym_bg','vmym_header_size','vmym_cl_urls','hp_bg','hp_card_w','hp_card_h','hp_cards','hp_fidget','faul_avatar_count','faul_bg','hp_header','faul_words','vmym_sbp','hesap_settings','katmaner_settings','katmaner_questions'];
+const ALL_KEYS = ['vmym_prices','vmym_zoom','vmym_ratio','vmym_lp','vmym_bg','vmym_header_size','vmym_cl_urls','hp_bg','hp_card_w','hp_card_h','hp_cards','hp_fidget','faul_avatar_count','faul_bg','hp_header','faul_words','vmym_sbp','hesap_settings','katmaner_settings','katmaner_questions','isimsehir_theme'];
 
 async function remoteFetch(){
   try{
@@ -2581,20 +2581,22 @@ function isimSetMode(mode){
 function isimSetFit(fit){isimBgFit=fit;document.querySelectorAll('[data-is-fit]').forEach(x=>x.classList.toggle('active',x.dataset.isFit===fit));isimPreview()}
 function isimColorHex(v){if(/^#[0-9a-fA-F]{6}$/.test(v)){document.getElementById('is-bg-color').value=v;isimPreview()}}
 function isimPrimaryHex(v){if(/^#[0-9a-fA-F]{6}$/.test(v)){document.getElementById('is-primary').value=v;isimPreview()}}
-function isimValues(){return {bgColor:document.getElementById('is-bg-color').value,bgImage:document.getElementById('is-bg-image').value.trim(),bgOpacity:+document.getElementById('is-bg-opacity').value,bgFit:isimBgFit,primary:document.getElementById('is-primary').value,scale:+document.getElementById('is-scale').value,contentWidth:+document.getElementById('is-width').value}}
+function isimValues(){return {bgColor:document.getElementById('is-bg-color').value,bgImage:document.getElementById('is-bg-image').value.trim(),bgOpacity:+document.getElementById('is-bg-opacity').value,bgFit:isimBgFit,primary:document.getElementById('is-primary').value,cardBg:document.getElementById('is-card-bg').value,playerCardBg:document.getElementById('is-player-card-bg').value,scale:+document.getElementById('is-scale').value,contentWidth:+document.getElementById('is-width').value}}
 function isimPreview(){
   const d=isimValues(),p=document.getElementById('is-preview'),a=1-d.bgOpacity/100;
   document.getElementById('is-bg-hex').value=d.bgColor;document.getElementById('is-primary-hex').value=d.primary;document.getElementById('is-opacity-value').textContent='%'+d.bgOpacity;document.getElementById('is-scale-value').textContent='%'+d.scale;document.getElementById('is-width-value').textContent=d.contentWidth+'px';
   p.style.background=isimBgMode==='image'&&d.bgImage?`linear-gradient(rgba(0,0,0,${a}),rgba(0,0,0,${a})),url("${d.bgImage}") center/${isimBgFit==='repeat'?'auto':isimBgFit} ${isimBgFit==='repeat'?'repeat':'no-repeat'}`:d.bgColor;
-  p.querySelector('div').style.background=d.primary;p.querySelector('div').style.color='#111';p.style.fontSize=(d.scale/100)+'em';
+  p.querySelector('div').style.background=d.cardBg;p.querySelector('div').style.color='#fff';p.style.fontSize=(d.scale/100)+'em';
   if(typeof isimSetUploadedPreview==='function') isimSetUploadedPreview(d.bgImage||'');
 }
 async function initIsimSehirTab(){
-  try{const f=await isimGetDb(),s=await f.getDoc(f.doc(f.db,'isimSehirConfig','theme'));if(s.exists()){const d=s.data();['bgColor','bgImage','bgOpacity','primary','scale','contentWidth'].forEach(k=>{if(d[k]!==undefined)document.getElementById('is-'+({bgColor:'bg-color',bgImage:'bg-image',bgOpacity:'bg-opacity',primary:'primary',scale:'scale',contentWidth:'width'}[k])).value=d[k]});isimBgFit=d.bgFit||'cover';isimSetFit(isimBgFit);isimSetMode(d.bgImage?'image':'color')}}catch(e){document.getElementById('is-save-note').textContent='Ayarlar okunamadı; varsayılanlar gösteriliyor.'}isimPreview();
+  try{const f=await isimGetDb(),s=await f.getDoc(f.doc(f.db,'isimSehirConfig','theme'));if(s.exists()){const d=s.data();['bgColor','bgImage','bgOpacity','primary','cardBg','playerCardBg','scale','contentWidth'].forEach(k=>{if(d[k]!==undefined)document.getElementById('is-'+({bgColor:'bg-color',bgImage:'bg-image',bgOpacity:'bg-opacity',primary:'primary',cardBg:'card-bg',playerCardBg:'player-card-bg',scale:'scale',contentWidth:'width'}[k])).value=d[k]});isimBgFit=d.bgFit||'cover';isimSetFit(isimBgFit);isimSetMode(d.bgImage?'image':'color')}}catch(e){document.getElementById('is-save-note').textContent='Ayarlar okunamadı; varsayılanlar gösteriliyor.'}isimPreview();
 }
 async function isimSave(){
-  const note=document.getElementById('is-save-note');note.style.color='var(--muted)';note.textContent='Yayınlanıyor...';
-  try{const f=await isimGetDb();await f.setDoc(f.doc(f.db,'isimSehirConfig','theme'),isimValues());note.style.color='var(--green)';note.textContent='✓ Ayarlar yayınlandı; açık oyun ekranları güncellendi.'}catch(e){note.style.color='var(--red)';note.textContent='Ayarlar kaydedilemedi. Firestore erişimini kontrol edin.'}
+  const note=document.getElementById('is-save-note'),data=isimValues();note.style.color='var(--muted)';note.textContent='Yayınlanıyor...';
+  localStorage.setItem('isimsehir_theme',JSON.stringify(data));
+  try{await remotePush()}catch(e){note.style.color='var(--red)';note.textContent='Ortak ayar kaydı ulaşılamadı.';return}
+  try{const f=await isimGetDb();await f.setDoc(f.doc(f.db,'isimSehirConfig','theme'),data);note.style.color='var(--green)';note.textContent='✓ Ayarlar canlı yayınlandı.'}catch(e){note.style.color='var(--gold)';note.textContent='⚠ Ayarlar yedeklendi fakat oyuna yansıtmak için Firestore yazma izni gerekiyor. ('+(e.code||'erişim hatası')+')'}
 }
 function isimSetUploadedPreview(url){
   const img=document.getElementById('is-bg-upload-preview'),ph=document.getElementById('is-bg-upload-placeholder'),clear=document.getElementById('is-bg-upload-clear');

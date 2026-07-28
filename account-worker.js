@@ -33,6 +33,7 @@ function ensureSchema(env) {
     `CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,token_hash TEXT NOT NULL UNIQUE,expires_at INTEGER NOT NULL,created_at INTEGER NOT NULL)`,
     `CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token_hash)`,
     `CREATE TABLE IF NOT EXISTS coin_ledger (id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id),amount INTEGER NOT NULL,reason TEXT NOT NULL,created_at INTEGER NOT NULL,UNIQUE(user_id, reason))`,
+    `CREATE TABLE IF NOT EXISTS daily_claims (user_id TEXT NOT NULL REFERENCES users(id),claimed_day TEXT NOT NULL,claimed_at INTEGER NOT NULL,PRIMARY KEY(user_id, claimed_day))`,
     `CREATE TABLE IF NOT EXISTS shop_products (id TEXT PRIMARY KEY,name TEXT NOT NULL,description TEXT NOT NULL DEFAULT '',image_url TEXT NOT NULL DEFAULT '',price INTEGER NOT NULL CHECK (price >= 0),stock INTEGER,active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0,1)),created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL)`,
     `CREATE INDEX IF NOT EXISTS idx_shop_products_active ON shop_products(active, created_at DESC)`,
     `CREATE TABLE IF NOT EXISTS shop_purchases (id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id),product_id TEXT NOT NULL REFERENCES shop_products(id),product_name TEXT NOT NULL,unit_price INTEGER NOT NULL CHECK (unit_price >= 0),customer_name TEXT NOT NULL DEFAULT '',shipping_address TEXT NOT NULL DEFAULT '',phone TEXT NOT NULL DEFAULT '',created_at INTEGER NOT NULL)`,
@@ -50,6 +51,17 @@ function ensureSchema(env) {
   ];
   schemaReady = env.FINDIK_DB.batch(sql.map(statement => env.FINDIK_DB.prepare(statement))).catch(error => { schemaReady=null; throw error; });
   return schemaReady;
+}
+
+function dailyKey(){ return new Date(now()+3*60*60*1000).toISOString().slice(0,10); }
+async function claimDailyBonus(request, env) {
+  const user=await accountFromSession(request,env);
+  if(!user)return json({error:'Günlük hediyeyi almak için hesabına giriş yapmalısın.'},{status:401});
+  const day=dailyKey(), reward=100;
+  const claim=await env.FINDIK_DB.prepare('INSERT OR IGNORE INTO daily_claims(user_id,claimed_day,claimed_at) VALUES(?,?,?)').bind(user.id,day,now()).run();
+  if(!claim.meta?.changes){const fresh=await env.FINDIK_DB.prepare('SELECT kick_username,display_name,coins FROM users WHERE id=?').bind(user.id).first();return json({ok:true,claimed:false,day,profile:publicProfile(fresh)});}
+  const ledgerId=id();await env.FINDIK_DB.batch([env.FINDIK_DB.prepare('UPDATE users SET coins=coins+? WHERE id=?').bind(reward,user.id),env.FINDIK_DB.prepare('INSERT INTO coin_ledger(id,user_id,amount,reason,created_at) VALUES(?,?,?,?,?)').bind(ledgerId,user.id,reward,'daily_bonus:'+day,now())]);
+  const fresh=await env.FINDIK_DB.prepare('SELECT kick_username,display_name,coins FROM users WHERE id=?').bind(user.id).first();return json({ok:true,claimed:true,reward,day,profile:publicProfile(fresh)});
 }
 
 async function accountFromSession(request, env) {
@@ -487,6 +499,7 @@ export default {
     if (request.method === 'POST' && url.pathname === '/api/account/client-confirm') return confirmFromChatClient(request, env);
     if (request.method === 'GET' && url.pathname === '/api/account/game/host') return streamGameHostStatus(request,env);
     if (request.method === 'GET' && url.pathname === '/api/account/me') return json({ profile: publicProfile(await accountFromSession(request, env)) });
+    if (request.method === 'POST' && url.pathname === '/api/account/daily-claim') return claimDailyBonus(request,env);
     if (request.method === 'GET' && url.pathname === '/api/account/shop/products') return json({items:await listShopProducts(env)});
     if (request.method === 'GET' && url.pathname === '/api/account/shop/history') return shopHistory(request,env);
     if (request.method === 'POST' && url.pathname === '/api/account/shop/buy') return buyProduct(request,env);

@@ -388,6 +388,11 @@ html,body{
 .setup-btn{width:100%;border:none;border-radius:12px;padding:15px;font-family:var(--font-title);font-size:20px;letter-spacing:2px;color:#fff;cursor:pointer;transition:opacity 0.15s;}
 .setup-btn:hover{opacity:0.9;}
 .setup-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.result-overlay{position:fixed;inset:0;z-index:410;background:rgba(3,5,12,.78);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:20px;}
+.result-overlay.on{display:flex;animation:fadeIn .25s ease;}.result-card{position:relative;overflow:hidden;width:min(440px,100%);padding:40px 32px 30px;text-align:center;border:1px solid rgba(255,255,255,.16);border-radius:28px;background:radial-gradient(circle at 50% -10%,rgba(255,205,78,.22),transparent 39%),linear-gradient(145deg,#1b1d2c,#0b0d16);box-shadow:0 28px 80px rgba(0,0,0,.65);animation:modalPop .38s cubic-bezier(.2,1.25,.35,1);}
+.result-card.blue-win{border-color:rgba(81,187,255,.52);background:radial-gradient(circle at 50% -10%,rgba(71,177,255,.28),transparent 42%),linear-gradient(145deg,#111f32,#090d18);}.result-card.red-win{border-color:rgba(255,94,117,.52);background:radial-gradient(circle at 50% -10%,rgba(255,88,110,.25),transparent 42%),linear-gradient(145deg,#31141d,#13090d);}
+.result-confetti{position:absolute;inset:12px 0 auto;font-size:18px;letter-spacing:42px;color:var(--yellow);opacity:.85;pointer-events:none;}.result-trophy{font-size:62px;line-height:1;margin:3px 0 16px;filter:drop-shadow(0 8px 16px rgba(240,192,64,.3));animation:resultFloat 1.8s ease-in-out infinite alternate;}@keyframes resultFloat{to{transform:translateY(-7px) rotate(4deg)}}
+.result-kicker{font-size:10px;font-weight:800;letter-spacing:3px;color:var(--muted);margin-bottom:10px;}.result-title{font-family:var(--font-title);font-size:clamp(30px,8vw,46px);line-height:.98;letter-spacing:2px;color:#fff;}.result-scoreline{display:flex;align-items:center;justify-content:center;gap:16px;margin:22px 0 11px;font-family:var(--font-title);font-size:46px;}.result-scoreline i{font-style:normal;font-size:23px;color:rgba(255,255,255,.34);}.result-red{color:#ff8392;}.result-blue{color:#70c5ff;}.result-note{font-size:13px;color:var(--muted);margin-bottom:24px;}.result-close{max-width:210px;margin:auto;background:var(--yellow);color:#0b0d12;}
 .turn-scoreboard{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin:20px 0 16px;padding:10px;border:1px solid rgba(255,255,255,.1);border-radius:16px;background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.015));}
 .turn-score-team{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:11px;background:rgba(0,0,0,.18);}
 .turn-score-team.red{border:1px solid rgba(255,99,116,.28);}.turn-score-team.blue{border:1px solid rgba(87,183,255,.3);}
@@ -425,9 +430,10 @@ html,body{
 .conn-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;}
 .conn-dot.live{background:#20c060;animation:connPulse 1.5s ease infinite;}
 @keyframes connPulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
-</style>
+/* Girişte kimlik seçimi ayrı popup değil, oda kartının bir parçasıdır. */
+#entry-screen .findik-identity-gate{position:static;inset:auto;z-index:auto;display:block;padding:0;margin:16px 0 18px;background:none;backdrop-filter:none}#entry-screen .findik-identity-gate[hidden]{display:none!important}#entry-screen .findik-identity-card{width:100%;padding:16px 17px 14px;border-radius:16px;border-color:rgba(245,197,24,.3);background:linear-gradient(135deg,rgba(245,197,24,.11),rgba(255,255,255,.025));box-shadow:none}#entry-screen .findik-identity-kicker{margin-bottom:5px;font-size:9px}#entry-screen .findik-identity-card h2{font-size:23px;line-height:1.05}#entry-screen .findik-identity-card p{margin:7px 0 13px;font-size:12px;line-height:1.42}#entry-screen .findik-identity-btn{min-height:42px;font-size:12px;border-radius:10px}#entry-screen .findik-identity-guest{margin-top:8px;font-size:11px}#entry-screen .faul-name-row{display:grid;grid-template-columns:minmax(0,1.62fr) minmax(0,1fr);gap:8px;align-items:stretch;margin-top:16px}#entry-screen .faul-name-row .entry-input{margin-top:0!important;width:100%;min-width:0;height:50px}#entry-screen .faul-guest-switch{width:100%;height:50px;padding:0 8px;border:1px solid rgba(255,255,255,.18);border-radius:10px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.72);font:700 9px var(--font-body);letter-spacing:.35px;cursor:pointer;white-space:nowrap}#entry-screen .faul-guest-switch:hover{background:rgba(255,255,255,.14);color:#fff}#entry-screen .entry-input[readonly]{opacity:.92;border-color:rgba(245,197,24,.45);color:#fff;padding-right:34px;background-image:url('kick-logo.png');background-repeat:no-repeat;background-size:18px 18px;background-position:calc(100% - 11px) center}.kick-verified-badge{display:inline-block;width:12px;height:12px;object-fit:contain;vertical-align:-1px;margin-left:5px;filter:drop-shadow(0 0 3px rgba(83,255,115,.32))}</style>
 </head>
-<body>
+<body><style id="home-return-style">.home-return{position:fixed;top:18px;left:18px;z-index:999999;display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:rgba(10,12,22,.6);border:1px solid rgba(255,255,255,.18);box-shadow:0 8px 22px rgba(0,0,0,.32);backdrop-filter:blur(8px);transition:transform .2s ease,box-shadow .2s ease,background .2s ease}.home-return img{display:block;width:34px;height:34px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}.home-return:hover{transform:translateX(-2px) scale(1.08);background:rgba(18,21,35,.88);box-shadow:0 12px 28px rgba(0,0,0,.44)}.home-return:focus-visible{outline:3px solid #fff;outline-offset:3px}@media(max-width:640px){.home-return{top:12px;left:12px;width:42px;height:42px}.home-return img{width:30px;height:30px}}</style><a class="home-return" href="index.html" aria-label="Ana sayfaya dön" title="Ana sayfaya dön"><img src="assets/home-return.png" alt=""></a>
 <div id="bg-color-base"></div>
 <div id="bg-layer"></div>
 
@@ -616,6 +622,19 @@ html,body{
     </div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:22px;">Hazır olduğunda turu başlatabilirsin.</div>
     <button class="setup-btn" id="start-action-btn" onclick="startTurn()" style="background:var(--yellow);color:#000;">▶ TURU BAŞLAT</button>
+  </div>
+</div>
+
+<!-- ===== OYUN SONUCU POPUP ===== -->
+<div class="result-overlay" id="result-overlay" role="dialog" aria-modal="true" aria-labelledby="result-title">
+  <div class="result-card" id="result-card">
+    <div class="result-confetti">✦ ✦ ✦</div>
+    <div class="result-trophy" id="result-trophy">🏆</div>
+    <div class="result-kicker">OYUN TAMAMLANDI</div>
+    <div class="result-title" id="result-title">MAVİ TAKIM KAZANDI</div>
+    <div class="result-scoreline"><span class="result-red" id="result-score-red">0</span><i>—</i><span class="result-blue" id="result-score-blue">0</span></div>
+    <div class="result-note" id="result-note">Harika bir oyun oldu.</div>
+    <button class="setup-btn result-close" onclick="closeGameResult()">TAMAM</button>
   </div>
 </div>
 
@@ -1120,7 +1139,7 @@ function setMyIdentity(){
 
 async function joinAsPlayerAndEnterLobby(){
   const {updateDoc, getDoc} = fb();
-  const player = { id: myPlayerId, name: myName, avatar: myAvatar };
+  const player = { id: myPlayerId, name: myName, avatar: myAvatar, kick: document.getElementById('entry-name-input')?.dataset.identityAccount === '1' };
   try {
     const snap = await getDoc(roomRef(roomCode));
     const data = snap.data();
@@ -1260,7 +1279,7 @@ function buildTeamSlots(team, arr, slotsId, countId){
       slot.innerHTML = `
         <div class="slot-crown">${isCapt?'👑':''}</div>
         <div class="slot-avatar">${avatarHtml(p.avatar)}</div>
-        <div class="slot-name${isYou?' you':''}">${escapeHtml(p.name)}${isYou?' (Sen)':''}</div>
+                <div class="slot-name${isYou?' you':''}">${playerNameHtml(p,isYou?' (Sen)':'')}</div>
         <div class="slot-actions">
           ${isYou ? `<button class="slot-act-btn" onclick="moveToWaiting('${team}',${i})" title="Bekleyenlere Dön">↩</button>` : ''}
           ${isHost && !isYou ? `<button class="slot-act-btn" onclick="removePlayer('${team}',${i})" title="Oyundan Çıkar">✕</button>` : ''}
@@ -1291,7 +1310,7 @@ function buildWaiting(waiting){
     slot.className = 'waiting-slot has-player';
     slot.innerHTML = `
       <div class="ws-avatar">${avatarHtml(p.avatar)}</div>
-      <div class="ws-name${isYou?' you':''}">${escapeHtml(p.name)}${isYou?' (Sen)':''}</div>
+            <div class="ws-name${isYou?' you':''}">${playerNameHtml(p,isYou?' (Sen)':'')}</div>
       <div class="ws-team-btns">
         <span style="font-size:10px;color:var(--muted);letter-spacing:1px;">${isYou ? 'TAKIM SEÇ ↑' : 'BEKLİYOR'}</span>
       </div>`;
@@ -1300,6 +1319,7 @@ function buildWaiting(waiting){
 }
 
 function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function playerNameHtml(p,suffix=''){ return escapeHtml(p?.name||'')+(p?.kick?'<img class="kick-verified-badge" src="kick-logo.png" alt="Kick hesabı" title="Kick hesabı"/>':'')+suffix; }
 function avatarHtml(av){
   if(!av) return '🙂';
   if(typeof av==='string' && av.startsWith('http')){
@@ -1433,14 +1453,14 @@ function renderGame(){
   const teamNameEl = document.getElementById('active-team-name');
   teamNameEl.textContent = (activeTeam==='red'?'KIRMIZI':'MAVİ') + ' OYNUYOR';
   teamNameEl.style.color = activeTeam==='red' ? '#ff8a8a' : 'var(--blue-light)';
-  document.getElementById('active-captain-name').textContent = narrator ? narrator.name : '?';
+  document.getElementById('active-captain-name').innerHTML = narrator ? playerNameHtml(narrator) : '?';
   const narratorAvatarWrap = document.getElementById('narrator-avatar-wrap');
   if(narratorAvatarWrap) narratorAvatarWrap.innerHTML = narrator ? avatarHtml(narrator.avatar) : '👤';
 
   const specAvatarWrap = document.getElementById('spectator-avatar-wrap');
   const specName = document.getElementById('spectator-name');
   if(specAvatarWrap) specAvatarWrap.innerHTML = narrator ? avatarHtml(narrator.avatar) : '👤';
-  if(specName) specName.textContent = narrator ? narrator.name : 'Anlatıcı bekleniyor';
+  if(specName) specName.innerHTML = narrator ? playerNameHtml(narrator) : 'Anlatıcı bekleniyor';
 
   const isMyTurnToNarrate = myRole && myRole.team===activeTeam && myRole.isNarrator;
   const isOpponent = myRole && myRole.team!==activeTeam;
@@ -1661,7 +1681,7 @@ async function markWord(type){
         teams: finishedTeams,
         waiting:newWaiting, activeTeam:'red', round:1, narratorIdx:{red:0,blue:0}, ready:false });
       const winner = activeTeam==='red'?'KIRMIZI':'MAVİ';
-      setTimeout(()=>alert('🏆 '+winner+' takımı '+limit+' puana ulaştı ve kazandı!\n'+scores.red+' — '+scores.blue),300);
+      setTimeout(()=>showGameResult(winner, scores, limit+' puana ulaşarak kazandı!'),300);
       return;
     }
   } else {
@@ -1718,6 +1738,22 @@ async function reportFaul(){
   await updateDoc(roomRef(roomCode), { turn, scores, log });
 }
 
+function showGameResult(winner, scores, note){
+  const overlay=document.getElementById('result-overlay');
+  const card=document.getElementById('result-card');
+  if(!overlay || !card) return;
+  const draw=winner==='BERABERE';
+  card.classList.toggle('red-win',winner==='KIRMIZI');
+  card.classList.toggle('blue-win',winner==='MAVİ');
+  document.getElementById('result-title').textContent=draw?'BERABERE!':winner+' TAKIM KAZANDI';
+  document.getElementById('result-trophy').textContent=draw?'🤝':'🏆';
+  document.getElementById('result-score-red').textContent=(scores&&scores.red)||0;
+  document.getElementById('result-score-blue').textContent=(scores&&scores.blue)||0;
+  document.getElementById('result-note').textContent=note||'Harika bir oyun oldu.';
+  overlay.classList.add('on');
+}
+function closeGameResult(){ document.getElementById('result-overlay').classList.remove('on'); }
+
 async function timeExpired(){
   const {updateDoc} = fb();
   showToast('⏰ Süre doldu!');
@@ -1741,9 +1777,7 @@ async function timeExpired(){
     // Oyun bitti — sonucu göster
     const scores = roomData.scores||{red:0,blue:0};
     const winner = scores.red>scores.blue?'KIRMIZI':scores.blue>scores.red?'MAVİ':'BERABERE';
-    setTimeout(()=>{
-      alert(winner==='BERABERE'?'🤝 Berabere!\n'+scores.red+' — '+scores.blue:'🏆 '+winner+' takımı kazandı!\n'+scores.red+' — '+scores.blue);
-    },300);
+    setTimeout(()=>showGameResult(winner, scores, winner==='BERABERE'?'Skorlar eşit kaldı.':'Tur limiti sonunda öne geçti!'),300);
     await updateDoc(roomRef(roomCode), {
       turn:null, state:'lobby',
       teams:{red:[null,null,null,null,null],blue:[null,null,null,null,null]},
@@ -1761,7 +1795,7 @@ async function endGame(){
   const {updateDoc} = fb();
   const scores = roomData.scores || {red:0,blue:0};
   const winner = scores.red>scores.blue?'KIRMIZI':scores.blue>scores.red?'MAVİ':'BERABERE';
-  alert(winner==='BERABERE' ? '🤝 Berabere!' : '🏆 '+winner+' takımı kazandı!\n'+scores.red+' — '+scores.blue);
+  showGameResult(winner, scores, winner==='BERABERE'?'Skorlar eşit kaldı.':'Oyun host tarafından tamamlandı.');
   await updateDoc(roomRef(roomCode), {
     state: 'lobby',
     teams: { red:[null,null,null,null,null], blue:[null,null,null,null,null] },
@@ -1804,4 +1838,10 @@ async function endGame(){
   }
 })();
 </script>
-</body></html>
+<style>
+.findik-identity-gate{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(3,6,14,.78);backdrop-filter:blur(9px)}.findik-identity-gate[hidden]{display:none!important}.findik-identity-card{width:min(420px,100%);padding:31px 28px 26px;text-align:center;border:1px solid rgba(240,192,64,.4);border-radius:24px;background:linear-gradient(145deg,#171927,#090b13);box-shadow:0 24px 68px rgba(0,0,0,.62);color:#fff}.findik-identity-kicker{font-size:10px;letter-spacing:2.5px;font-weight:800;color:#f0c040;margin-bottom:10px}.findik-identity-card h2{margin:0;font-size:clamp(24px,6vw,34px);letter-spacing:1px}.findik-identity-card p{margin:12px 0 22px;color:rgba(255,255,255,.64);font-size:13px;line-height:1.55}.findik-identity-btn{width:100%;min-height:48px;border:1px solid #f0c040;border-radius:12px;background:linear-gradient(135deg,#f6d35a,#b98223);color:#15120a;font-weight:900;letter-spacing:.8px;cursor:pointer}.findik-identity-guest{margin-top:10px;border:0;background:transparent;color:rgba(255,255,255,.62);font-weight:700;cursor:pointer;text-decoration:underline}.findik-identity-account-name{display:inline-flex;align-items:center;justify-content:center;gap:7px;color:#fff}.findik-identity-lock{font-size:13px;color:#f0c040}
+</style>
+<div class="findik-identity-gate" id="findik-identity-gate" hidden><div class="findik-identity-card"><div class="findik-identity-kicker" id="findik-identity-kicker">OYUNCU KİMLİĞİ</div><h2 id="findik-identity-title">KİMLİK KONTROL EDİLİYOR</h2><p id="findik-identity-copy">Hesabın kontrol ediliyor…</p><button class="findik-identity-btn" id="findik-identity-account" type="button" disabled>BEKLENİYOR…</button><button class="findik-identity-guest" id="findik-identity-guest" type="button" hidden>MİSAFİR OLARAK OYNA</button></div></div>
+<script>
+(()=>{const fieldIds=['entry-name-input'],gate=document.getElementById('findik-identity-gate'),fields=fieldIds.map(id=>document.getElementById(id)).filter(Boolean),kicker=document.getElementById('findik-identity-kicker'),title=document.getElementById('findik-identity-title'),copy=document.getElementById('findik-identity-copy'),accountBtn=document.getElementById('findik-identity-account'),guestBtn=document.getElementById('findik-identity-guest');if(!fields.length||!gate)return;const entryCard=document.querySelector('#entry-screen .entry-card'),avatarPicker=document.querySelector('#entry-screen .avatar-carousel');if(entryCard&&avatarPicker)avatarPicker.after(gate);let profile=null;const end=()=>{gate.hidden=true};const setEntryMode=(account,name='')=>{const create=document.getElementById('btn-create-room'),join=document.querySelector('#entry-join-panel .entry-btn');if(create)create.textContent=account?'BU HESAPLA ODA OLUŞTUR':'ODA OLUŞTUR';if(join)join.textContent=account?'BU HESAPLA KATIL':'➔ KATIL';const sw=document.getElementById('faul-guest-switch');if(sw)sw.textContent=account?'MİSAFİR OLARAK GİR':'HESABIMA DÖN'};const mountGuestSwitch=()=>{const field=fields[0];if(!field||document.getElementById('faul-guest-switch'))return;const row=document.createElement('div'),switcher=document.createElement('button');row.className='faul-name-row';switcher.id='faul-guest-switch';switcher.className='faul-guest-switch';switcher.type='button';field.parentNode.insertBefore(row,field);row.append(field,switcher);switcher.onclick=()=>{if(field.dataset.identityAccount==='1')chooseGuest();else chooseAccount()}};const chooseAccount=()=>{const name=(profile?.displayName||profile?.kickUsername||'').trim();if(!name)return;fields.forEach(f=>{f.value=name;f.readOnly=true;f.dataset.identityAccount='1'});setEntryMode(true,name);end()};const chooseGuest=()=>{fields.forEach(f=>{if(f.dataset.identityAccount==='1')f.value='';f.readOnly=false;delete f.dataset.identityAccount});setEntryMode(false);end();setTimeout(()=>fields[0].focus(),0)};guestBtn.onclick=chooseGuest;accountBtn.onclick=()=>{if(profile){chooseAccount();return}const page=(location.pathname.split('/').pop()||'index.html')+location.search;location.href='index.html?account=1&return='+encodeURIComponent(page)};const render=found=>{profile=found||null;accountBtn.disabled=false;guestBtn.hidden=false;if(profile){const name=(profile.displayName||profile.kickUsername||'').trim();kicker.textContent='KICK HESABI BAĞLI';title.innerHTML='<span class="findik-identity-account-name">@'+name+' <span class="findik-identity-lock">🔒</span></span>';copy.textContent='Bu hesapla devam edersen oyun içindeki ismin değiştirilemez.';accountBtn.textContent='BU HESAPLA DEVAM ET';guestBtn.textContent='MİSAFİR OLARAK OYNA';mountGuestSwitch();chooseAccount()}else{kicker.textContent='OYUNCU KİMLİĞİ';title.textContent='NASIL DEVAM EDELİM?';copy.textContent='Kick hesabınla devam edebilir veya bu oyun için bir nickname yazabilirsin.';accountBtn.textContent='KICK HESABIM İLE DEVAM ET';guestBtn.textContent='NICKNAME GİRECEĞİM'}};const load=async()=>{gate.hidden=false;try{if(location.protocol==='file:'||location.hostname==='localhost'||location.hostname==='127.0.0.1'){const local=JSON.parse(localStorage.getItem('findik_test_profile')||'null');if(local){render(local);return}}const response=await fetch('/api/account/me',{credentials:'same-origin'}),data=await response.json().catch(()=>({}));render(data?.profile||null)}catch(e){render(null)}};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load()})();
+</script></body></html>
