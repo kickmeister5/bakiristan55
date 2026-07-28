@@ -453,7 +453,23 @@ function slotWinGrid(symbols,winner){const counts=new Map([[winner.id,8]]),grid=
   return json({ok:true,profile:publicProfile(fresh),grid,winner:winner?{id:winner.id,name:winner.name,multiplier:winner.multiplier}:null,bonus:bonus?{id:bonus.id,name:bonus.name,image_url:bonus.image_url||'',multiplier:bonus.multiplier,dropRound:bonus.dropRound}:null,basePayout,initialPayout,cascadePlan,payout,bet,config:{winRate:config.winRate,symbols,xSymbols:config.xSymbols||[]}});
 }
 const STREAM_GAME_HOSTS=new Set(['kickmeister5','batuhanfurkan5']);
-async function streamGameHostStatus(request,env){const user=await accountFromSession(request,env);const name=String(user?.kick_username_normalized||user?.kick_username||'').toLowerCase();return json({host:STREAM_GAME_HOSTS.has(name),username:user?.kick_username||null});}
+async function streamGameHostStatus(request,env){const user=await accountFromSession(request,env);const name=String(user?.kick_username_normalized||user?.kick_username||'').toLowerCase();return json({host:STREAM_GAME_HOSTS.has(name),username:user?.kick_username||null});}async function awardTabooCoins(request,env){
+  const host=await accountFromSession(request,env);
+  const hostName=String(host?.kick_username_normalized||host?.kick_username||'').toLowerCase();
+  if(!STREAM_GAME_HOSTS.has(hostName))return json({error:'Bu odulu yalnizca yayinci hesabi verebilir.'},{status:403});
+  const body=await request.json().catch(()=>null);
+  const username=String(body?.username||'').trim().replace(/^@/,'').toLowerCase();
+  const amount=Number(body?.amount),eventId=String(body?.eventId||'').trim().slice(0,180);
+  if(!validUsername(username)||![20,100].includes(amount)||!eventId)return json({error:'Odul bilgisi gecersiz.'},{status:400});
+  const user=await env.FINDIK_DB.prepare('SELECT id,kick_username,coins FROM users WHERE kick_username_normalized=?').bind(username).first();
+  if(!user)return json({ok:true,awarded:false,reason:'account_not_found'});
+  const reason='yayinci_tabusu:'+eventId;
+  const claim=await env.FINDIK_DB.prepare('INSERT OR IGNORE INTO coin_ledger(id,user_id,amount,reason,created_at) VALUES(?,?,?,?,?)').bind(id(),user.id,amount,reason,now()).run();
+  if(!claim.meta?.changes)return json({ok:true,awarded:false,reason:'already_awarded'});
+  await env.FINDIK_DB.prepare('UPDATE users SET coins=coins+? WHERE id=?').bind(amount,user.id).run();
+  const fresh=await env.FINDIK_DB.prepare('SELECT coins FROM users WHERE id=?').bind(user.id).first();
+  return json({ok:true,awarded:true,username:user.kick_username,amount,coins:Number(fresh?.coins||0)});
+}
 async function adminSlotConfig(request,env){
   const denied=await requireAdmin(request,env);if(denied)return denied;
   if(request.method==='GET')return json(await getSlotConfig(env,true));
@@ -498,6 +514,7 @@ export default {
     if (request.method === 'POST' && url.pathname === '/api/account/kick-event') return receiveKickEvent(request, env);
     if (request.method === 'POST' && url.pathname === '/api/account/client-confirm') return confirmFromChatClient(request, env);
     if (request.method === 'GET' && url.pathname === '/api/account/game/host') return streamGameHostStatus(request,env);
+    if (request.method === 'POST' && url.pathname === '/api/account/game/taboo-award') return awardTabooCoins(request,env);
     if (request.method === 'GET' && url.pathname === '/api/account/me') return json({ profile: publicProfile(await accountFromSession(request, env)) });
     if (request.method === 'POST' && url.pathname === '/api/account/daily-claim') return claimDailyBonus(request,env);
     if (request.method === 'GET' && url.pathname === '/api/account/shop/products') return json({items:await listShopProducts(env)});
