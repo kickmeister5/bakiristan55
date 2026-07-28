@@ -350,7 +350,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; h
 .admin-login-card{width:min(390px,100%);padding:34px 30px;background:linear-gradient(145deg,#191825,#0e0d17);border:1px solid var(--border2);border-radius:18px;box-shadow:0 24px 80px #0009;text-align:center}.admin-login-mark{font-family:var(--font-title);font-size:13px;letter-spacing:5px;color:var(--gold)}.admin-login-card h1{margin:9px 0 6px;font-family:var(--font-title);font-size:37px;letter-spacing:2px}.admin-login-card p{margin:0 0 22px;font-size:12px;color:var(--muted)}.admin-login-card label{display:block;text-align:left;margin:13px 0 6px;font-size:11px;color:var(--muted);letter-spacing:1px}.admin-login-card input{width:100%;padding:12px 13px;background:#090913;border:1px solid var(--border);border-radius:8px;color:var(--text);font:14px var(--font-body);outline:none}.admin-login-card input:focus{border-color:var(--gold)}.admin-login-btn{width:100%;margin-top:20px;padding:13px;border:0;border-radius:8px;background:linear-gradient(135deg,#f6cc54,#bd831f);color:#171005;font:600 15px var(--font-body);cursor:pointer}.admin-login-note{min-height:18px;margin-top:12px;font-size:12px;color:var(--muted)}#admin-logout{position:fixed;top:14px;right:16px;z-index:1000;display:none;border:1px solid var(--border2);border-radius:7px;background:var(--surface);color:var(--muted);padding:7px 10px;font:11px var(--font-body);cursor:pointer}#admin-logout:hover{color:var(--gold)}
 </style>
 </head>
-<body>
+<body class="admin-locked">
 
 <!-- ===== GAME SELECTOR ===== -->
 <div id="game-selector">
@@ -2974,5 +2974,8 @@ initBgTab();
 initBankerTab();
 </script>
 </div><!-- end admin-panel -->
-</body>
+<div id="admin-auth-gate"><form class="admin-login-card" id="admin-login-form"><div class="admin-login-mark">YÖNETİM</div><h1>ADMIN PANELİ</h1><p>Devam etmek için şifreyi gir.</p><label for="admin-password">ŞİFRE</label><input id="admin-password" type="password" autocomplete="current-password" autofocus><button class="admin-login-btn" type="submit">GİRİŞ YAP</button><div class="admin-login-note" id="admin-login-note"></div></form></div><button id="admin-logout" type="button">ÇIKIŞ YAP</button>
+<style>body.admin-locked #admin-panel{visibility:hidden}body.admin-locked{overflow:hidden}</style><script>
+(()=>{const key='admin_panel_session_v1',pass='admin321.',gate=document.getElementById('admin-auth-gate'),form=document.getElementById('admin-login-form'),input=document.getElementById('admin-password'),note=document.getElementById('admin-login-note'),logout=document.getElementById('admin-logout');const allow=()=>{sessionStorage.setItem(key,'1');document.body.classList.remove('admin-locked');gate.style.display='none';logout.style.display='block'};if(sessionStorage.getItem(key)==='1'){allow()}form.addEventListener('submit',e=>{e.preventDefault();if(input.value===pass){allow()}else{note.textContent='Şifre hatalı.';input.select();input.focus()}});logout.onclick=()=>{sessionStorage.removeItem(key);location.reload()}})();
+</script></body>
 </html>
