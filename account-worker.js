@@ -34,7 +34,8 @@ function ensureSchema(env) {
     `CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token_hash)`,
     `CREATE TABLE IF NOT EXISTS coin_ledger (id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id),amount INTEGER NOT NULL,reason TEXT NOT NULL,created_at INTEGER NOT NULL,UNIQUE(user_id, reason))`,
     `CREATE TABLE IF NOT EXISTS daily_claims (user_id TEXT NOT NULL REFERENCES users(id),claimed_day TEXT NOT NULL,claimed_at INTEGER NOT NULL,PRIMARY KEY(user_id, claimed_day))`,
-    `CREATE TABLE IF NOT EXISTS shop_products (id TEXT PRIMARY KEY,name TEXT NOT NULL,description TEXT NOT NULL DEFAULT '',image_url TEXT NOT NULL DEFAULT '',price INTEGER NOT NULL CHECK (price >= 0),stock INTEGER,active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0,1)),created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS pending_game_rewards (id TEXT PRIMARY KEY,kick_username TEXT NOT NULL,kick_username_normalized TEXT NOT NULL,amount INTEGER NOT NULL CHECK (amount > 0),reason TEXT NOT NULL,created_at INTEGER NOT NULL,UNIQUE(kick_username_normalized,reason))`,
+    `CREATE INDEX IF NOT EXISTS idx_pending_game_rewards_user ON pending_game_rewards(kick_username_normalized,created_at)`,    `CREATE TABLE IF NOT EXISTS shop_products (id TEXT PRIMARY KEY,name TEXT NOT NULL,description TEXT NOT NULL DEFAULT '',image_url TEXT NOT NULL DEFAULT '',price INTEGER NOT NULL CHECK (price >= 0),stock INTEGER,active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0,1)),created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL)`,
     `CREATE INDEX IF NOT EXISTS idx_shop_products_active ON shop_products(active, created_at DESC)`,
     `CREATE TABLE IF NOT EXISTS shop_purchases (id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id),product_id TEXT NOT NULL REFERENCES shop_products(id),product_name TEXT NOT NULL,unit_price INTEGER NOT NULL CHECK (unit_price >= 0),customer_name TEXT NOT NULL DEFAULT '',shipping_address TEXT NOT NULL DEFAULT '',phone TEXT NOT NULL DEFAULT '',created_at INTEGER NOT NULL)`,
     `CREATE INDEX IF NOT EXISTS idx_shop_purchases_user ON shop_purchases(user_id, created_at DESC)`,
@@ -104,7 +105,15 @@ function randomCode() {
   const bytes = crypto.getRandomValues(new Uint8Array(7));
   return [...bytes].map(v => alphabet[v % alphabet.length]).join('');
 }
-async function requestVerification(request, env) {
+async function claimPendingGameRewards(env,userId,normalized){
+  const {results=[]}=await env.FINDIK_DB.prepare('SELECT id,amount,reason FROM pending_game_rewards WHERE kick_username_normalized=? ORDER BY created_at').bind(normalized).all();
+  if(!results.length)return 0;
+  const total=results.reduce((sum,row)=>sum+Number(row.amount||0),0),statements=[env.FINDIK_DB.prepare('UPDATE users SET coins=coins+? WHERE id=?').bind(total,userId)];
+  for(const reward of results)statements.push(env.FINDIK_DB.prepare('INSERT OR IGNORE INTO coin_ledger(id,user_id,amount,reason,created_at) VALUES(?,?,?,?,?)').bind(id(),userId,Number(reward.amount),'pending_game_reward:'+reward.id,now()));
+  statements.push(env.FINDIK_DB.prepare('DELETE FROM pending_game_rewards WHERE kick_username_normalized=?').bind(normalized));
+  await env.FINDIK_DB.batch(statements);
+  return total;
+}async function requestVerification(request, env) {
   const body = await request.json().catch(() => null);
   const kickUsername = String(body?.kickUsername || '').trim().replace(/^@/, '');
   if (!validUsername(kickUsername)) return json({ error: 'Geçerli bir Kick kullanıcı adı yaz.' }, { status: 400 });
@@ -133,6 +142,7 @@ async function requestVerification(request, env) {
     statements.push(env.FINDIK_DB.prepare('UPDATE verification_requests SET verified_user_id=?,verified_at=? WHERE id=?')
       .bind(userId,now(),requestId));
     await env.FINDIK_DB.batch(statements);
+    await claimPendingGameRewards(env,userId,normalized);
     const profile = await env.FINDIK_DB.prepare('SELECT kick_username,display_name,coins FROM users WHERE id=?').bind(userId).first();
     return json({ requestId, verified:true, profile:publicProfile(profile) }, { headers:{ 'set-cookie':await issueSession(userId,env) } });
   }
@@ -208,6 +218,7 @@ async function receiveKickEvent(request, env) {
   statements.push(env.FINDIK_DB.prepare('UPDATE verification_requests SET verified_user_id=?,verified_at=? WHERE id=? AND verified_user_id IS NULL')
     .bind(finalUserId, now(), pending.id));
   await env.FINDIK_DB.batch(statements);
+  await claimPendingGameRewards(env,finalUserId,username.toLowerCase());
   return json({ ok: true });
 }
 
@@ -245,6 +256,7 @@ async function confirmFromChatClient(request, env) {
   statements.push(env.FINDIK_DB.prepare('UPDATE verification_requests SET verified_user_id=?,verified_at=? WHERE id=? AND verified_user_id IS NULL')
     .bind(userId,now(),pending.id));
   await env.FINDIK_DB.batch(statements);
+  await claimPendingGameRewards(env,userId,username.toLowerCase());
   const profile=await env.FINDIK_DB.prepare('SELECT kick_username,display_name,coins FROM users WHERE id=?').bind(userId).first();
   return json({ verified:true,profile:publicProfile(profile) },{headers:{'set-cookie':await issueSession(userId,env)}});
 }
@@ -462,8 +474,8 @@ async function streamGameHostStatus(request,env){const user=await accountFromSes
   const amount=Number(body?.amount),eventId=String(body?.eventId||'').trim().slice(0,180);
   if(!validUsername(username)||![20,100].includes(amount)||!eventId)return json({error:'Odul bilgisi gecersiz.'},{status:400});
   const user=await env.FINDIK_DB.prepare('SELECT id,kick_username,coins FROM users WHERE kick_username_normalized=?').bind(username).first();
-  if(!user)return json({ok:true,awarded:false,reason:'account_not_found'});
   const reason='yayinci_tabusu:'+eventId;
+  if(!user){const queued=await env.FINDIK_DB.prepare('INSERT OR IGNORE INTO pending_game_rewards(id,kick_username,kick_username_normalized,amount,reason,created_at) VALUES(?,?,?,?,?,?)').bind(id(),username,username,amount,reason,now()).run();return json({ok:true,awarded:false,pending:!!queued.meta?.changes,reason:'account_not_found'});}
   const claim=await env.FINDIK_DB.prepare('INSERT OR IGNORE INTO coin_ledger(id,user_id,amount,reason,created_at) VALUES(?,?,?,?,?)').bind(id(),user.id,amount,reason,now()).run();
   if(!claim.meta?.changes)return json({ok:true,awarded:false,reason:'already_awarded'});
   await env.FINDIK_DB.prepare('UPDATE users SET coins=coins+? WHERE id=?').bind(amount,user.id).run();
