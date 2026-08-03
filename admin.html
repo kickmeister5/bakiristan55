@@ -1044,6 +1044,19 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; h
       <button class="disp-save-btn" onclick="saveHpFidget()" style="margin-top:15px;">FIDGET AYARINI KAYDET</button>
     </div>
 
+    <div class="disp-card hp-section">
+      <div class="disp-card-title">ANA SAYFA ARKA PLAN MÜZİĞİ</div>
+      <div class="disp-card-sub">Ana sayfada döngüde çalacak müziği yükleyin. Ziyaretçiler sesi kendi panelinden açıp kapatabilir ve seviyesini ayarlayabilir.</div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px;">
+        <input id="hp-music-url" type="text" readonly placeholder="Henüz müzik yüklenmedi" style="flex:1;min-width:220px;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;color:var(--muted);padding:10px 12px;font-size:12px;outline:none;">
+        <button class="btn-ghost" type="button" onclick="document.getElementById('hp-music-file').click()">MÜZİK YÜKLE</button>
+        <button class="btn-ghost danger" type="button" id="hp-music-del" onclick="clearHpMusic()" style="display:none;">SİL</button>
+      </div>
+      <input id="hp-music-file" type="file" accept="audio/mpeg,audio/ogg,audio/wav,audio/*" style="display:none" onchange="handleHpMusicUpload(event)">
+      <div id="hp-music-note" class="disp-card-sub" style="margin-top:9px;">MP3, OGG veya WAV yükleyebilirsin.</div>
+      <button class="disp-save-btn" onclick="saveHpMusic()" style="margin-top:15px;">MÜZİĞİ YAYINLA</button>
+    </div>
+
     <!-- 5. OYUN KARTLARI -->
     <div class="disp-card hp-section">
       <div class="disp-card-title">OYUN KARTLARI</div>
@@ -2179,7 +2192,12 @@ function initHomepageTab(){
     const chk=document.getElementById('hp-fidget-enabled');
     if(chk) chk.checked=fidget.enabled!==false;
   }catch(e){}
-  buildHpCardsGrid();
+  try{
+    const url=clGet('hp_home_music')||'';
+    const input=document.getElementById('hp-music-url'); const del=document.getElementById('hp-music-del'); const note=document.getElementById('hp-music-note');
+    if(input) input.value=url; if(del) del.style.display=url?'':'none';
+    if(note&&url) note.textContent='✓ Arka plan müziği hazır. Değiştirmek için yeni bir dosya yükleyebilirsin.';
+  }catch(e){}  buildHpCardsGrid();
 }
 
 /* HEADER IMAGE */
@@ -2273,6 +2291,19 @@ function saveHpFidget(){
   showToast(enabled?'Slot fidget ana sayfada gösterilecek':'Slot fidget ana sayfadan gizlendi');
 }
 
+async function handleHpMusicUpload(event){
+  const file=event.target.files?.[0]; if(!file)return;
+  const note=document.getElementById('hp-music-note'); note.textContent='Müzik yükleniyor…';
+  try{
+    const form=new FormData();form.append('file',file);form.append('upload_preset',UPLOAD_PRESET);form.append('folder','homepage');
+    const res=await fetch('https://api.cloudinary.com/v1_1/'+CLOUD_NAME+'/video/upload',{method:'POST',body:form});const data=await res.json();
+    if(!res.ok||data.error)throw new Error(data.error?.message||'Cloudinary yükleme hatası');
+    document.getElementById('hp-music-url').value=data.secure_url;document.getElementById('hp-music-del').style.display='';
+    note.textContent='✓ '+file.name+' hazır. MÜZİĞİ YAYINLA ile ana sayfaya aktar.';showToast('✓ Müzik yüklendi');
+  }catch(error){note.textContent='⚠ Müzik yüklenemedi: '+(error.message||'bilinmeyen hata');showToast('⚠ '+(error.message||'Müzik yüklenemedi'))}
+}
+function saveHpMusic(){const url=document.getElementById('hp-music-url').value.trim();if(!url){showToast('⚠ Önce bir müzik dosyası yükleyin.');return}clSave('hp_home_music',url);document.getElementById('hp-music-note').textContent='✓ Arka plan müziği ana sayfada yayınlandı.';showToast('✓ Ana sayfa müziği yayınlandı')}
+function clearHpMusic(){if(!confirm('Ana sayfa arka plan müziği kaldırılacak?'))return;clDel('hp_home_music');document.getElementById('hp-music-url').value='';document.getElementById('hp-music-file').value='';document.getElementById('hp-music-del').style.display='none';document.getElementById('hp-music-note').textContent='MP3, OGG veya WAV yükleyebilirsin.';showToast('🗑 Müzik kaldırıldı')}
 /* GAME CARDS — banner + aktif/deaktif + deaktif etiketi */
 function buildHpCardsGrid(){
   const g=document.getElementById('hp-cards-grid'); if(!g) return;

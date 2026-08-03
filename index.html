@@ -24,9 +24,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
 #app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 0 60px;}
 
 /* HEADER IMAGE */
-.site-header{width:100%;display:none;flex-shrink:0;}
-.site-header.on{display:block;}
-.site-header img{width:100%;height:auto;display:block;object-fit:contain;}
+.site-header{width:100%;display:none;flex-shrink:0;justify-content:center;}
+.site-header.on{display:flex;}
+.site-header img{width:100%;height:auto;display:block;object-fit:contain;margin-inline:auto;}
 
 /* GAMES GRID */
 .games-grid{
@@ -34,6 +34,22 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
   grid-template-columns:repeat(4,1fr);
   gap:20px;width:100%;max-width:1280px;
   padding:40px 20px 0;
+}
+
+/* 1080p tasarımını temel al: daha yüksek çözünürlükte fiziksel görünüm küçülmesin. */
+@media (min-width:2200px) and (max-width:3499px){
+  .games-grid{grid-template-columns:repeat(4,390px);width:max-content;max-width:calc(100% - 40px);gap:27px;padding-top:53px;}
+  .gc-banner{height:280px!important;}
+  .account-dock{scale:1.47;}
+  .site-credit-tag{scale:1.33;transform-origin:right center;}
+  .fidget-slot{scale:1.33;transform-origin:right bottom;}
+}
+@media (min-width:3500px){
+  .games-grid{grid-template-columns:repeat(4,586px);width:max-content;max-width:calc(100% - 60px);gap:40px;padding-top:80px;}
+  .gc-banner{height:420px!important;}
+  .account-dock{scale:2.2;}
+  .site-credit-tag{scale:2;transform-origin:right center;}
+  .fidget-slot{scale:2;transform-origin:right bottom;}
 }
 @media (max-width:980px){
   .games-grid{grid-template-columns:repeat(2,1fr);max-width:700px;}
@@ -98,7 +114,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
 .account-dock.open .account-panel{transform:translate(0,-50%)}
 .account-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.account-kicker{font:700 11px var(--font-body);letter-spacing:2px;color:#f0c040}.account-title{font:400 32px var(--font-title);letter-spacing:1px}.account-close{border:0;background:transparent;color:#a6a3b4;font-size:24px;cursor:pointer;padding:2px 6px}.account-copy{color:#aaa8b8;font-size:12px;line-height:1.55;margin:8px 0 15px}.account-field{width:100%;height:45px;padding:0 13px;border:1px solid #ffffff1e;border-radius:9px;background:#060811;color:#fff;font:600 14px var(--font-body);outline:none}.account-field:focus{border-color:#f0c04099;box-shadow:0 0 0 3px #f0c0401a}.account-btn{width:100%;min-height:44px;margin-top:10px;border:1px solid #f6d869;border-radius:9px;background:linear-gradient(135deg,#f6d55d,#b37b1c);color:#181208;cursor:pointer;font:700 13px var(--font-body);letter-spacing:.5px}.account-btn:disabled{opacity:.55;cursor:wait}.account-note{min-height:20px;margin-top:11px;color:#b7b4c7;font-size:11px;line-height:1.45}.account-note.error{color:#ff9da6}.account-note.success{color:#87f2bd}.account-code{margin-top:14px;padding:13px;border:1px solid #62d7f055;border-radius:10px;background:#091522;color:#ccefff}.account-code strong{display:block;margin:5px 0;color:#fff;font:700 17px var(--font-body);letter-spacing:.3px}.account-code small{color:#90aaba;font-size:11px}.account-profile{display:grid;grid-template-columns:48px 1fr;gap:11px;align-items:center;margin-top:12px;padding:13px;border:1px solid #f0c04044;border-radius:11px;background:#15130d}.account-avatar{width:48px;height:48px;display:grid;place-items:center;border-radius:50%;background:#32280c;border:1px solid #f0c040;color:#f9d761;font-size:22px}.account-name{font-weight:700}.account-kick{margin-top:2px;color:#9d9bad;font-size:11px}.account-coins{display:inline-flex;align-items:center;gap:5px;margin-top:7px;color:#f8d55c;font-weight:700;font-size:13px}.account-logout{margin-top:12px;border:0;background:transparent;color:#aaa7b5;font:600 11px var(--font-body);cursor:pointer;text-decoration:underline}@media(max-width:600px){.account-panel{width:min(338px,calc(100vw - 28px))}.account-dock.open .account-toggle{transform:translateX(min(338px,calc(100vw - 28px)))}.account-toggle{min-height:126px}}
 </style>
-</head>
+<style id="homepage-audio-style">
+.homepage-audio-control{position:fixed;left:20px;bottom:20px;z-index:80;display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #ffffff2e;border-radius:999px;background:#080b11d9;box-shadow:0 10px 28px #0008;backdrop-filter:blur(12px);color:#fff}.homepage-audio-control:hover{background:#121826ed}.homepage-audio-toggle{display:grid;place-items:center;width:30px;height:30px;padding:0;border:1px solid #f4c542aa;border-radius:50%;background:#f4c542;color:#15110a;font:bold 18px/1 Arial;cursor:pointer;transition:transform .18s ease}.homepage-audio-toggle:hover{transform:scale(1.08)}.homepage-audio-toggle.playing{background:#fff1ad}.homepage-audio-toggle.muted{background:#2a303a;border-color:#7f8997;color:#c5cbd5}.homepage-audio-volume{display:flex;align-items:center;gap:7px;max-width:0;overflow:hidden;opacity:0;transition:max-width .24s ease,opacity .2s ease}.homepage-audio-control:hover .homepage-audio-volume,.homepage-audio-control:focus-within .homepage-audio-volume{max-width:150px;opacity:1}.homepage-audio-volume input{width:95px;accent-color:#f4c542;cursor:pointer}.homepage-audio-volume span{min-width:31px;font:700 11px Arial;color:#f4c542}@media(max-width:700px){.homepage-audio-control{left:12px;bottom:12px}.homepage-audio-volume{max-width:126px;opacity:1}.homepage-audio-volume input{width:76px}}
+</style></head>
 <body>
 <div id="bg-layer"></div>
 <div id="app">
@@ -300,7 +318,10 @@ function applySettings(){
     const url  = clOpt(clGet('hp_header_img'), 1200);
     if(url && hdr.show!==false){
       img.src=url; wrap.classList.add('on');
-      if(hdr.maxW) img.style.maxWidth=hdr.maxW+'px';
+      if(hdr.maxW){
+        const displayScale=Math.max(1,Math.min(2,window.innerWidth/1920));
+        img.style.maxWidth=Math.round(hdr.maxW*displayScale)+'px';
+      }
     } else {
       wrap.classList.remove('on');
     }
@@ -368,9 +389,27 @@ function applySettings(){
 /* Önce localStorage'daki (önceki ziyaretten kalma) ayarları ANINDA uygula — sayfa asla boş açılmasın.
    Ardından jsonbin.io'dan taze veriyi arka planda çek ve değişen bir şey varsa sessizce güncelle. */
 applySettings();
-syncConfig().then(applySettings);
+initHomepageMusic();
+syncConfig().then(()=>{applySettings();initHomepageMusic();});
 
-/* Kartlara imleci takip eden hafif 3B eğim verir. Klavye/dokunmatik kullanımda
+
+function initHomepageMusic(){
+  const url=clGet('hp_home_music'); let audio=document.getElementById('homepage-music'); let control=document.getElementById('homepage-audio-control');
+  if(!url){audio?.pause();if(control)control.hidden=true;return}
+  if(!audio){audio=document.createElement('audio');audio.id='homepage-music';audio.loop=true;audio.preload='metadata';document.body.appendChild(audio)}
+  if(audio.dataset.source!==url){audio.pause();audio.src=url;audio.dataset.source=url;audio.load()}
+  if(!control){
+    control=document.createElement('div');control.id='homepage-audio-control';control.className='homepage-audio-control';control.innerHTML='<button type="button" class="homepage-audio-toggle" aria-label="Müziği aç veya kapat">♪</button><div class="homepage-audio-volume"><input type="range" min="0" max="100" value="35" aria-label="Müzik ses seviyesi"><span>%35</span></div>';document.body.appendChild(control);
+    const toggle=control.querySelector('.homepage-audio-toggle'),range=control.querySelector('input'),label=control.querySelector('span');
+    const setVolume=value=>{const v=Math.max(0,Math.min(100,Number(value)||0));audio.volume=v/100;range.value=v;label.textContent='%'+v;localStorage.setItem('hp_music_volume',String(v));toggle.classList.toggle('muted',v===0);toggle.textContent=v===0?'×':'♪'};
+    const setPlaying=playing=>{toggle.classList.toggle('playing',playing);toggle.textContent=audio.volume===0?'×':(playing?'Ⅱ':'♪')};
+    setVolume(localStorage.getItem('hp_music_volume')||35);
+    range.addEventListener('input',()=>{setVolume(range.value);if(audio.paused&&audio.volume>0)audio.play().then(()=>setPlaying(true)).catch(()=>{})});
+    toggle.addEventListener('click',()=>{if(audio.paused){if(audio.volume===0)setVolume(localStorage.getItem('hp_music_volume')||35);audio.play().then(()=>setPlaying(true)).catch(()=>setPlaying(false))}else{audio.pause();setPlaying(false)}});
+    audio.addEventListener('play',()=>setPlaying(true));audio.addEventListener('pause',()=>setPlaying(false));
+  }
+  control.hidden=false;const tryStart=()=>audio.play().catch(()=>{});tryStart();['pointerdown','keydown','touchstart'].forEach(type=>document.addEventListener(type,tryStart,{once:true,passive:type!=='keydown'}));
+}/* Kartlara imleci takip eden hafif 3B eğim verir. Klavye/dokunmatik kullanımda
    çalışmaz; böylece erişilebilirlik ve mobil akış aynı kalır. */
 if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
   document.querySelectorAll('.game-card:not(.inactive)').forEach(card => {
